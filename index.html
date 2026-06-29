@@ -677,6 +677,51 @@ html,body{
   .emoji-picker{width:calc(100vw - 24px);left:12px;right:12px;}
   .poll-creator{width:calc(100vw - 32px);left:50%;transform:translateX(-50%);}
 }
+
+/* ===== CHAT CONTEXT MENU ===== */
+.chat-ctx-menu {
+  position: fixed;
+  background: rgba(18,18,30,0.97);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  padding: 6px;
+  min-width: 190px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+  z-index: 9999;
+  animation: popIn 0.15s ease;
+}
+.chat-ctx-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 9px;
+  font-size: 14px; font-weight: 500; color: var(--text-primary);
+  cursor: pointer; transition: background 0.12s; border: none;
+  background: transparent; width: 100%; text-align: left;
+  font-family: inherit;
+}
+.chat-ctx-item:hover { background: rgba(255,255,255,0.07); }
+.chat-ctx-item.danger { color: #f87171; }
+.chat-ctx-item.danger:hover { background: rgba(239,68,68,0.13); }
+.chat-ctx-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; }
+
+/* Archive section */
+.archive-toggle {
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px 14px; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: var(--text-secondary);
+  transition: color 0.15s; user-select: none; flex-shrink: 0;
+}
+.archive-toggle:hover { color: var(--text-primary); }
+.archive-toggle svg { opacity: 0.7; transition: transform 0.2s; flex-shrink:0; }
+.archive-toggle.open svg { transform: rotate(180deg); }
+.archive-badge {
+  margin-left: auto;
+  background: var(--primary);
+  color: #fff; font-size: 10px; font-weight: 700;
+  padding: 1px 7px; border-radius: 20px; min-width: 18px; text-align: center;
+}
+#archived-list { flex-shrink: 0; }
 </style>
 </head>
 <body>
