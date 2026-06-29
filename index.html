@@ -2609,7 +2609,9 @@ function closeChatCtxMenu() {
   if (ctxMenuEl) { ctxMenuEl.remove(); ctxMenuEl = null; }
 }
 
-document.addEventListener('click', closeChatCtxMenu);
+document.addEventListener('click', e => {
+  if (ctxMenuEl && !ctxMenuEl.contains(e.target)) closeChatCtxMenu();
+});
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeChatCtxMenu(); });
 
 function showChatCtxMenu(e, chatId, type, item) {
@@ -2635,13 +2637,18 @@ function showChatCtxMenu(e, chatId, type, item) {
     </button>
   `;
 
-  // Position
-  const x = e.touches ? e.touches[0].clientX : e.clientX;
-  const y = e.touches ? e.touches[0].clientY : e.clientY;
-  menu.style.left = Math.min(x, window.innerWidth - 200) + 'px';
-  menu.style.top = Math.min(y, window.innerHeight - 120) + 'px';
+  // Position - append first to measure, then position
+  menu.style.visibility = 'hidden';
   document.body.appendChild(menu);
   ctxMenuEl = menu;
+
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+  const mw = menu.offsetWidth || 190;
+  const mh = menu.offsetHeight || 110;
+  menu.style.left = Math.min(x, window.innerWidth - mw - 8) + 'px';
+  menu.style.top = Math.min(y, window.innerHeight - mh - 8) + 'px';
+  menu.style.visibility = '';
 
   menu.querySelector('#ctx-archive').addEventListener('click', e => {
     e.stopPropagation();
