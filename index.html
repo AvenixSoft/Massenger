@@ -3,12 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>MyMessenger - Beta</title>
+<title>Avenix Messenger - Beta</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563EB">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MyMessenger">
+<link rel="apple-touch-icon" href="1.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 :root{
   --primary:#2563EB;--primary-dark:#1d4ed8;--primary-light:#60a5fa;
   --bg:#0a0a0f;--sidebar-bg:#0f0f17;--sidebar-header-bg:#13131e;
@@ -23,8 +32,10 @@
   --surface:#13131e;--surface2:#1a1a28;
   --blue-glow:rgba(37,99,235,0.15);
   --gray:#1e1e2e;--white:#e8eaf0;
+  --app-height:100vh;
 }
-html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);overflow:hidden;}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);overflow:hidden;overscroll-behavior:none;}
 .hidden{display:none!important;}
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -2497,6 +2508,78 @@ function closeModal() {
 function setOffline() {
   if (currentUser) db.collection('users').doc(currentUser.uid).update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
 }
+
+
+
+
+const CACHE_NAME = 'mymessenger-v1';
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/1.png',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
+];
+
+// Install: cache static assets
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(STATIC_ASSETS).catch(err => {
+        console.warn('Some assets could not be cached:', err);
+      });
+    })
+  );
+  self.skipWaiting();
+});
+
+// Activate: clean up old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      )
+    )
+  );
+  self.clients.claim();
+});
+
+// Fetch: network-first for Firebase, cache-first for static
+self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // Skip non-GET and Firebase/API requests (always use network)
+  if (
+    event.request.method !== 'GET' ||
+    url.hostname.includes('firestore.googleapis.com') ||
+    url.hostname.includes('firebase') ||
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('gstatic.com')
+  ) {
+    return; // Let the browser handle it
+  }
+
+  // Cache-first for static assets
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(response => {
+        if (!response || response.status !== 200 || response.type === 'opaque') {
+          return response;
+        }
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return response;
+      }).catch(() => {
+        // Offline fallback for navigation
+        if (event.request.mode === 'navigate') {
+          return caches.match('/index.html');
+        }
+      });
+    })
+  );
+});
 </script>
 </body>
 </html>
