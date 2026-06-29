@@ -614,16 +614,62 @@ html,body{
 /* ===== FOCUS ===== */
 :focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
 
-/* ===== RESPONSIVE ===== */
+/* ===== MOBILE BOTTOM NAV ===== */
+.mobile-nav{display:none;}
 @media(max-width:768px){
+  /* Bottom glass nav bar */
+  .mobile-nav{
+    display:flex;align-items:center;justify-content:space-around;
+    position:fixed;bottom:0;left:0;right:0;
+    height:calc(62px + env(safe-area-inset-bottom));
+    padding-bottom:env(safe-area-inset-bottom);
+    background:rgba(13,13,22,0.78);
+    backdrop-filter:blur(28px) saturate(160%);
+    -webkit-backdrop-filter:blur(28px) saturate(160%);
+    border-top:1px solid rgba(255,255,255,0.07);
+    z-index:50;
+    box-shadow:0 -8px 32px rgba(0,0,0,0.45);
+  }
+  .mobile-nav-item{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:4px;padding:8px 0;cursor:pointer;
+    color:var(--text-muted);transition:color 0.2s ease;
+    background:transparent;border:none;position:relative;
+  }
+  .mobile-nav-item .nav-icon{
+    width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+    border-radius:10px;transition:all 0.2s ease;
+  }
+  .mobile-nav-item .nav-label{font-size:10px;font-weight:600;letter-spacing:0.2px;transition:color 0.2s;}
+  .mobile-nav-item.active{color:var(--primary);}
+  .mobile-nav-item.active .nav-icon{
+    background:rgba(37,99,235,0.15);
+    box-shadow:0 0 14px rgba(37,99,235,0.25);
+  }
+  .mobile-nav-item:active .nav-icon{transform:scale(0.88);}
+
+  /* Hide sidebar header on mobile, show only nav */
+  .sidebar-header{display:none;}
+  .sidebar-tabs{display:none;}
+
+  /* Adjust sidebar to not overlap nav */
   .app{position:relative;}
-  .sidebar{width:100%;min-width:0;position:absolute;top:0;left:0;right:0;bottom:0;z-index:20;height:var(--app-height,100vh);}
+  .sidebar{
+    width:100%;min-width:0;position:absolute;
+    top:0;left:0;right:0;
+    bottom:calc(62px + env(safe-area-inset-bottom));
+    z-index:20;height:auto;
+  }
   .sidebar.hide-mobile{transform:translateX(-100%);}
   .chat-window{width:100%;}
   .message-row{max-width:84%;}
   .back-btn{display:flex;}
   .messages{padding:10px 12px;}
   .emoji-picker{width:290px;right:8px;}
+
+  /* Chat window also respect nav height */
+  .chat-active{padding-bottom:0;}
+  .message-form{padding-bottom:max(10px,env(safe-area-inset-bottom));}
 }
 @media(max-width:480px){
   .auth-card{padding:28px 20px;}
@@ -744,6 +790,26 @@ html,body{
     <div class="chats-list-label">Chats</div>
     <div id="chats-list" class="chats-list"></div>
   </aside>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-nav" id="mobile-nav">
+    <button class="mobile-nav-item active" id="mnav-chats" onclick="mobileNavSwitch('chats')">
+      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+      <span class="nav-label">Chats</span>
+    </button>
+    <button class="mobile-nav-item" id="mnav-search" onclick="mobileNavSwitch('search')">
+      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+      <span class="nav-label">Search</span>
+    </button>
+    <button class="mobile-nav-item" id="mnav-profile" onclick="mobileNavSwitch('profile')">
+      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      <span class="nav-label">Profile</span>
+    </button>
+    <button class="mobile-nav-item" id="mnav-settings" onclick="mobileNavSwitch('settings')">
+      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      <span class="nav-label">Settings</span>
+    </button>
+  </nav>
 
   <main class="chat-window">
     <div id="chat-empty" class="chat-empty">
@@ -2510,6 +2576,64 @@ function closeModal() {
   const existing = document.getElementById('active-modal');
   if (existing) existing.remove();
   pendingGroupAvatarBlob = null;
+}
+
+
+/* ===== MOBILE NAV ===== */
+function mobileNavSwitch(tab) {
+  document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+  const activeBtn = document.getElementById('mnav-' + tab);
+  if (activeBtn) activeBtn.classList.add('active');
+  const sidebar = document.getElementById('sidebar');
+
+  if (tab === 'chats') {
+    if (window.innerWidth <= 768) sidebar.classList.remove('hide-mobile');
+  } else if (tab === 'search') {
+    if (window.innerWidth <= 768) {
+      sidebar.classList.remove('hide-mobile');
+      setTimeout(() => {
+        const s = document.getElementById('user-search');
+        if (s) { s.focus(); s.select(); }
+      }, 100);
+    }
+  } else if (tab === 'profile') {
+    const profileBtn = document.getElementById('me-profile-btn');
+    if (profileBtn) profileBtn.click();
+    setTimeout(() => {
+      document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+      if (activeBtn) activeBtn.classList.add('active');
+    }, 50);
+  } else if (tab === 'settings') {
+    showMobileSettings();
+    setTimeout(() => {
+      document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+      const chatsBtn = document.getElementById('mnav-chats');
+      if (chatsBtn) chatsBtn.classList.add('active');
+    }, 200);
+  }
+}
+
+function showMobileSettings() {
+  closeModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'active-modal';
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  const sheet = document.createElement('div');
+  sheet.style.cssText = 'position:fixed;bottom:calc(62px + env(safe-area-inset-bottom));left:12px;right:12px;background:rgba(13,13,22,0.92);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:20px;box-shadow:0 -8px 40px rgba(0,0,0,0.6);z-index:300;animation:popIn 0.25s ease;';
+  sheet.innerHTML = `
+    <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">Settings</div>
+    <button onclick="document.getElementById('new-group-btn').click();closeModal();" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;background:var(--surface2);border-radius:12px;color:var(--text-primary);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:left;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg>
+      New Group
+    </button>
+    <button onclick="document.getElementById('logout-btn').click();" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;background:rgba(239,68,68,0.1);border-radius:12px;color:#ef4444;font-size:14px;font-weight:600;cursor:pointer;border:1px solid rgba(239,68,68,0.2);text-align:left;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  `;
+  overlay.appendChild(sheet);
+  document.getElementById('modal-container').appendChild(overlay);
 }
 
 /* ===== AUTH: online status ===== */
