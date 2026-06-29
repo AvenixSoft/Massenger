@@ -1,8 +1,9 @@
 {
-  "name": "Avenix Messenger",
-  "short_name": "MyMessenger",
-  "description": "MyMessenger - Real-time chat app",
-  "start_url": "/",
+  "name": "Avenix Massenger",
+  "short_name": "Avenix",
+  "description": "Avenix Massenger - Real-time chat app",
+  "start_url": "/Massenger/",
+  "scope": "/Massenger/",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#2563EB",
