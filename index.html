@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Avenix Messenger - Beta</title>
 
 <!-- PWA -->
@@ -35,12 +35,12 @@
   --app-height:100vh;
 }
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
-html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);overflow:hidden;overscroll-behavior:none;}
-/* Safari iOS: use dvh (dynamic viewport height) when supported */
-@supports (height: 100dvh) {
-  html, body { height: 100dvh; }
-  .app { height: 100dvh; }
-  .auth-screen { height: 100dvh; }
+html,body{
+  height:100%;width:100%;
+  background:var(--bg);color:var(--text-primary);
+  overflow:hidden;overscroll-behavior:none;
+  /* iOS: prevent body scroll/bounce */
+  position:fixed;top:0;left:0;right:0;bottom:0;
 }
 .hidden{display:none!important;}
 ::-webkit-scrollbar{width:4px;}
@@ -50,10 +50,12 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);
 
 /* ===== AUTH ===== */
 .auth-screen{
-  height:100vh;height:100dvh;width:100%;
+  height:var(--app-height,100vh);width:100%;
   display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 120% 80% at 50% 0%,#0d1424 0%,#08080f 60%);
   padding:16px;position:relative;overflow:hidden;
+  /* iOS scroll fix */
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
 }
 .auth-screen::before{
   content:'';position:absolute;inset:0;
@@ -115,7 +117,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);
 .input-group input{
   width:100%;padding:14px 16px;
   border:1.5px solid var(--input-border);border-radius:12px;
-  font-size:14px;outline:none;transition:all 0.2s ease;
+  font-size:16px;outline:none;transition:all 0.2s ease;
   background:rgba(13,13,22,0.6);color:var(--text-primary);
 }
 .input-group input::placeholder{color:transparent;}
@@ -141,7 +143,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);
 .auth-error{color:var(--error);font-size:12.5px;min-height:16px;text-align:center;}
 
 /* ===== APP LAYOUT ===== */
-.app{display:flex;height:100vh;height:100dvh;height:var(--app-height,100dvh);width:100%;background:var(--bg);}
+.app{display:flex;height:var(--app-height,100vh);width:100%;background:var(--bg);overflow:hidden;}
 
 /* ===== SIDEBAR ===== */
 .sidebar{
@@ -207,7 +209,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);
 .search-wrap input{
   width:100%;padding:8px 14px 8px 34px;border-radius:20px;
   border:1.5px solid transparent;background:var(--surface);
-  outline:none;font-size:13.5px;color:var(--text-primary);
+  outline:none;font-size:16px;color:var(--text-primary);
   transition:all 0.2s;
 }
 .search-wrap input::placeholder{color:var(--text-muted);}
@@ -460,7 +462,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);
 .poll-creator input{
   width:100%;padding:9px 13px;border-radius:10px;
   border:1.5px solid var(--border);background:var(--surface2);
-  color:var(--text-primary);font-size:13.5px;outline:none;margin-bottom:8px;
+  color:var(--text-primary);font-size:16px;outline:none;margin-bottom:8px;
 }
 .poll-creator input:focus{border-color:var(--primary);}
 .poll-options-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
@@ -484,17 +486,14 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);
   padding:10px 12px;background:var(--chat-header-bg);
   border-top:1px solid var(--border);flex-shrink:0;
   padding-bottom:max(10px, env(safe-area-inset-bottom));
-  position:relative;
-  /* Safari iOS: stay above keyboard */
-  position: sticky;
-  bottom: 0;
+  position:relative;z-index:2;
 }
 .msg-input-wrap{flex:1;position:relative;}
 .message-form input{
   width:100%;padding:10px 14px;border-radius:22px;
   border:1.5px solid var(--input-border);
   background:var(--input-bg);outline:none;
-  font-size:14px;color:var(--text-primary);transition:all 0.2s;
+  font-size:16px;color:var(--text-primary);transition:all 0.2s;
 }
 .message-form input::placeholder{color:var(--text-muted);}
 .message-form input:focus{border-color:var(--primary);background:var(--surface2);}
@@ -550,7 +549,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);
 .modal-input{
   width:100%;padding:10px 14px;border-radius:11px;
   border:1.5px solid var(--border);background:var(--surface2);
-  color:var(--text-primary);font-size:14px;outline:none;margin-bottom:12px;
+  color:var(--text-primary);font-size:16px;outline:none;margin-bottom:12px;
 }
 .modal-input:focus{border-color:var(--primary);}
 .modal-label{font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;display:block;}
@@ -618,19 +617,30 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
-  .app{position:relative;}
-  .sidebar{width:100%;min-width:0;position:absolute;inset:0;z-index:20;height:var(--app-height,100dvh);}
+  .app{position:relative;height:var(--app-height,100vh);}
+  .sidebar{
+    width:100%;min-width:0;
+    position:absolute;inset:0;z-index:20;
+    height:var(--app-height,100vh);
+    /* iOS fix: ensure full height */
+    top:0;left:0;right:0;bottom:0;
+  }
   .sidebar.hide-mobile{transform:translateX(-100%);}
   .chat-window{width:100%;}
   .message-row{max-width:84%;}
   .back-btn{display:flex;}
   .messages{padding:10px 12px;}
   .emoji-picker{width:290px;right:8px;}
+  /* Message form: stick above keyboard on iOS */
+  .message-form{
+    padding-bottom:max(10px, env(safe-area-inset-bottom));
+  }
 }
 @media(max-width:480px){
   .auth-card{padding:28px 20px;}
   .message-row{max-width:90%;}
   .emoji-picker{width:calc(100vw - 24px);left:12px;right:12px;}
+  .poll-creator{width:calc(100vw - 32px);left:50%;transform:translateX(-50%);}
 }
 </style>
 </head>
@@ -2522,8 +2532,13 @@ function setOffline() {
 // Safari doesn't resize vh when keyboard opens; use visualViewport API instead
 (function() {
   function applyViewportHeight() {
-    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     document.documentElement.style.setProperty('--app-height', vh + 'px');
+    // Also apply directly to app elements for older Safari
+    var app = document.getElementById('app');
+    var auth = document.getElementById('auth-screen');
+    if (app) app.style.height = vh + 'px';
+    if (auth) auth.style.height = vh + 'px';
   }
   applyViewportHeight();
   if (window.visualViewport) {
@@ -2531,6 +2546,10 @@ function setOffline() {
     window.visualViewport.addEventListener('scroll', applyViewportHeight);
   }
   window.addEventListener('resize', applyViewportHeight);
+  // Also run on orientation change
+  window.addEventListener('orientationchange', function() {
+    setTimeout(applyViewportHeight, 200);
+  });
 })();
 
 
