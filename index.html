@@ -742,6 +742,65 @@ html,body{
 .chat-ctx-item.danger:hover { background: rgba(239,68,68,0.13); }
 .chat-ctx-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; }
 
+/* ===== PINNED MESSAGE BAR ===== */
+.pinned-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 14px;background:rgba(168,85,247,0.07);
+  border-top:2px solid rgba(168,85,247,0.35);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  cursor:pointer;transition:background 0.15s;
+}
+.pinned-bar:hover{background:rgba(168,85,247,0.12);}
+.pinned-bar-icon{color:#c084fc;flex-shrink:0;display:flex;}
+.pinned-bar-content{flex:1;min-width:0;}
+.pinned-bar-label{font-size:10.5px;font-weight:700;color:#c084fc;margin-bottom:1px;text-transform:uppercase;letter-spacing:0.5px;}
+.pinned-bar-text{font-size:12.5px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pinned-bar-close{background:transparent;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;display:flex;transition:color 0.2s;flex-shrink:0;}
+.pinned-bar-close:hover{color:var(--error);}
+
+/* ===== VIEWS COUNT ===== */
+.views-count{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:10.5px;color:var(--text-muted);
+}
+.views-count svg{opacity:0.7;}
+
+/* ===== DISABLED OVERLAY HINT ===== */
+.channel-feature-disabled{
+  font-size:10.5px;color:var(--text-muted);font-style:italic;padding:2px 0;
+}
+
+/* ===== UNREAD BADGE ===== */
+.unread-badge{
+  min-width:19px;height:19px;border-radius:10px;
+  background:var(--primary);color:#fff;
+  font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 5px;flex-shrink:0;margin-left:5px;
+  box-shadow:0 2px 8px rgba(37,99,235,0.4);
+  animation:popIn 0.2s ease;
+}
+.unread-badge.muted{background:var(--text-muted);}
+
+/* ===== PIN ICON on chat row ===== */
+.row-pin-icon{
+  color:rgba(168,85,247,0.7);flex-shrink:0;margin-left:3px;
+  display:inline-flex;align-items:center;
+}
+.user-row.pinned-row{
+  background:rgba(168,85,247,0.04);
+  border-left:2px solid rgba(168,85,247,0.3);
+}
+.user-row.pinned-row:hover{background:rgba(168,85,247,0.08);}
+
+/* ===== READ RECEIPT TICKS ===== */
+.msg-tick{
+  display:inline-flex;align-items:center;margin-left:2px;
+  transition:color 0.3s ease;
+}
+.msg-tick.seen{color:#60a5fa;}
+.msg-tick.delivered{color:var(--text-muted);}
+
 /* Archive section */
 .archive-toggle {
   display: flex; align-items: center; gap: 9px;
@@ -944,6 +1003,20 @@ html,body{
         </button>
       </div>
 
+      <!-- PINNED MESSAGE BAR -->
+      <div id="pinned-bar" class="pinned-bar hidden">
+        <span class="pinned-bar-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg>
+        </span>
+        <div class="pinned-bar-content" id="pinned-bar-content">
+          <div class="pinned-bar-label">Pinned Message</div>
+          <div class="pinned-bar-text" id="pinned-bar-text"></div>
+        </div>
+        <button class="pinned-bar-close" id="pinned-bar-close" title="Unpin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
       <div id="messages" class="messages" role="log" aria-live="polite"></div>
 
       <form id="message-form" class="message-form">
@@ -1051,14 +1124,21 @@ const groupAvatarFileInput = document.getElementById('group-avatar-file-input');
 const newGroupBtn     = document.getElementById('new-group-btn');
 const newChannelBtn   = document.getElementById('new-channel-btn');
 const modalContainer  = document.getElementById('modal-container');
+const pinnedBar       = document.getElementById('pinned-bar');
+const pinnedBarText   = document.getElementById('pinned-bar-text');
+const pinnedBarClose  = document.getElementById('pinned-bar-close');
 
 /* ===== STATE ===== */
 let currentUser = null, currentUserData = null;
 let activeChatId = null, activeChatPartner = null, activeChatIsGroup = false;
 let activeChatIsChannel = false;
+let activeChatIsAdmin = false; // tracks if current user is admin of active channel
 let activeFolder = 'all';
 let latestChatItems = [];
 let unsubMessages = null, unsubChatsList = null, unsubPartnerStatus = null;
+let unsubPinnedMsg = null; // listener for pinned message
+let unsubChatDoc = null;   // listener for chat doc (read receipts + unread reset)
+let partnerReadAt = null;  // partner's lastReadAt for read receipts
 let replyToMsg = null; // {id, text, senderUsername}
 let pendingGroupAvatarBlob = null;
 
@@ -1267,9 +1347,9 @@ function setAvatarContent(el, username, photoURL) {
 }
 
 /* ===== BUILD USER ROW ===== */
-function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel) {
+function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unreadCount, isPinned) {
   const row = document.createElement('div');
-  row.className = 'user-row';
+  row.className = 'user-row' + (isPinned ? ' pinned-row' : '');
   row.setAttribute('tabindex', '0');
 
   const wrap = document.createElement('div');
@@ -1294,6 +1374,14 @@ function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel) {
   name.textContent = u.username || u.name;
   top.appendChild(name);
 
+  // Pin icon next to name
+  if (isPinned) {
+    const pinIco = document.createElement('span');
+    pinIco.className = 'row-pin-icon';
+    pinIco.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg>`;
+    top.appendChild(pinIco);
+  }
+
   if (isGroup) {
     const badge = document.createElement('span');
     badge.className = badgeLabel === 'Channel' ? 'group-badge channel-badge' : 'group-badge';
@@ -1301,15 +1389,35 @@ function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel) {
     top.appendChild(badge);
   }
 
+  // Time + unread badge (right side)
+  const rightSide = document.createElement('div');
+  rightSide.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:6px;';
+
   if (timeText) {
     const t = document.createElement('span');
     t.className = 'user-row-time';
+    t.style.marginLeft = '0';
     t.textContent = timeText;
-    top.appendChild(t);
+    rightSide.appendChild(t);
+  }
+
+  if (unreadCount && unreadCount > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'unread-badge';
+    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+    rightSide.appendChild(badge);
+    // Bold the name when unread
+    name.style.color = '#fff';
+  }
+
+  if (timeText || (unreadCount && unreadCount > 0)) {
+    top.appendChild(rightSide);
   }
 
   const sub = document.createElement('span');
   sub.className = 'user-row-sub';
+  // Bold sub text if unread
+  if (unreadCount && unreadCount > 0) sub.style.color = 'var(--text-primary)';
   sub.textContent = subText || '';
   body.appendChild(top);
   body.appendChild(sub);
@@ -1402,6 +1510,11 @@ function listenToChatsList() {
     });
 
     allItems.sort((a,b) => {
+      // Pinned first
+      const ap = a.type === 'private' ? (a.chat.pinnedBy && a.chat.pinnedBy[currentUser.uid]) : (a.group && a.group.pinnedBy && a.group.pinnedBy[currentUser.uid]);
+      const bp = b.type === 'private' ? (b.chat.pinnedBy && b.chat.pinnedBy[currentUser.uid]) : (b.group && b.group.pinnedBy && b.group.pinnedBy[currentUser.uid]);
+      if (ap && !bp) return -1;
+      if (!ap && bp) return 1;
       const at = a.ts && a.ts.toMillis ? a.ts.toMillis() : 0;
       const bt = b.ts && b.ts.toMillis ? b.ts.toMillis() : 0;
       return bt - at;
@@ -1445,7 +1558,9 @@ function listenToChatsList() {
       let row;
       if (item.type === 'private') {
         const { chatId, chat, partner } = item;
-        row = buildUserRow(partner, chat.lastMessage || '', true, formatListTime(chat.lastMessageAt), false);
+        const unread = (chat.unreadCounts && chat.unreadCounts[currentUser.uid]) || 0;
+        const pinned = !!(chat.pinnedBy && chat.pinnedBy[currentUser.uid]);
+        row = buildUserRow(partner, chat.lastMessage || '', true, formatListTime(chat.lastMessageAt), false, null, unread, pinned);
         row.dataset.chatId = chatId;
         if (chatId === activeChatId) row.classList.add('active');
         addRowContextMenu(row, chatId, item.type, item);
@@ -1454,7 +1569,9 @@ function listenToChatsList() {
         const { chatId, group } = item;
         const label = group.isChannel ? 'Channel' : 'Group';
         const subText = group.isChannel ? (group.lastMessage || `${(group.members||[]).length} subscribers`) : (group.lastMessage || '');
-        row = buildUserRow({username: group.name, photoURL: group.photoURL}, subText, false, formatListTime(group.lastMessageAt), true, label);
+        const unread = (group.unreadCounts && group.unreadCounts[currentUser.uid]) || 0;
+        const pinned = !!(group.pinnedBy && group.pinnedBy[currentUser.uid]);
+        row = buildUserRow({username: group.name, photoURL: group.photoURL}, subText, false, formatListTime(group.lastMessageAt), true, label, unread, pinned);
         row.dataset.chatId = chatId;
         if (chatId === activeChatId) row.classList.add('active');
         addRowContextMenu(row, chatId, item.type === 'channel' ? 'group' : item.type, item);
@@ -1557,7 +1674,9 @@ function renderActiveFolderUI() {
   normal.forEach(item => {
     let row;
     if (item.type === 'private') {
-      row = buildUserRow(item.partner, item.chat.lastMessage || '', true, formatListTime(item.chat.lastMessageAt), false);
+      const unread = (item.chat.unreadCounts && item.chat.unreadCounts[currentUser.uid]) || 0;
+      const pinned = !!(item.chat.pinnedBy && item.chat.pinnedBy[currentUser.uid]);
+      row = buildUserRow(item.partner, item.chat.lastMessage || '', true, formatListTime(item.chat.lastMessageAt), false, null, unread, pinned);
       row.dataset.chatId = item.chatId;
       if (item.chatId === activeChatId) row.classList.add('active');
       addRowContextMenu(row, item.chatId, item.type, item);
@@ -1565,7 +1684,9 @@ function renderActiveFolderUI() {
     } else {
       const label = item.group.isChannel ? 'Channel' : 'Group';
       const subText = item.group.isChannel ? (item.group.lastMessage || `${(item.group.members||[]).length} subscribers`) : (item.group.lastMessage || '');
-      row = buildUserRow({username: item.group.name, photoURL: item.group.photoURL}, subText, false, formatListTime(item.group.lastMessageAt), true, label);
+      const unread = (item.group.unreadCounts && item.group.unreadCounts[currentUser.uid]) || 0;
+      const pinned = !!(item.group.pinnedBy && item.group.pinnedBy[currentUser.uid]);
+      row = buildUserRow({username: item.group.name, photoURL: item.group.photoURL}, subText, false, formatListTime(item.group.lastMessageAt), true, label, unread, pinned);
       row.dataset.chatId = item.chatId;
       if (item.chatId === activeChatId) row.classList.add('active');
       addRowContextMenu(row, item.chatId, item.type === 'channel' ? 'group' : item.type, item);
@@ -1673,9 +1794,13 @@ async function openChatWith(partnerData) {
   activeChatPartner = partnerData;
   activeChatIsGroup = false;
   activeChatIsChannel = false;
+  activeChatIsAdmin = false;
   messageForm.style.display = 'flex';
   const lockBar0 = document.getElementById('channel-locked-bar');
   if (lockBar0) lockBar0.style.display = 'none';
+  // Hide pinned bar for private chats
+  pinnedBar.classList.add('hidden');
+  if (unsubPinnedMsg) { unsubPinnedMsg(); unsubPinnedMsg = null; }
 
   const chatRef = db.collection('chats').doc(chatId);
   const chatSnap = await chatRef.get();
@@ -1686,6 +1811,34 @@ async function openChatWith(partnerData) {
       lastMessage: '', lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   }
+
+  // Reset own unread count and set lastReadAt
+  chatRef.update({
+    [`unreadCounts.${currentUser.uid}`]: 0,
+    [`lastReadAt.${currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+
+  // Listen for partner's lastReadAt (read receipts)
+  if (unsubChatDoc) { unsubChatDoc(); unsubChatDoc = null; }
+  partnerReadAt = null;
+  unsubChatDoc = chatRef.onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data();
+    const pra = d.lastReadAt && d.lastReadAt[partnerData.uid];
+    if (pra) {
+      partnerReadAt = pra.toDate ? pra.toDate() : new Date(pra);
+      // Update all visible sent message ticks
+      document.querySelectorAll('.msg-tick[data-msg-ts]').forEach(tick => {
+        const ts = parseInt(tick.dataset.msgTs);
+        if (!isNaN(ts) && partnerReadAt && partnerReadAt.getTime() >= ts) {
+          tick.classList.remove('delivered');
+          tick.classList.add('seen');
+          tick.innerHTML = seenSVG();
+          tick.title = 'Seen';
+        }
+      });
+    }
+  });
 
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
@@ -1731,6 +1884,7 @@ async function openGroupChat(groupId, groupData) {
   activeChatIsChannel = !!g.isChannel;
   const admins = g.admins || [g.createdBy];
   const isAdminUser = admins.includes(currentUser.uid) || g.createdBy === currentUser.uid;
+  activeChatIsAdmin = isAdminUser;
 
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
@@ -1774,6 +1928,37 @@ async function openGroupChat(groupId, groupData) {
 
   listenToMessages(groupId, true);
   if (unsubPartnerStatus) { unsubPartnerStatus(); unsubPartnerStatus = null; }
+  if (unsubChatDoc) { unsubChatDoc(); unsubChatDoc = null; }
+  partnerReadAt = null;
+
+  // Reset own unread + set lastReadAt for group
+  db.collection('groups').doc(groupId).update({
+    [`unreadCounts.${currentUser.uid}`]: 0,
+    [`lastReadAt.${currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+
+  // Listen to pinned message for channels
+  if (unsubPinnedMsg) { unsubPinnedMsg(); unsubPinnedMsg = null; }
+  if (activeChatIsChannel) {
+    unsubPinnedMsg = db.collection('groups').doc(groupId).onSnapshot(snap => {
+      if (!snap.exists) return;
+      const data = snap.data();
+      if (data.pinnedMessageId && data.pinnedMessageText) {
+        pinnedBarText.textContent = data.pinnedMessageText;
+        pinnedBar.classList.remove('hidden');
+        // Only show close (unpin) button for admins
+        pinnedBarClose.style.display = activeChatIsAdmin ? '' : 'none';
+      } else {
+        pinnedBar.classList.add('hidden');
+      }
+    });
+    // Scroll to pinned message on click
+    pinnedBar.onclick = (e) => {
+      if (e.target.closest('#pinned-bar-close')) return;
+    };
+  } else {
+    pinnedBar.classList.add('hidden');
+  }
 }
 
 /* ===== PARTNER STATUS ===== */
@@ -1826,10 +2011,24 @@ function listenToMessages(chatId, isGroup) {
     }, err => console.error('Messages error:', err));
 }
 
+/* ===== READ RECEIPT HELPERS ===== */
+function deliveredSVG() {
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+}
+function seenSVG() {
+  return `<svg width="16" height="14" viewBox="0 0 28 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 1 9 12 4 7"/><polyline points="26 1 15 12 10 7"/></svg>`;
+}
+
 function renderMessage(msg, msgId, chatId, isGroup) {
   const row = document.createElement('div');
   const isSent = msg.senderId === currentUser.uid;
   row.className = 'message-row ' + (isSent ? 'sent' : 'received');
+
+  // For channels, all posts are "received" style (left-aligned) for non-admins, but admins sent posts go right
+  const isChannel = activeChatIsChannel;
+  const isAdminCtx = activeChatIsAdmin;
+  const commentsOff = !!msg.commentsDisabled;
+  const reactionsOff = !!msg.reactionsDisabled;
 
   const bubbleWrap = document.createElement('div');
   bubbleWrap.className = 'bubble-wrap';
@@ -1895,23 +2094,27 @@ function renderMessage(msg, msgId, chatId, isGroup) {
   const actions = document.createElement('div');
   actions.className = 'msg-actions';
 
-  // Reply button (all messages)
-  const replyBtn = document.createElement('button');
-  replyBtn.type = 'button';
-  replyBtn.className = 'msg-action-btn';
-  replyBtn.title = 'Reply';
-  replyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
-  replyBtn.addEventListener('click', () => startReply(msgId, msg));
-  actions.appendChild(replyBtn);
+  // Reply button — hidden if commentsDisabled
+  if (!commentsOff) {
+    const replyBtn = document.createElement('button');
+    replyBtn.type = 'button';
+    replyBtn.className = 'msg-action-btn';
+    replyBtn.title = 'Reply';
+    replyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
+    replyBtn.addEventListener('click', () => startReply(msgId, msg));
+    actions.appendChild(replyBtn);
+  }
 
-  // Emoji reaction button
-  const reactBtn = document.createElement('button');
-  reactBtn.type = 'button';
-  reactBtn.className = 'msg-action-btn';
-  reactBtn.title = 'React';
-  reactBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`;
-  reactBtn.addEventListener('click', (e) => showReactionPicker(e, msgId, chatId, isGroup));
-  actions.appendChild(reactBtn);
+  // Emoji reaction button — hidden if reactionsDisabled
+  if (!reactionsOff) {
+    const reactBtn = document.createElement('button');
+    reactBtn.type = 'button';
+    reactBtn.className = 'msg-action-btn';
+    reactBtn.title = 'React';
+    reactBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`;
+    reactBtn.addEventListener('click', (e) => showReactionPicker(e, msgId, chatId, isGroup));
+    actions.appendChild(reactBtn);
+  }
 
   if (isSent && msgId && msg.type !== 'poll') {
     const editBtn = document.createElement('button');
@@ -1931,11 +2134,51 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     actions.appendChild(delBtn);
   }
 
+  // Channel admin extra actions: pin, toggle comments, toggle reactions
+  if (isChannel && isAdminCtx && msgId) {
+    // Pin button
+    const pinBtn = document.createElement('button');
+    pinBtn.type = 'button';
+    pinBtn.className = 'msg-action-btn';
+    pinBtn.title = 'Pin message';
+    pinBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg>`;
+    pinBtn.style.color = 'var(--text-muted)';
+    pinBtn.addEventListener('click', () => {
+      const msgText = msg.text || (msg.type === 'file' ? '📎 ' + (msg.fileName || 'File') : msg.type === 'poll' ? '📊 ' + msg.pollQuestion : '');
+      pinMessage(msgId, msgText);
+    });
+    actions.appendChild(pinBtn);
+
+    // Toggle comments button
+    const toggleCommentBtn = document.createElement('button');
+    toggleCommentBtn.type = 'button';
+    toggleCommentBtn.className = 'msg-action-btn';
+    toggleCommentBtn.title = commentsOff ? 'Enable comments' : 'Disable comments';
+    toggleCommentBtn.style.color = commentsOff ? 'var(--error)' : 'var(--text-muted)';
+    toggleCommentBtn.innerHTML = commentsOff
+      ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="4" y1="4" x2="20" y2="20" stroke-width="2.5"/></svg>`
+      : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+    toggleCommentBtn.addEventListener('click', () => toggleChannelFeature(msgId, chatId, 'commentsDisabled', commentsOff));
+    actions.appendChild(toggleCommentBtn);
+
+    // Toggle reactions button
+    const toggleReactBtn = document.createElement('button');
+    toggleReactBtn.type = 'button';
+    toggleReactBtn.className = 'msg-action-btn';
+    toggleReactBtn.title = reactionsOff ? 'Enable reactions' : 'Disable reactions';
+    toggleReactBtn.style.color = reactionsOff ? 'var(--error)' : 'var(--text-muted)';
+    toggleReactBtn.innerHTML = reactionsOff
+      ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20" stroke-width="2.5"/></svg>`
+      : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`;
+    toggleReactBtn.addEventListener('click', () => toggleChannelFeature(msgId, chatId, 'reactionsDisabled', reactionsOff));
+    actions.appendChild(toggleReactBtn);
+  }
+
   bubbleWrap.appendChild(actions);
   row.appendChild(bubbleWrap);
 
-  // Reactions display
-  if (msg.reactions && Object.keys(msg.reactions).length) {
+  // Reactions display — hidden if reactionsDisabled
+  if (!reactionsOff && msg.reactions && Object.keys(msg.reactions).length) {
     const reactionsBar = document.createElement('div');
     reactionsBar.className = 'reactions-bar';
     const counts = {};
@@ -1954,11 +2197,54 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     row.appendChild(reactionsBar);
   }
 
+  // Disabled hints (only visible for non-admins in channel)
+  if (isChannel && !isAdminCtx) {
+    if (commentsOff || reactionsOff) {
+      const hints = [];
+      if (commentsOff) hints.push('Comments off');
+      if (reactionsOff) hints.push('Reactions off');
+      const hintEl = document.createElement('div');
+      hintEl.className = 'channel-feature-disabled';
+      hintEl.textContent = hints.join(' · ');
+      row.appendChild(hintEl);
+    }
+  }
+
   const time = document.createElement('span');
   time.className = 'msg-time';
-  time.textContent = formatTime(msg.createdAt) + (msg.edited ? ' · edited' : '');
-  row.appendChild(time);
 
+  // View count for channel posts
+  if (isChannel && msgId) {
+    const views = msg.views || [];
+    const viewCount = views.length;
+    // Track this user's view
+    if (!views.includes(currentUser.uid)) {
+      // Delayed to avoid excessive writes on initial load
+      setTimeout(() => {
+        db.collection('groups').doc(chatId).collection('messages').doc(msgId)
+          .update({ views: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) })
+          .catch(() => {});
+      }, 500);
+    }
+    time.innerHTML = `${formatTime(msg.createdAt)}${msg.edited ? ' · edited' : ''} <span class="views-count"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${viewCount}</span>`;
+  } else if (isSent && !isGroup && msgId) {
+    // Private chat read receipt ticks
+    const timeStr = formatTime(msg.createdAt);
+    const edited = msg.edited ? ' · edited' : '';
+    const msgTsMs = msg.createdAt && msg.createdAt.toMillis ? msg.createdAt.toMillis() : 0;
+    const isSeen = partnerReadAt && msgTsMs && partnerReadAt.getTime() >= msgTsMs;
+    const tick = document.createElement('span');
+    tick.className = 'msg-tick ' + (isSeen ? 'seen' : 'delivered');
+    tick.dataset.msgTs = msgTsMs;
+    tick.innerHTML = isSeen ? seenSVG() : deliveredSVG();
+    tick.title = isSeen ? 'Seen' : 'Delivered';
+    time.textContent = timeStr + edited + ' ';
+    time.appendChild(tick);
+  } else {
+    time.textContent = formatTime(msg.createdAt) + (msg.edited ? ' · edited' : '');
+  }
+
+  row.appendChild(time);
   messagesEl.appendChild(row);
 }
 
@@ -2052,6 +2338,31 @@ function clearReply() {
 }
 
 replyCancelBtn.addEventListener('click', clearReply);
+
+/* ===== PINNED MESSAGE ACTIONS ===== */
+pinnedBarClose.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  if (!activeChatId || !activeChatIsChannel || !activeChatIsAdmin) return;
+  try {
+    await db.collection('groups').doc(activeChatId).update({ pinnedMessageId: firebase.firestore.FieldValue.delete(), pinnedMessageText: firebase.firestore.FieldValue.delete() });
+    showToast('Message unpinned');
+  } catch(err) { console.error('Unpin error:', err); }
+});
+
+async function pinMessage(msgId, text) {
+  if (!activeChatId || !activeChatIsChannel || !activeChatIsAdmin) return;
+  try {
+    const preview = (text || '').slice(0, 80);
+    await db.collection('groups').doc(activeChatId).update({ pinnedMessageId: msgId, pinnedMessageText: preview });
+    showToast('Message pinned');
+  } catch(err) { console.error('Pin error:', err); }
+}
+
+async function toggleChannelFeature(msgId, chatId, field, currentVal) {
+  try {
+    await db.collection('groups').doc(chatId).collection('messages').doc(msgId).update({ [field]: !currentVal });
+  } catch(err) { console.error('Toggle error:', err); }
+}
 
 /* ===== REACTIONS ===== */
 const QUICK_REACTIONS = ['❤️','😂','👍','😮','😢','🙏','🔥','💯'];
@@ -2209,7 +2520,20 @@ messageForm.addEventListener('submit', async e => {
   try {
     const ref = db.collection(col).doc(activeChatId);
     await ref.collection('messages').add(msgData);
-    await ref.update({ lastMessage: text, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() });
+    const updateData = { lastMessage: text, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() };
+    // Increment unread for recipients
+    if (!activeChatIsGroup) {
+      // Private chat: increment partner's unread
+      const partnerUid = (activeChatPartner && activeChatPartner.uid) || null;
+      if (partnerUid) updateData[`unreadCounts.${partnerUid}`] = firebase.firestore.FieldValue.increment(1);
+    } else {
+      // Group/channel: increment all members except sender
+      const members = (activeChatPartner && activeChatPartner.members) || [];
+      members.forEach(uid => {
+        if (uid !== currentUser.uid) updateData[`unreadCounts.${uid}`] = firebase.firestore.FieldValue.increment(1);
+      });
+    }
+    await ref.update(updateData);
   } catch(err) { alert('Failed to send: ' + friendlyError(err)); }
 });
 
@@ -2339,7 +2663,15 @@ fileInput.addEventListener('change', async () => {
 
     const ref = db.collection(col).doc(activeChatId);
     await ref.collection('messages').add(msgData);
-    await ref.update({ lastMessage: '📎 ' + file.name, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() });
+    const fileUpdate = { lastMessage: '📎 ' + file.name, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() };
+    if (!activeChatIsGroup) {
+      const pUid = activeChatPartner && activeChatPartner.uid;
+      if (pUid) fileUpdate[`unreadCounts.${pUid}`] = firebase.firestore.FieldValue.increment(1);
+    } else {
+      const members = (activeChatPartner && activeChatPartner.members) || [];
+      members.forEach(uid => { if (uid !== currentUser.uid) fileUpdate[`unreadCounts.${uid}`] = firebase.firestore.FieldValue.increment(1); });
+    }
+    await ref.update(fileUpdate);
   } catch(err) { alert('Failed to upload file: ' + friendlyError(err)); }
 });
 
@@ -3336,9 +3668,17 @@ function showChatCtxMenu(e, chatId, type, item) {
     ? (item.chat.archivedBy && item.chat.archivedBy[currentUser.uid])
     : (item.group.archivedBy && item.group.archivedBy[currentUser.uid]);
 
+  const isPinned = type === 'private'
+    ? !!(item.chat.pinnedBy && item.chat.pinnedBy[currentUser.uid])
+    : !!(item.group && item.group.pinnedBy && item.group.pinnedBy[currentUser.uid]);
+
   const menu = document.createElement('div');
   menu.className = 'chat-ctx-menu';
   menu.innerHTML = `
+    <button class="chat-ctx-item" id="ctx-pin">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg>
+      ${isPinned ? 'Unpin Chat' : 'Pin Chat'}
+    </button>
     <button class="chat-ctx-item" id="ctx-archive">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
       ${isArchived ? 'Unarchive' : 'Archive'}
@@ -3358,11 +3698,16 @@ function showChatCtxMenu(e, chatId, type, item) {
   const x = e.touches ? e.touches[0].clientX : e.clientX;
   const y = e.touches ? e.touches[0].clientY : e.clientY;
   const mw = menu.offsetWidth || 190;
-  const mh = menu.offsetHeight || 110;
+  const mh = menu.offsetHeight || 140;
   menu.style.left = Math.min(x, window.innerWidth - mw - 8) + 'px';
   menu.style.top = Math.min(y, window.innerHeight - mh - 8) + 'px';
   menu.style.visibility = '';
 
+  menu.querySelector('#ctx-pin').addEventListener('click', e => {
+    e.stopPropagation();
+    closeChatCtxMenu();
+    togglePinChat(chatId, type, isPinned);
+  });
   menu.querySelector('#ctx-archive').addEventListener('click', e => {
     e.stopPropagation();
     closeChatCtxMenu();
@@ -3387,6 +3732,17 @@ function addRowContextMenu(row, chatId, type, item) {
   row.addEventListener('touchmove', () => clearTimeout(pressTimer));
 }
 
+
+async function togglePinChat(chatId, type, isPinned) {
+  const col = type === 'private' ? 'chats' : 'groups';
+  try {
+    await db.collection(col).doc(chatId).update({ [`pinnedBy.${currentUser.uid}`]: !isPinned });
+    showToast(isPinned ? 'Chat unpinned' : 'Chat pinned');
+  } catch(err) {
+    console.error(err);
+    showToast('Error updating chat');
+  }
+}
 async function toggleArchiveChat(chatId, type, isArchived) {
   const col = type === 'private' ? 'chats' : 'groups';
   const field = `archivedBy.${currentUser.uid}`;
