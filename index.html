@@ -1095,7 +1095,7 @@ logoutBtn.addEventListener('click', async () => {
   await auth.signOut();
 });
 
-backBtn.addEventListener('click', () => sidebar.classList.remove('hide-mobile'));
+backBtn.addEventListener('click', () => { sidebar.classList.remove('hide-mobile'); var nav = document.getElementById('mobile-nav'); if(nav) nav.style.display=''; document.querySelectorAll('.mobile-nav-item').forEach(el=>el.classList.remove('active')); var c=document.getElementById('mnav-chats'); if(c) c.classList.add('active'); });
 
 /* ===== AUTH STATE ===== */
 auth.onAuthStateChanged(async user => {
@@ -1378,7 +1378,7 @@ async function openChatWith(partnerData) {
   const activeRow = chatsListEl.querySelector(`[data-chat-id="${chatId}"]`);
   if (activeRow) activeRow.classList.add('active');
 
-  if (window.innerWidth <= 768) sidebar.classList.add('hide-mobile');
+  if (window.innerWidth <= 768) { sidebar.classList.add('hide-mobile'); var _nav=document.getElementById('mobile-nav'); if(_nav) _nav.style.display='none'; }
   userSearchInput.value = '';
   searchResultsEl.innerHTML = '';
 
@@ -1430,7 +1430,7 @@ async function openGroupChat(groupId, groupData) {
   document.querySelectorAll('.user-row').forEach(r => r.classList.remove('active'));
   const activeRow = chatsListEl.querySelector(`[data-chat-id="${groupId}"]`);
   if (activeRow) activeRow.classList.add('active');
-  if (window.innerWidth <= 768) sidebar.classList.add('hide-mobile');
+  if (window.innerWidth <= 768) { sidebar.classList.add('hide-mobile'); var _nav=document.getElementById('mobile-nav'); if(_nav) _nav.style.display='none'; }
   userSearchInput.value = '';
   searchResultsEl.innerHTML = '';
 
