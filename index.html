@@ -787,6 +787,12 @@ html,body{
     </div>
 
     <div id="search-results" class="search-results"></div>
+    <div id="archive-toggle-row" class="archive-toggle" onclick="toggleArchiveSection()" style="display:none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+      Archived
+      <span class="archive-badge" id="archive-badge">0</span>
+    </div>
+    <div id="archived-list" style="display:none;"></div>
     <div class="chats-list-label">Chats</div>
     <div id="chats-list" class="chats-list"></div>
   </aside>
@@ -1279,6 +1285,7 @@ function listenToChatsList() {
       const partnerUid = (chat.participants||[]).find(id => id !== currentUser.uid);
       const partner = partnerUid && partnerCache[partnerUid];
       if (!partner) return;
+      if (chat.deletedBy && chat.deletedBy[currentUser.uid]) return;
       allItems.push({ type:'private', chatId:doc.id, chat, partner, ts: chat.lastMessageAt });
     });
     groupDocs.forEach(doc => {
@@ -1292,31 +1299,53 @@ function listenToChatsList() {
       return bt - at;
     });
 
+    const archivedList = document.getElementById('archived-list');
+    const archiveToggleRow = document.getElementById('archive-toggle-row');
+    const archiveBadge = document.getElementById('archive-badge');
     chatsListEl.innerHTML = '';
-    if (!allItems.length) {
+    archivedList.innerHTML = '';
+
+    const archived = allItems.filter(i => (i.chat && i.chat.archivedBy && i.chat.archivedBy[currentUser.uid]) || (i.group && i.group.archivedBy && i.group.archivedBy[currentUser.uid]));
+    const normal = allItems.filter(i => !archived.includes(i));
+
+    if (archived.length > 0) {
+      archiveToggleRow.style.display = 'flex';
+      archiveBadge.textContent = archived.length;
+    } else {
+      archiveToggleRow.style.display = 'none';
+      archivedList.style.display = 'none';
+      archiveToggleRow.classList.remove('open');
+    }
+
+    if (!normal.length && !archived.length) {
       const es = document.createElement('div');
       es.className = 'empty-state';
       es.innerHTML = `<p>No chats yet.<br>Search for a user to start.</p>`;
       chatsListEl.appendChild(es);
-      return;
     }
-    allItems.forEach(item => {
+
+    function buildRow(item, container) {
+      let row;
       if (item.type === 'private') {
         const { chatId, chat, partner } = item;
-        const row = buildUserRow(partner, chat.lastMessage || '', true, formatListTime(chat.lastMessageAt), false);
+        row = buildUserRow(partner, chat.lastMessage || '', true, formatListTime(chat.lastMessageAt), false);
         row.dataset.chatId = chatId;
         if (chatId === activeChatId) row.classList.add('active');
+        addRowContextMenu(row, chatId, item.type, item);
         row.addEventListener('click', () => openChatWith(partner));
-        chatsListEl.appendChild(row);
       } else {
         const { chatId, group } = item;
-        const row = buildUserRow({username: group.name, photoURL: group.photoURL}, group.lastMessage || '', false, formatListTime(group.lastMessageAt), true);
+        row = buildUserRow({username: group.name, photoURL: group.photoURL}, group.lastMessage || '', false, formatListTime(group.lastMessageAt), true);
         row.dataset.chatId = chatId;
         if (chatId === activeChatId) row.classList.add('active');
+        addRowContextMenu(row, chatId, item.type, item);
         row.addEventListener('click', () => openGroupChat(chatId, group));
-        chatsListEl.appendChild(row);
       }
-    });
+      container.appendChild(row);
+    }
+
+    normal.forEach(item => buildRow(item, chatsListEl));
+    archived.forEach(item => buildRow(item, archivedList));
   }
 
   unsubChatsList = q.onSnapshot(async snap => {
@@ -2570,6 +2599,169 @@ function createModal(title) {
   overlay.appendChild(modal);
   modalContainer.appendChild(overlay);
   return modal;
+}
+
+
+/* ===== CHAT CONTEXT MENU ===== */
+let ctxMenuEl = null;
+
+function closeChatCtxMenu() {
+  if (ctxMenuEl) { ctxMenuEl.remove(); ctxMenuEl = null; }
+}
+
+document.addEventListener('click', closeChatCtxMenu);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeChatCtxMenu(); });
+
+function showChatCtxMenu(e, chatId, type, item) {
+  e.preventDefault();
+  e.stopPropagation();
+  closeChatCtxMenu();
+
+  const isArchived = type === 'private'
+    ? (item.chat.archivedBy && item.chat.archivedBy[currentUser.uid])
+    : (item.group.archivedBy && item.group.archivedBy[currentUser.uid]);
+
+  const menu = document.createElement('div');
+  menu.className = 'chat-ctx-menu';
+  menu.innerHTML = `
+    <button class="chat-ctx-item" id="ctx-archive">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+      ${isArchived ? 'Unarchive' : 'Archive'}
+    </button>
+    <div class="chat-ctx-divider"></div>
+    <button class="chat-ctx-item danger" id="ctx-delete">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      Delete Chat
+    </button>
+  `;
+
+  // Position
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+  menu.style.left = Math.min(x, window.innerWidth - 200) + 'px';
+  menu.style.top = Math.min(y, window.innerHeight - 120) + 'px';
+  document.body.appendChild(menu);
+  ctxMenuEl = menu;
+
+  menu.querySelector('#ctx-archive').addEventListener('click', e => {
+    e.stopPropagation();
+    closeChatCtxMenu();
+    toggleArchiveChat(chatId, type, isArchived);
+  });
+  menu.querySelector('#ctx-delete').addEventListener('click', e => {
+    e.stopPropagation();
+    closeChatCtxMenu();
+    confirmDeleteChat(chatId, type, item);
+  });
+}
+
+function addRowContextMenu(row, chatId, type, item) {
+  // Desktop: right-click
+  row.addEventListener('contextmenu', e => showChatCtxMenu(e, chatId, type, item));
+  // Mobile: long press
+  let pressTimer = null;
+  row.addEventListener('touchstart', e => {
+    pressTimer = setTimeout(() => { showChatCtxMenu(e, chatId, type, item); }, 500);
+  }, { passive: true });
+  row.addEventListener('touchend', () => clearTimeout(pressTimer));
+  row.addEventListener('touchmove', () => clearTimeout(pressTimer));
+}
+
+async function toggleArchiveChat(chatId, type, isArchived) {
+  const col = type === 'private' ? 'chats' : 'groups';
+  const field = `archivedBy.${currentUser.uid}`;
+  try {
+    await db.collection(col).doc(chatId).update({ [field]: !isArchived });
+    showToast(isArchived ? 'Chat unarchived' : 'Chat archived');
+  } catch(err) {
+    console.error(err);
+    showToast('Error updating chat');
+  }
+}
+
+function confirmDeleteChat(chatId, type, item) {
+  closeModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'active-modal';
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+  const name = type === 'private'
+    ? (item.partner.displayName || item.partner.username || 'this user')
+    : (item.group.name || 'this group');
+
+  const box = document.createElement('div');
+  box.className = 'modal';
+  box.style.maxWidth = '340px';
+  box.innerHTML = `
+    <div class="modal-header">
+      <span class="modal-title">Delete Chat</span>
+    </div>
+    <div style="padding:20px;color:var(--text-secondary);font-size:14px;line-height:1.5;">
+      Delete your chat with <strong style="color:var(--text-primary);">${name}</strong>?<br>
+      <span style="color:var(--text-muted);font-size:12.5px;">This only removes it from your view. The other person won't be affected.</span>
+    </div>
+    <div style="display:flex;gap:10px;padding:0 20px 20px;">
+      <button id="del-cancel" style="flex:1;padding:11px;border:1px solid var(--border);background:transparent;color:var(--text-primary);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+      <button id="del-confirm" style="flex:1;padding:11px;border:none;background:#ef4444;color:#fff;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">Delete</button>
+    </div>
+  `;
+  overlay.appendChild(box);
+  document.getElementById('modal-container').appendChild(overlay);
+
+  box.querySelector('#del-cancel').addEventListener('click', closeModal);
+  box.querySelector('#del-confirm').addEventListener('click', async () => {
+    closeModal();
+    await doDeleteChat(chatId, type);
+  });
+}
+
+async function doDeleteChat(chatId, type) {
+  try {
+    if (type === 'private') {
+      // Mark as deleted for this user only
+      await db.collection('chats').doc(chatId).update({
+        [`deletedBy.${currentUser.uid}`]: true,
+        [`archivedBy.${currentUser.uid}`]: firebase.firestore.FieldValue.delete()
+      });
+    } else {
+      // Leave group
+      await db.collection('groups').doc(chatId).update({
+        members: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+      });
+    }
+    if (activeChatId === chatId) {
+      chatActive.classList.add('hidden');
+      chatEmpty.classList.remove('hidden');
+      activeChatId = null;
+      if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('hide-mobile');
+        var nav = document.getElementById('mobile-nav');
+        if (nav) nav.style.display = '';
+      }
+    }
+    showToast(type === 'private' ? 'Chat deleted' : 'Left group');
+  } catch(err) {
+    console.error(err);
+    showToast('Error deleting chat');
+  }
+}
+
+function toggleArchiveSection() {
+  const list = document.getElementById('archived-list');
+  const toggle = document.getElementById('archive-toggle-row');
+  const isOpen = list.style.display !== 'none';
+  list.style.display = isOpen ? 'none' : 'block';
+  toggle.classList.toggle('open', !isOpen);
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:rgba(30,30,46,0.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:1000;pointer-events:none;animation:popIn 0.2s ease;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
 }
 
 function closeModal() {
