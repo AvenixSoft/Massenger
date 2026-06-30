@@ -963,6 +963,12 @@ html,body{
         </div>
       </div>
       <div class="sidebar-actions">
+        <button id="appearance-btn" class="icon-btn" title="Appearance">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+          </svg>
+        </button>
         <button id="new-channel-btn" class="icon-btn" title="New Channel">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>
@@ -1165,75 +1171,6 @@ html,body{
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
-  const CACHE_NAME = 'mymessenger-v2';
-const BASE = './';
-const STATIC_ASSETS = [
-  BASE,
-  BASE + 'index.html',
-  BASE + 'manifest.json',
-  BASE + '1.png',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
-];
-
-// Install: cache static assets
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS).catch(err => {
-        console.warn('Some assets could not be cached:', err);
-      });
-    })
-  );
-  self.skipWaiting();
-});
-
-// Activate: clean up old caches
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      )
-    )
-  );
-  self.clients.claim();
-});
-
-// Fetch: network-first for Firebase, cache-first for static
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-
-  // Skip non-GET and Firebase/API requests (always use network)
-  if (
-    event.request.method !== 'GET' ||
-    url.hostname.includes('firestore.googleapis.com') ||
-    url.hostname.includes('firebase') ||
-    url.hostname.includes('googleapis.com') ||
-    url.hostname.includes('gstatic.com')
-  ) {
-    return; // Let the browser handle it
-  }
-
-  // Cache-first for static assets
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        if (!response || response.status !== 200 || response.type === 'opaque') {
-          return response;
-        }
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        return response;
-      }).catch(() => {
-        // Offline fallback for navigation
-        if (event.request.mode === 'navigate') {
-          return caches.match(BASE + 'index.html');
-        }
-      });
-    })
-  );
-});
   const firebaseConfig = {
     apiKey: "AIzaSyBgvme6SfGU2A3ChNC0Zv00tkFeAqyeuEI",
     authDomain: "mymessenger-8f7a7.firebaseapp.com",
@@ -2580,6 +2517,8 @@ function showAppearanceSettings() {
 // Apply saved appearance preferences on load
 applyTheme(getTheme());
 applyFontSize(getFontSize());
+const appearanceBtn = document.getElementById('appearance-btn');
+if (appearanceBtn) appearanceBtn.addEventListener('click', showAppearanceSettings);
 
 /* ===== READ RECEIPT HELPERS ===== */
 function deliveredSVG() {
@@ -4586,6 +4525,10 @@ function showMobileSettings() {
   sheet.style.cssText = 'position:fixed;bottom:calc(62px + env(safe-area-inset-bottom));left:12px;right:12px;background:rgba(13,13,22,0.92);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:20px;box-shadow:0 -8px 40px rgba(0,0,0,0.6);z-index:300;animation:popIn 0.25s ease;';
   sheet.innerHTML = `
     <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">Settings</div>
+    <button onclick="closeModal();setTimeout(()=>document.getElementById('appearance-btn').click(),50);" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;background:var(--surface2);border-radius:12px;color:var(--text-primary);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:left;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+      Appearance
+    </button>
     <button onclick="closeModal();setTimeout(()=>document.getElementById('new-channel-btn').click(),50);" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;background:var(--surface2);border-radius:12px;color:var(--text-primary);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:left;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
       New Channel
@@ -4656,7 +4599,75 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+const CACHE_NAME = 'mymessenger-v2';
+const BASE = './';
+const STATIC_ASSETS = [
+  BASE,
+  BASE + 'index.html',
+  BASE + 'manifest.json',
+  BASE + '1.png',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
+];
 
+// Install: cache static assets
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(STATIC_ASSETS).catch(err => {
+        console.warn('Some assets could not be cached:', err);
+      });
+    })
+  );
+  self.skipWaiting();
+});
+
+// Activate: clean up old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      )
+    )
+  );
+  self.clients.claim();
+});
+
+// Fetch: network-first for Firebase, cache-first for static
+self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // Skip non-GET and Firebase/API requests (always use network)
+  if (
+    event.request.method !== 'GET' ||
+    url.hostname.includes('firestore.googleapis.com') ||
+    url.hostname.includes('firebase') ||
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('gstatic.com')
+  ) {
+    return; // Let the browser handle it
+  }
+
+  // Cache-first for static assets
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(response => {
+        if (!response || response.status !== 200 || response.type === 'opaque') {
+          return response;
+        }
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return response;
+      }).catch(() => {
+        // Offline fallback for navigation
+        if (event.request.mode === 'navigate') {
+          return caches.match(BASE + 'index.html');
+        }
+      });
+    })
+  );
+});
 </script>
 </body>
 </html>
