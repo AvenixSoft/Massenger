@@ -793,6 +793,15 @@ html,body{
     box-shadow:0 2px 14px rgba(37,99,235,0.25);
   }
   .search-icon{left:14px;}
+
+  /* Chat header on mobile: sits lower, rounded like a floating card */
+  .chat-header{
+    margin:env(safe-area-inset-top) 10px 0;
+    margin-top:calc(env(safe-area-inset-top) + 8px);
+    border-radius:18px;
+    border-bottom:none;
+    box-shadow:0 2px 12px rgba(0,0,0,0.22);
+  }
 }
 @media(max-width:480px){
   .auth-card{padding:28px 20px;}
