@@ -1154,6 +1154,10 @@ html,body{
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         Only admins can post in this channel
       </div>
+      <div id="blocked-banner" class="channel-locked-bar" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        You can't send messages to this user
+      </div>
     </div>
   </main>
 </div>
@@ -1295,6 +1299,111 @@ function formatListTime(ts) {
 
 function getChatId(a, b) { return [a, b].sort().join('_'); }
 
+/* ===== BLOCKING ===== */
+function isUserBlockedByMe(uid) {
+  return !!(currentUserData && Array.isArray(currentUserData.blockedUsers) && currentUserData.blockedUsers.includes(uid));
+}
+function isBlockedEitherWay(partnerData) {
+  if (!partnerData || !partnerData.uid) return false;
+  const blockedByMe = isUserBlockedByMe(partnerData.uid);
+  const blockedByThem = Array.isArray(partnerData.blockedUsers) && partnerData.blockedUsers.includes(currentUser.uid);
+  return blockedByMe || blockedByThem;
+}
+async function toggleBlockUser(uid, username) {
+  if (!uid || uid === currentUser.uid) return;
+  const blocked = isUserBlockedByMe(uid);
+  try {
+    await db.collection('users').doc(currentUser.uid).update({
+      blockedUsers: blocked
+        ? firebase.firestore.FieldValue.arrayRemove(uid)
+        : firebase.firestore.FieldValue.arrayUnion(uid)
+    });
+    if (!currentUserData.blockedUsers) currentUserData.blockedUsers = [];
+    if (blocked) {
+      currentUserData.blockedUsers = currentUserData.blockedUsers.filter(u => u !== uid);
+      showToast(`Unblocked ${username}`);
+    } else {
+      currentUserData.blockedUsers.push(uid);
+      showToast(`Blocked ${username}`);
+    }
+    refreshChatBlockedBanner();
+  } catch (err) { showToast('Failed: ' + friendlyError(err)); }
+}
+function refreshChatBlockedBanner() {
+  const banner = document.getElementById('blocked-banner');
+  if (!activeChatId || activeChatIsGroup) {
+    if (banner) banner.style.display = 'none';
+    return;
+  }
+  const blocked = isBlockedEitherWay(activeChatPartner);
+  if (banner) banner.style.display = blocked ? 'flex' : 'none';
+  if (messageForm) messageForm.style.display = blocked ? 'none' : 'flex';
+}
+
+/* ===== LAST SEEN PRIVACY ===== */
+function getLastSeenPrivacy() {
+  return (currentUserData && currentUserData.lastSeenPrivacy) || 'everyone';
+}
+async function setLastSeenPrivacy(value) {
+  try {
+    await db.collection('users').doc(currentUser.uid).update({ lastSeenPrivacy: value });
+    currentUserData.lastSeenPrivacy = value;
+    showToast('Privacy setting updated');
+  } catch (err) { showToast('Failed: ' + friendlyError(err)); }
+}
+function formatStatusText(userData) {
+  if (!userData) return '';
+  if (userData.lastSeenPrivacy === 'nobody') return '';
+  if (userData.online) return 'online';
+  if (userData.lastSeen && userData.lastSeen.toDate) {
+    return 'last seen ' + userData.lastSeen.toDate().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  return 'offline';
+}
+
+/* ===== INVITE LINKS ===== */
+function generateInviteCode() {
+  return Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
+}
+function getInviteLink(code) {
+  return location.origin + location.pathname + '#invite=' + code;
+}
+async function copyInviteLink(code, btn) {
+  const link = getInviteLink(code);
+  try {
+    await navigator.clipboard.writeText(link);
+    showToast('Invite link copied');
+  } catch (_) {
+    showToast(link);
+  }
+  if (btn) { const old = btn.textContent; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = old, 1500); }
+}
+async function ensureInviteCode(groupId, groupData) {
+  if (groupData.inviteCode) return groupData.inviteCode;
+  const code = generateInviteCode();
+  await db.collection('groups').doc(groupId).update({ inviteCode: code });
+  groupData.inviteCode = code;
+  return code;
+}
+async function handleInviteHash() {
+  const m = location.hash.match(/^#invite=(.+)$/);
+  if (!m || !currentUser) return;
+  const code = m[1];
+  history.replaceState(null, '', location.pathname + location.search);
+  try {
+    const snap = await db.collection('groups').where('inviteCode', '==', code).limit(1).get();
+    if (snap.empty) { showToast('Invite link is invalid or expired'); return; }
+    const doc = snap.docs[0];
+    const g = doc.data();
+    if (!(g.members || []).includes(currentUser.uid)) {
+      await db.collection('groups').doc(doc.id).update({ members: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
+      g.members = [...(g.members || []), currentUser.uid];
+      showToast(`Joined ${g.name}`);
+    }
+    openGroupChat(doc.id, g);
+  } catch (err) { showToast('Failed to join: ' + friendlyError(err)); }
+}
+
 function friendlyError(err) {
   if (!err || !err.code) return 'Something went wrong.';
   const map = {
@@ -1417,6 +1526,8 @@ auth.onAuthStateChanged(async user => {
     showApp();
     listenToChatsList();
     window.addEventListener('beforeunload', setOffline);
+    handleInviteHash();
+    window.addEventListener('hashchange', handleInviteHash);
   } else {
     currentUser = null; currentUserData = null;
     activeChatId = null; activeChatPartner = null;
@@ -1963,8 +2074,7 @@ async function openChatWith(partnerData) {
       chatWithStatus.classList.add('typing');
     } else {
       chatWithStatus.classList.remove('typing');
-      const online = !!(activeChatPartner && activeChatPartner.online);
-      chatWithStatus.textContent = online ? 'online' : 'offline';
+      chatWithStatus.textContent = formatStatusText(activeChatPartner);
     }
   });
 
@@ -1972,10 +2082,11 @@ async function openChatWith(partnerData) {
   chatActive.classList.remove('hidden');
   setAvatarContent(chatAvatar, partnerData.username, partnerData.photoURL);
   chatWithUsername.textContent = partnerData.username;
-  chatWithStatus.textContent = 'offline';
+  chatWithStatus.textContent = formatStatusText(partnerData);
   chatWithStatus.className = 'chat-with-status';
   chatStatusDot.className = 'status-dot';
   document.getElementById('chat-status-dot').style.display = '';
+  refreshChatBlockedBanner();
 
   // Header actions for private chat (none extra)
   document.getElementById('chat-header-actions').innerHTML = '';
@@ -2006,6 +2117,7 @@ async function openGroupChat(groupId, groupData) {
   activeChatId = groupId;
   activeChatPartner = groupData;
   activeChatIsGroup = true;
+  document.getElementById('blocked-banner').style.display = 'none';
 
   // Refresh group data
   const gs = await db.collection('groups').doc(groupId).get();
@@ -2116,13 +2228,15 @@ function listenToPartnerStatus(partnerUid) {
   if (unsubPartnerStatus) unsubPartnerStatus();
   unsubPartnerStatus = db.collection('users').doc(partnerUid).onSnapshot(doc => {
     if (!doc.exists) return;
-    const online = !!doc.data().online;
-    chatWithStatus.textContent = online ? 'online' : 'offline';
-    chatWithStatus.classList.toggle('online', online);
-    chatStatusDot.classList.toggle('online', online);
+    const data = doc.data();
+    const online = !!data.online;
+    chatWithStatus.textContent = formatStatusText(data);
+    chatWithStatus.classList.toggle('online', online && data.lastSeenPrivacy !== 'nobody');
+    chatStatusDot.classList.toggle('online', online && data.lastSeenPrivacy !== 'nobody');
     // Update avatar in case photo changed
-    setAvatarContent(chatAvatar, doc.data().username, doc.data().photoURL);
-    activeChatPartner = doc.data();
+    setAvatarContent(chatAvatar, data.username, data.photoURL);
+    activeChatPartner = data;
+    refreshChatBlockedBanner();
   });
 }
 
@@ -2196,6 +2310,7 @@ function openSavedMessagesView() {
   document.getElementById('chat-status-dot').style.display = 'none';
   document.getElementById('chat-header-actions').innerHTML = '';
   document.getElementById('chat-header-info-btn').onclick = null;
+  document.getElementById('blocked-banner').style.display = 'none';
   const lockBar0 = document.getElementById('channel-locked-bar');
   if (lockBar0) lockBar0.style.display = 'none';
   messageForm.style.display = 'none';
@@ -2505,6 +2620,36 @@ function showAppearanceSettings() {
   wpRow.appendChild(wpRemoveBtn);
   body.appendChild(wpRow);
   body.appendChild(wpInput);
+
+  // Privacy: last seen
+  const lsLabel = document.createElement('div');
+  lsLabel.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;';
+  lsLabel.textContent = 'Last seen & online';
+  body.appendChild(lsLabel);
+
+  const lsRow = document.createElement('div');
+  lsRow.style.cssText = 'display:flex;gap:8px;margin-bottom:20px;';
+  const everyoneBtn = document.createElement('button');
+  const nobodyBtn = document.createElement('button');
+  [everyoneBtn, nobodyBtn].forEach(b => { b.type = 'button'; b.style.cssText = 'flex:1;padding:10px;border-radius:11px;border:1px solid var(--input-border);background:var(--surface2);color:var(--text-primary);font-size:13px;font-weight:600;cursor:pointer;'; });
+  everyoneBtn.textContent = 'Everyone';
+  nobodyBtn.textContent = 'Nobody';
+  function refreshLsBtns() {
+    const v = getLastSeenPrivacy();
+    everyoneBtn.style.borderColor = v === 'everyone' ? 'var(--primary)' : 'var(--input-border)';
+    everyoneBtn.style.background = v === 'everyone' ? 'var(--blue-glow)' : 'var(--surface2)';
+    nobodyBtn.style.borderColor = v === 'nobody' ? 'var(--primary)' : 'var(--input-border)';
+    nobodyBtn.style.background = v === 'nobody' ? 'var(--blue-glow)' : 'var(--surface2)';
+  }
+  everyoneBtn.addEventListener('click', async () => { await setLastSeenPrivacy('everyone'); refreshLsBtns(); });
+  nobodyBtn.addEventListener('click', async () => { await setLastSeenPrivacy('nobody'); refreshLsBtns(); });
+  refreshLsBtns();
+  lsRow.appendChild(everyoneBtn); lsRow.appendChild(nobodyBtn);
+  body.appendChild(lsRow);
+  const lsHint = document.createElement('div');
+  lsHint.style.cssText = 'font-size:11.5px;color:var(--text-muted);margin-top:-14px;margin-bottom:20px;';
+  lsHint.textContent = 'Choose who can see when you were last online.';
+  body.appendChild(lsHint);
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'btn-full';
@@ -3074,6 +3219,7 @@ messageForm.addEventListener('submit', async e => {
   e.preventDefault();
   const text = messageInput.value.trim();
   if (!text || !activeChatId) return;
+  if (!activeChatIsGroup && isBlockedEitherWay(activeChatPartner)) { showToast('You cannot message this user'); return; }
   if (activeChatIsChannel) {
     const admins = (activeChatPartner && activeChatPartner.admins) || [];
     const isAdminUser = admins.includes(currentUser.uid) || (activeChatPartner && activeChatPartner.createdBy === currentUser.uid);
@@ -3531,7 +3677,8 @@ function showCreateGroupModal() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastMessage: '',
         lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-        photoURL
+        photoURL,
+        inviteCode: generateInviteCode()
       });
       closeModal();
     } catch(err) {
@@ -3687,7 +3834,8 @@ function showCreateChannelModal() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastMessage: '',
         lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-        photoURL
+        photoURL,
+        inviteCode: generateInviteCode()
       });
       closeModal();
       showToast('Channel created');
@@ -3740,6 +3888,17 @@ async function showChannelSettings(channelId, channelData) {
   subCount.textContent = `${(channelData.members||[]).length} subscribers`;
   avatarSec.appendChild(subCount);
   body.appendChild(avatarSec);
+
+  const inviteBtn = document.createElement('button');
+  inviteBtn.type = 'button';
+  inviteBtn.className = 'btn-full';
+  inviteBtn.style.cssText = 'background:var(--blue-glow);color:var(--primary);padding:11px;border-radius:11px;border:1px solid rgba(37,99,235,0.25);font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;';
+  inviteBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Copy Invite Link`;
+  inviteBtn.addEventListener('click', async () => {
+    const code = await ensureInviteCode(channelId, channelData);
+    copyInviteLink(code, inviteBtn);
+  });
+  body.appendChild(inviteBtn);
 
   if (isAdmin) {
     const renameLabel = document.createElement('span');
@@ -3968,6 +4127,17 @@ async function showGroupSettings(groupId, groupData) {
   groupNameDisplay.textContent = groupData.name;
   avatarSec.appendChild(groupNameDisplay);
   body.appendChild(avatarSec);
+
+  const inviteBtn = document.createElement('button');
+  inviteBtn.type = 'button';
+  inviteBtn.className = 'btn-full';
+  inviteBtn.style.cssText = 'background:var(--blue-glow);color:var(--primary);padding:11px;border-radius:11px;border:1px solid rgba(37,99,235,0.25);font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;';
+  inviteBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Copy Invite Link`;
+  inviteBtn.addEventListener('click', async () => {
+    const code = await ensureInviteCode(groupId, groupData);
+    copyInviteLink(code, inviteBtn);
+  });
+  body.appendChild(inviteBtn);
 
   if (isAdmin) {
     // Rename
@@ -4215,6 +4385,19 @@ function showPartnerProfile(userData) {
   closeBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;margin:16px 20px;width:calc(100% - 40px);';
   closeBtn.textContent = 'Close';
   closeBtn.addEventListener('click', closeModal);
+
+  const blockBtn = document.createElement('button');
+  function refreshBlockBtn() {
+    const blocked = isUserBlockedByMe(userData.uid);
+    blockBtn.textContent = blocked ? 'Unblock User' : 'Block User';
+    blockBtn.style.cssText = `background:${blocked ? 'var(--surface2)' : 'rgba(239,68,68,0.1)'};color:${blocked ? 'var(--text-secondary)' : '#ef4444'};padding:11px;border-radius:11px;border:1px solid ${blocked ? 'var(--input-border)' : 'rgba(239,68,68,0.2)'};font-size:14px;font-weight:600;cursor:pointer;margin:0 20px 16px;width:calc(100% - 40px);`;
+  }
+  refreshBlockBtn();
+  blockBtn.addEventListener('click', async () => {
+    await toggleBlockUser(userData.uid, userData.username);
+    refreshBlockBtn();
+  });
+  footer.appendChild(blockBtn);
   footer.appendChild(closeBtn);
 }
 
