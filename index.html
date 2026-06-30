@@ -33,7 +33,33 @@
   --blue-glow:rgba(37,99,235,0.15);
   --gray:#1e1e2e;--white:#e8eaf0;
   --app-height:100vh;
+  --msg-font-size:14.5px;
 }
+[data-theme="light"]{
+  --primary:#2563EB;--primary-dark:#1d4ed8;--primary-light:#3b82f6;
+  --bg:#f4f5f9;--sidebar-bg:#ffffff;--sidebar-header-bg:#ffffff;
+  --chat-bg:#eef1f7;--chat-header-bg:#ffffff;
+  --bubble-sent:#dbeafe;--bubble-received:#ffffff;
+  --input-bg:#ffffff;--input-border:#e1e4ec;
+  --text-primary:#181b25;--text-secondary:#5b6172;--text-muted:#9aa0b4;
+  --border:#e6e8f0;--online:#22c55e;
+  --row-hover:#f1f3f8;--row-active:#e3ecfd;
+  --scrollbar:#d8dce6;--accent:#2563EB;
+  --error:#ef4444;--glass-bg:rgba(255,255,255,0.92);
+  --surface:#ffffff;--surface2:#f1f3f8;
+  --blue-glow:rgba(37,99,235,0.08);
+  --gray:#eceef3;--white:#181b25;
+}
+[data-theme="light"] .message-row.sent .bubble{color:#0f3a66;}
+[data-theme="light"] .message-row.sent .msg-time{color:#5b8fb3;}
+[data-theme="light"] .bubble{box-shadow:0 1px 2px rgba(20,30,60,0.06);}
+[data-theme="light"] .auth-screen{background:radial-gradient(ellipse 120% 80% at 50% 0%,#eef2fb 0%,#f4f5f9 60%);}
+.bubble{font-size:var(--msg-font-size,14.5px)!important;}
+.messages{background-size:cover;background-position:center;background-repeat:no-repeat;}
+.messages.has-wallpaper .message-row.received .bubble{background:rgba(19,19,30,0.82);backdrop-filter:blur(2px);}
+.messages.has-wallpaper .message-row.sent .bubble{background:rgba(30,58,95,0.86);backdrop-filter:blur(2px);}
+[data-theme="light"] .messages.has-wallpaper .message-row.received .bubble{background:rgba(255,255,255,0.88);}
+[data-theme="light"] .messages.has-wallpaper .message-row.sent .bubble{background:rgba(219,234,254,0.9);}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 html,body{
   height:100%;width:100%;
@@ -401,6 +427,7 @@ html,body{
 }
 .reply-quote-name{font-size:11px;font-weight:700;color:var(--primary-light);margin-bottom:2px;}
 .reply-quote-text{font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;}
+.forwarded-tag{font-size:11px;font-style:italic;color:var(--text-muted);margin-bottom:3px;display:flex;align-items:center;gap:4px;}
 
 /* File attachment */
 .file-attachment{
@@ -1138,6 +1165,75 @@ html,body{
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
+  const CACHE_NAME = 'mymessenger-v2';
+const BASE = './';
+const STATIC_ASSETS = [
+  BASE,
+  BASE + 'index.html',
+  BASE + 'manifest.json',
+  BASE + '1.png',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
+];
+
+// Install: cache static assets
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(STATIC_ASSETS).catch(err => {
+        console.warn('Some assets could not be cached:', err);
+      });
+    })
+  );
+  self.skipWaiting();
+});
+
+// Activate: clean up old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      )
+    )
+  );
+  self.clients.claim();
+});
+
+// Fetch: network-first for Firebase, cache-first for static
+self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // Skip non-GET and Firebase/API requests (always use network)
+  if (
+    event.request.method !== 'GET' ||
+    url.hostname.includes('firestore.googleapis.com') ||
+    url.hostname.includes('firebase') ||
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('gstatic.com')
+  ) {
+    return; // Let the browser handle it
+  }
+
+  // Cache-first for static assets
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(response => {
+        if (!response || response.status !== 200 || response.type === 'opaque') {
+          return response;
+        }
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return response;
+      }).catch(() => {
+        // Offline fallback for navigation
+        if (event.request.mode === 'navigate') {
+          return caches.match(BASE + 'index.html');
+        }
+      });
+    })
+  );
+});
   const firebaseConfig = {
     apiKey: "AIzaSyBgvme6SfGU2A3ChNC0Zv00tkFeAqyeuEI",
     authDomain: "mymessenger-8f7a7.firebaseapp.com",
@@ -1390,10 +1486,6 @@ auth.onAuthStateChanged(async user => {
     showAuth();
   }
 });
-
-function setOffline() {
-  if (currentUser) db.collection('users').doc(currentUser.uid).update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
-}
 
 function cleanupListeners() {
   if (unsubMessages) { unsubMessages(); unsubMessages = null; }
@@ -1871,6 +1963,10 @@ async function openChatWith(partnerData) {
   if (!partnerData.uid || partnerData.uid === currentUser.uid) return;
   closeAllPopups();
   clearReply();
+  isSavedMessagesView = false;
+  if (unsubSavedMessages) { unsubSavedMessages(); unsubSavedMessages = null; }
+  messagesEl.classList.remove('has-wallpaper');
+  applyWallpaper();
 
   const chatId = getChatId(currentUser.uid, partnerData.uid);
   activeChatId = chatId;
@@ -1966,6 +2062,9 @@ async function openChatWith(partnerData) {
 async function openGroupChat(groupId, groupData) {
   closeAllPopups();
   clearReply();
+  isSavedMessagesView = false;
+  if (unsubSavedMessages) { unsubSavedMessages(); unsubSavedMessages = null; }
+  applyWallpaper();
 
   activeChatId = groupId;
   activeChatPartner = groupData;
@@ -2099,7 +2198,7 @@ function listenToMessages(chatId, isGroup) {
   const col = isGroup ? 'groups' : 'chats';
 
   unsubMessages = db.collection(col).doc(chatId)
-    .collection('messages').orderBy('createdAt','asc')
+    .collection('messages').orderBy('createdAt','asc').limitToLast(200)
     .onSnapshot(snap => {
       messagesEl.innerHTML = '';
       currentChatMessages = [];
@@ -2134,6 +2233,354 @@ function listenToMessages(chatId, isGroup) {
     }, err => console.error('Messages error:', err));
 }
 
+/* ===== SAVED MESSAGES ===== */
+function openSavedMessagesView() {
+  closeAllPopups();
+  clearReply();
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+  if (unsubChatDoc) { unsubChatDoc(); unsubChatDoc = null; }
+  if (unsubGroupTyping) { unsubGroupTyping(); unsubGroupTyping = null; }
+  if (unsubPartnerStatus) { unsubPartnerStatus(); unsubPartnerStatus = null; }
+  if (unsubPinnedMsg) { unsubPinnedMsg(); unsubPinnedMsg = null; }
+  pinnedBar.classList.add('hidden');
+
+  isSavedMessagesView = true;
+  activeChatId = null;
+  activeChatPartner = null;
+  activeChatIsGroup = false;
+  activeChatIsChannel = false;
+
+  chatEmpty.classList.add('hidden');
+  chatActive.classList.remove('hidden');
+  setAvatarContent(chatAvatar, 'Saved Messages', null);
+  chatWithUsername.textContent = 'Saved Messages';
+  chatWithStatus.classList.remove('typing');
+  chatWithStatus.textContent = '';
+  document.getElementById('chat-status-dot').style.display = 'none';
+  document.getElementById('chat-header-actions').innerHTML = '';
+  document.getElementById('chat-header-info-btn').onclick = null;
+  const lockBar0 = document.getElementById('channel-locked-bar');
+  if (lockBar0) lockBar0.style.display = 'none';
+  messageForm.style.display = 'none';
+
+  document.querySelectorAll('.user-row').forEach(r => r.classList.remove('active'));
+  if (savedMessagesRow) savedMessagesRow.classList.add('active');
+
+  if (window.innerWidth <= 768) { sidebar.classList.add('hide-mobile'); var _nav=document.getElementById('mobile-nav'); if(_nav) _nav.style.display='none'; }
+  userSearchInput.value = '';
+  searchResultsEl.innerHTML = '';
+  closeChatSearch();
+
+  messagesEl.innerHTML = '';
+  currentChatMessages = [];
+
+  if (unsubSavedMessages) unsubSavedMessages();
+  unsubSavedMessages = db.collection('users').doc(currentUser.uid)
+    .collection('savedMessages').orderBy('savedAt', 'asc')
+    .onSnapshot(snap => {
+      messagesEl.innerHTML = '';
+      currentChatMessages = [];
+      if (snap.empty) {
+        savedMessagesPreview.textContent = 'Your bookmarked messages';
+        const empty = document.createElement('div');
+        empty.style.cssText = 'margin:auto;text-align:center;color:var(--text-muted);font-size:13px;padding:40px;';
+        empty.textContent = 'No saved messages yet. Tap the bookmark icon on any message to save it here.';
+        messagesEl.appendChild(empty);
+        return;
+      }
+      let lastSaved = null;
+      snap.forEach(doc => {
+        const msg = doc.data();
+        if (lastSaved === null) lastSaved = msg;
+        renderMessage({ ...msg, senderId: currentUser.uid }, doc.id, null, false);
+      });
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      const last = snap.docs[snap.docs.length - 1].data();
+      savedMessagesPreview.textContent = last.text || (last.type === 'file' ? '📎 ' + (last.fileName || 'File') : 'Saved item');
+    }, err => console.error('Saved messages error:', err));
+}
+
+async function saveMessageToSaved(msg, msgId, chatId, isGroup) {
+  try {
+    const sourceName = isGroup
+      ? (activeChatPartner && activeChatPartner.name) || 'Group'
+      : (msg.senderId === currentUser.uid ? 'You' : (activeChatPartner && activeChatPartner.username)) || 'Chat';
+    const data = {
+      text: msg.text || '', type: msg.type || 'text',
+      fileName: msg.fileName || null, fileURL: msg.fileURL || null, fileSize: msg.fileSize || null,
+      senderUsername: msg.senderUsername || '', originalChatId: chatId || null,
+      originalMsgId: msgId || null, savedSourceName: sourceName,
+      savedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('users').doc(currentUser.uid).collection('savedMessages').add(data);
+    showToast('Message saved');
+  } catch (err) { showToast('Failed to save: ' + friendlyError(err)); }
+}
+
+async function removeSavedMessage(savedId) {
+  try {
+    await db.collection('users').doc(currentUser.uid).collection('savedMessages').doc(savedId).delete();
+  } catch (err) { showToast('Failed to remove: ' + friendlyError(err)); }
+}
+
+if (savedMessagesRow) {
+  savedMessagesRow.addEventListener('click', openSavedMessagesView);
+  savedMessagesRow.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSavedMessagesView(); } });
+}
+
+/* ===== FORWARD MESSAGE ===== */
+async function showForwardModal(msg) {
+  const modal = createModal('Forward Message');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+
+  const hint = document.createElement('div');
+  hint.style.cssText = 'font-size:12px;color:var(--text-muted);margin-bottom:10px;';
+  hint.textContent = 'Choose a chat to forward this message to:';
+  body.appendChild(hint);
+
+  const list = document.createElement('div');
+  list.style.cssText = 'display:flex;flex-direction:column;gap:4px;max-height:340px;overflow-y:auto;';
+  body.appendChild(list);
+
+  if (!latestChatItems || !latestChatItems.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'color:var(--text-muted);font-size:13px;padding:20px 0;text-align:center;';
+    empty.textContent = 'No chats available to forward to.';
+    list.appendChild(empty);
+  }
+
+  latestChatItems.forEach(item => {
+    const isPriv = item.type === 'private';
+    const name = isPriv ? item.partner.username : item.group.name;
+    const photoURL = isPriv ? item.partner.photoURL : item.group.photoURL;
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;';
+    row.addEventListener('mouseenter', () => row.style.background = 'var(--row-hover)');
+    row.addEventListener('mouseleave', () => row.style.background = '');
+
+    const av = document.createElement('div');
+    av.className = 'avatar';
+    av.style.cssText = 'width:36px;height:36px;flex-shrink:0;';
+    setAvatarContent(av, name || '?', photoURL);
+
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:14px;font-weight:600;color:var(--text-primary);';
+    label.textContent = name || 'Unknown';
+
+    row.appendChild(av);
+    row.appendChild(label);
+    row.addEventListener('click', async () => {
+      await forwardMessageTo(msg, item);
+      closeModal();
+      showToast('Message forwarded');
+    });
+    list.appendChild(row);
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn-full';
+  cancelBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', closeModal);
+  footer.appendChild(cancelBtn);
+}
+
+async function forwardMessageTo(msg, targetItem) {
+  const isGroupTarget = targetItem.type !== 'private';
+  const col = isGroupTarget ? 'groups' : 'chats';
+  const targetId = isGroupTarget ? targetItem.chatId : getChatId(currentUser.uid, targetItem.partner.uid);
+
+  if (!isGroupTarget) {
+    const chatRef = db.collection('chats').doc(targetId);
+    const chatSnap = await chatRef.get();
+    if (!chatSnap.exists) {
+      await chatRef.set({
+        participants: [currentUser.uid, targetItem.partner.uid],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastMessage: '', lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+  }
+
+  const fwdText = msg.text || (msg.type === 'file' ? '📎 ' + (msg.fileName || 'File') : (msg.type === 'poll' ? '📊 ' + (msg.pollQuestion || '') : ''));
+  const msgData = {
+    text: msg.type === 'poll' ? fwdText : (msg.text || ''), type: msg.type === 'poll' ? 'text' : (msg.type || 'text'),
+    fileName: msg.fileName || null, fileURL: msg.fileURL || null, fileSize: msg.fileSize || null,
+    senderId: currentUser.uid, senderUsername: currentUserData.username,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    forwardedFrom: msg.senderUsername || msg.savedSourceName || 'Unknown'
+  };
+
+  const ref = db.collection(col).doc(targetId);
+  await ref.collection('messages').add(msgData);
+  const updateData = { lastMessage: fwdText, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() };
+  if (!isGroupTarget) {
+    updateData[`unreadCounts.${targetItem.partner.uid}`] = firebase.firestore.FieldValue.increment(1);
+  } else {
+    (targetItem.group.members || []).forEach(uid => {
+      if (uid !== currentUser.uid) updateData[`unreadCounts.${uid}`] = firebase.firestore.FieldValue.increment(1);
+    });
+  }
+  await ref.update(updateData).catch(()=>{});
+}
+
+/* ===== APPEARANCE: THEME / FONT SIZE / WALLPAPER ===== */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+  localStorage.setItem('appTheme', theme);
+}
+function getTheme() { return localStorage.getItem('appTheme') || 'dark'; }
+
+function applyFontSize(px) {
+  document.documentElement.style.setProperty('--msg-font-size', px + 'px');
+  localStorage.setItem('appFontSize', px);
+}
+function getFontSize() { return parseInt(localStorage.getItem('appFontSize') || '14', 10) || 14; }
+
+function applyWallpaper() {
+  const wp = localStorage.getItem('appWallpaper');
+  if (wp) {
+    messagesEl.style.backgroundImage = `url("${wp}")`;
+    messagesEl.classList.add('has-wallpaper');
+  } else {
+    messagesEl.style.backgroundImage = '';
+    messagesEl.classList.remove('has-wallpaper');
+  }
+}
+
+function resizeImageToDataURL(file, maxDim, cb) {
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+      if (width > height && width > maxDim) { height = height * (maxDim / width); width = maxDim; }
+      else if (height > maxDim) { width = width * (maxDim / height); height = maxDim; }
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      cb(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function showAppearanceSettings() {
+  const modal = createModal('Appearance');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+
+  // Theme toggle
+  const themeLabel = document.createElement('div');
+  themeLabel.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;';
+  themeLabel.textContent = 'Theme';
+  body.appendChild(themeLabel);
+
+  const themeRow = document.createElement('div');
+  themeRow.style.cssText = 'display:flex;gap:8px;margin-bottom:20px;';
+  const darkBtn = document.createElement('button');
+  const lightBtn = document.createElement('button');
+  [darkBtn, lightBtn].forEach(b => { b.type = 'button'; b.style.cssText = 'flex:1;padding:10px;border-radius:11px;border:1px solid var(--input-border);background:var(--surface2);color:var(--text-primary);font-size:13px;font-weight:600;cursor:pointer;'; });
+  darkBtn.textContent = '🌙 Dark';
+  lightBtn.textContent = '☀️ Light';
+  function refreshThemeBtns() {
+    const t = getTheme();
+    darkBtn.style.borderColor = t === 'dark' ? 'var(--primary)' : 'var(--input-border)';
+    darkBtn.style.background = t === 'dark' ? 'var(--blue-glow)' : 'var(--surface2)';
+    lightBtn.style.borderColor = t === 'light' ? 'var(--primary)' : 'var(--input-border)';
+    lightBtn.style.background = t === 'light' ? 'var(--blue-glow)' : 'var(--surface2)';
+  }
+  darkBtn.addEventListener('click', () => { applyTheme('dark'); refreshThemeBtns(); });
+  lightBtn.addEventListener('click', () => { applyTheme('light'); refreshThemeBtns(); });
+  refreshThemeBtns();
+  themeRow.appendChild(darkBtn); themeRow.appendChild(lightBtn);
+  body.appendChild(themeRow);
+
+  // Font size
+  const fontLabel = document.createElement('div');
+  fontLabel.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;display:flex;justify-content:space-between;';
+  const fontLabelText = document.createElement('span'); fontLabelText.textContent = 'Message font size';
+  const fontLabelVal = document.createElement('span'); fontLabelVal.id = 'font-size-val';
+  fontLabel.appendChild(fontLabelText); fontLabel.appendChild(fontLabelVal);
+  body.appendChild(fontLabel);
+
+  const fontSlider = document.createElement('input');
+  fontSlider.type = 'range'; fontSlider.min = '12'; fontSlider.max = '20'; fontSlider.step = '1';
+  fontSlider.value = getFontSize();
+  fontSlider.style.cssText = 'width:100%;margin-bottom:20px;accent-color:var(--primary);';
+  fontLabelVal.textContent = fontSlider.value + 'px';
+  fontSlider.addEventListener('input', () => {
+    applyFontSize(fontSlider.value);
+    fontLabelVal.textContent = fontSlider.value + 'px';
+  });
+  body.appendChild(fontSlider);
+
+  // Wallpaper
+  const wpLabel = document.createElement('div');
+  wpLabel.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;';
+  wpLabel.textContent = 'Chat wallpaper';
+  body.appendChild(wpLabel);
+
+  const wpPreview = document.createElement('div');
+  const currentWp = localStorage.getItem('appWallpaper');
+  wpPreview.style.cssText = `width:100%;height:90px;border-radius:12px;margin-bottom:10px;background:var(--surface2);background-size:cover;background-position:center;border:1px solid var(--input-border);${currentWp ? `background-image:url("${currentWp}")` : ''}`;
+  body.appendChild(wpPreview);
+
+  const wpRow = document.createElement('div');
+  wpRow.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;';
+  const wpUploadBtn = document.createElement('button');
+  wpUploadBtn.type = 'button';
+  wpUploadBtn.className = 'btn-full btn-blue';
+  wpUploadBtn.style.cssText = 'flex:1;padding:11px;border-radius:11px;border:none;font-size:13px;font-weight:600;cursor:pointer;';
+  wpUploadBtn.textContent = 'Choose Image';
+  const wpInput = document.createElement('input');
+  wpInput.type = 'file'; wpInput.accept = 'image/*'; wpInput.style.display = 'none';
+  wpUploadBtn.addEventListener('click', () => wpInput.click());
+  wpInput.addEventListener('change', () => {
+    const file = wpInput.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { showToast('Please select an image file'); return; }
+    resizeImageToDataURL(file, 1080, dataUrl => {
+      try {
+        localStorage.setItem('appWallpaper', dataUrl);
+        wpPreview.style.backgroundImage = `url("${dataUrl}")`;
+        applyWallpaper();
+        showToast('Wallpaper updated');
+      } catch (e) { showToast('Image too large, try a smaller photo'); }
+    });
+  });
+
+  const wpRemoveBtn = document.createElement('button');
+  wpRemoveBtn.type = 'button';
+  wpRemoveBtn.style.cssText = 'flex:1;padding:11px;border-radius:11px;border:1px solid var(--input-border);background:var(--surface2);color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;';
+  wpRemoveBtn.textContent = 'Remove';
+  wpRemoveBtn.addEventListener('click', () => {
+    localStorage.removeItem('appWallpaper');
+    wpPreview.style.backgroundImage = '';
+    applyWallpaper();
+    showToast('Wallpaper removed');
+  });
+
+  wpRow.appendChild(wpUploadBtn);
+  wpRow.appendChild(wpRemoveBtn);
+  body.appendChild(wpRow);
+  body.appendChild(wpInput);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn-full';
+  closeBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;';
+  closeBtn.textContent = 'Close';
+  closeBtn.addEventListener('click', closeModal);
+  footer.appendChild(closeBtn);
+}
+
+// Apply saved appearance preferences on load
+applyTheme(getTheme());
+applyFontSize(getFontSize());
+
 /* ===== READ RECEIPT HELPERS ===== */
 function deliveredSVG() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
@@ -2165,6 +2612,22 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     senderName.className = 'group-sender-name';
     senderName.textContent = msg.senderUsername;
     bubble.appendChild(senderName);
+  }
+
+  // Forwarded tag
+  if (msg.forwardedFrom) {
+    const fwd = document.createElement('div');
+    fwd.className = 'forwarded-tag';
+    fwd.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg> Forwarded from ${msg.forwardedFrom}`;
+    bubble.appendChild(fwd);
+  }
+
+  // Saved-messages source tag
+  if (isSavedMessagesView && msg.savedSourceName) {
+    const src = document.createElement('div');
+    src.className = 'saved-source-tag';
+    src.textContent = 'From ' + msg.savedSourceName;
+    bubble.appendChild(src);
   }
 
   // Reply quote
@@ -2239,7 +2702,34 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     actions.appendChild(reactBtn);
   }
 
-  if (isSent && msgId && msg.type !== 'poll') {
+  // Forward button — not shown inside Saved Messages view itself
+  if (!isSavedMessagesView && msgId) {
+    const fwdBtn = document.createElement('button');
+    fwdBtn.type = 'button';
+    fwdBtn.className = 'msg-action-btn';
+    fwdBtn.title = 'Forward';
+    fwdBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg>`;
+    fwdBtn.addEventListener('click', () => showForwardModal(msg));
+    actions.appendChild(fwdBtn);
+  }
+
+  // Save button — bookmark message into Saved Messages
+  if (msgId) {
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'msg-action-btn';
+    saveBtn.title = isSavedMessagesView ? 'Remove from Saved' : 'Save message';
+    saveBtn.innerHTML = isSavedMessagesView
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+    saveBtn.addEventListener('click', () => {
+      if (isSavedMessagesView) removeSavedMessage(msgId);
+      else saveMessageToSaved(msg, msgId, chatId, isGroup);
+    });
+    actions.appendChild(saveBtn);
+  }
+
+  if (isSent && msgId && msg.type !== 'poll' && !isSavedMessagesView) {
     const editBtn = document.createElement('button');
     editBtn.type = 'button';
     editBtn.className = 'msg-action-btn';
@@ -4158,78 +4648,15 @@ function setOffline() {
   });
 })();
 
+/* ===== PWA: register real service worker for offline caching & faster loads ===== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}
 
-
-
-const CACHE_NAME = 'mymessenger-v1';
-const BASE = '/Massenger/';
-const STATIC_ASSETS = [
-  BASE,
-  BASE + 'index.html',
-  BASE + 'manifest.json',
-  BASE + '1.png',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
-];
-
-// Install: cache static assets
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS).catch(err => {
-        console.warn('Some assets could not be cached:', err);
-      });
-    })
-  );
-  self.skipWaiting();
-});
-
-// Activate: clean up old caches
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      )
-    )
-  );
-  self.clients.claim();
-});
-
-// Fetch: network-first for Firebase, cache-first for static
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-
-  // Skip non-GET and Firebase/API requests (always use network)
-  if (
-    event.request.method !== 'GET' ||
-    url.hostname.includes('firestore.googleapis.com') ||
-    url.hostname.includes('firebase') ||
-    url.hostname.includes('googleapis.com') ||
-    url.hostname.includes('gstatic.com')
-  ) {
-    return; // Let the browser handle it
-  }
-
-  // Cache-first for static assets
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        if (!response || response.status !== 200 || response.type === 'opaque') {
-          return response;
-        }
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        return response;
-      }).catch(() => {
-        // Offline fallback for navigation
-        if (event.request.mode === 'navigate') {
-          return caches.match(BASE + 'index.html');
-        }
-      });
-    })
-  );
-});
 </script>
 </body>
 </html>
