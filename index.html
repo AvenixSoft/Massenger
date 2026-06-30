@@ -319,7 +319,47 @@ html,body{
 .chat-with-username{font-weight:700;font-size:15px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color 0.2s;}
 .chat-with-status{font-size:11.5px;color:var(--text-muted);transition:color 0.3s;}
 .chat-with-status.online{color:var(--online);}
+.chat-with-status.typing{color:var(--primary);}
 .chat-member-count{font-size:11.5px;color:var(--text-muted);}
+
+/* ===== TYPING INDICATOR (chat list preview) ===== */
+.typing-dots{display:inline-flex;align-items:center;gap:2px;vertical-align:middle;}
+.typing-dots span{width:4px;height:4px;border-radius:50%;background:var(--primary);animation:typingBlink 1.2s infinite ease-in-out;}
+.typing-dots span:nth-child(2){animation-delay:0.2s;}
+.typing-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes typingBlink{0%,80%,100%{opacity:0.25;transform:scale(0.8);}40%{opacity:1;transform:scale(1);}}
+
+/* ===== IN-CHAT SEARCH BAR ===== */
+.chat-search-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;background:var(--chat-header-bg);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  animation:slideUp 0.15s ease;
+}
+.chat-search-bar input{
+  flex:1;border:none;outline:none;background:var(--input-bg);
+  color:var(--text-primary);padding:8px 12px;border-radius:10px;font-size:13.5px;
+  border:1px solid var(--input-border);
+}
+.chat-search-bar input:focus{border-color:var(--primary);}
+.chat-search-count{font-size:11.5px;color:var(--text-muted);white-space:nowrap;min-width:34px;text-align:center;}
+.chat-search-nav-btn{
+  background:transparent;border:none;cursor:pointer;color:var(--text-secondary);
+  padding:6px;border-radius:8px;display:flex;transition:all 0.15s;
+}
+.chat-search-nav-btn:hover{background:var(--row-hover);color:var(--text-primary);}
+.chat-search-nav-btn:disabled{opacity:0.3;cursor:default;}
+.chat-search-close{
+  background:transparent;border:none;cursor:pointer;color:var(--text-muted);
+  padding:6px;border-radius:8px;display:flex;transition:color 0.2s;
+}
+.chat-search-close:hover{color:var(--error);}
+.bubble.search-match{box-shadow:0 0 0 2px var(--primary-light);}
+.bubble.search-match-active{box-shadow:0 0 0 2px var(--primary),0 0 16px rgba(37,99,235,0.5);}
+
+/* ===== SAVED MESSAGES ===== */
+.saved-row .avatar{background:linear-gradient(135deg,#f59e0b,#d97706)!important;}
+.saved-source-tag{font-size:11px;color:var(--text-muted);margin-bottom:2px;font-weight:600;}
 
 /* ===== REPLY BAR ===== */
 .reply-bar{
@@ -940,6 +980,17 @@ html,body{
       <span class="archive-badge" id="archive-badge">0</span>
     </div>
     <div id="archived-list" style="display:none;"></div>
+    <div id="saved-messages-row" class="user-row saved-row" tabindex="0" style="cursor:pointer;">
+      <div class="avatar-wrap">
+        <div class="avatar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+      </div>
+      <div class="user-row-body">
+        <div class="user-row-top"><span class="user-row-name">Saved Messages</span></div>
+        <div class="user-row-sub" id="saved-messages-preview">Your bookmarked messages</div>
+      </div>
+    </div>
     <div class="chats-list-label">Chats</div>
     <div id="chats-list" class="chats-list"></div>
   </aside>
@@ -987,7 +1038,25 @@ html,body{
           <span id="chat-with-username" class="chat-with-username"></span>
           <span id="chat-with-status" class="chat-with-status">offline</span>
         </div>
+        <button class="icon-btn" id="chat-search-toggle-btn" title="Search in chat" style="flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
         <div id="chat-header-actions" style="display:flex;gap:2px;flex-shrink:0;"></div>
+      </div>
+
+      <div id="chat-search-bar" class="chat-search-bar hidden">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--text-muted);flex-shrink:0;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="chat-search-input" placeholder="Search in this chat…" autocomplete="off">
+        <span class="chat-search-count" id="chat-search-count"></span>
+        <button type="button" class="chat-search-nav-btn" id="chat-search-prev-btn" title="Previous">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <button type="button" class="chat-search-nav-btn" id="chat-search-next-btn" title="Next">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <button type="button" class="chat-search-close" id="chat-search-close-btn" title="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
 
       <div id="reply-bar" class="reply-bar hidden">
@@ -1127,6 +1196,15 @@ const modalContainer  = document.getElementById('modal-container');
 const pinnedBar       = document.getElementById('pinned-bar');
 const pinnedBarText   = document.getElementById('pinned-bar-text');
 const pinnedBarClose  = document.getElementById('pinned-bar-close');
+const chatSearchToggleBtn = document.getElementById('chat-search-toggle-btn');
+const chatSearchBar   = document.getElementById('chat-search-bar');
+const chatSearchInput = document.getElementById('chat-search-input');
+const chatSearchCount = document.getElementById('chat-search-count');
+const chatSearchPrevBtn = document.getElementById('chat-search-prev-btn');
+const chatSearchNextBtn = document.getElementById('chat-search-next-btn');
+const chatSearchCloseBtn = document.getElementById('chat-search-close-btn');
+const savedMessagesRow = document.getElementById('saved-messages-row');
+const savedMessagesPreview = document.getElementById('saved-messages-preview');
 
 /* ===== STATE ===== */
 let currentUser = null, currentUserData = null;
@@ -1140,6 +1218,11 @@ let unsubPinnedMsg = null; // listener for pinned message
 let unsubChatDoc = null;   // listener for chat doc (read receipts + unread reset)
 let partnerReadAt = null;  // partner's lastReadAt for read receipts
 let replyToMsg = null; // {id, text, senderUsername}
+let typingTimeout = null, isTypingFlag = false; // typing indicator state
+let currentChatMessages = []; // {id, text, el} cache for in-chat search
+let chatSearchMatches = [], chatSearchActiveIdx = -1;
+let isSavedMessagesView = false, unsubSavedMessages = null;
+let unsubGroupTyping = null;
 let pendingGroupAvatarBlob = null;
 
 /* ===== EMOJI DATA ===== */
@@ -1820,6 +1903,7 @@ async function openChatWith(partnerData) {
 
   // Listen for partner's lastReadAt (read receipts)
   if (unsubChatDoc) { unsubChatDoc(); unsubChatDoc = null; }
+  if (unsubGroupTyping) { unsubGroupTyping(); unsubGroupTyping = null; }
   partnerReadAt = null;
   unsubChatDoc = chatRef.onSnapshot(snap => {
     if (!snap.exists) return;
@@ -1837,6 +1921,17 @@ async function openChatWith(partnerData) {
           tick.title = 'Seen';
         }
       });
+    }
+    // Typing indicator
+    const typingVal = d.typing && d.typing[partnerData.uid];
+    const isTypingNow = !!(typingVal && typingVal.toMillis && (Date.now() - typingVal.toMillis()) < 6000);
+    if (isTypingNow) {
+      chatWithStatus.innerHTML = 'typing<span class="typing-dots"><span></span><span></span><span></span></span>';
+      chatWithStatus.classList.add('typing');
+    } else {
+      chatWithStatus.classList.remove('typing');
+      const online = !!(activeChatPartner && activeChatPartner.online);
+      chatWithStatus.textContent = online ? 'online' : 'offline';
     }
   });
 
@@ -1929,7 +2024,26 @@ async function openGroupChat(groupId, groupData) {
   listenToMessages(groupId, true);
   if (unsubPartnerStatus) { unsubPartnerStatus(); unsubPartnerStatus = null; }
   if (unsubChatDoc) { unsubChatDoc(); unsubChatDoc = null; }
+  if (unsubGroupTyping) { unsubGroupTyping(); unsubGroupTyping = null; }
   partnerReadAt = null;
+
+  // Listen for typing users in the group
+  unsubGroupTyping = db.collection('groups').doc(groupId).onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data();
+    const typingMap = d.typing || {};
+    const now = Date.now();
+    const typingUsernames = Object.entries(typingMap)
+      .filter(([uid, ts]) => uid !== currentUser.uid && ts && ts.toMillis && (now - ts.toMillis()) < 6000)
+      .map(([uid]) => (d.typingNames && d.typingNames[uid]) || 'Someone');
+    if (typingUsernames.length) {
+      chatWithStatus.innerHTML = typingUsernames.slice(0,2).join(', ') + ' typing<span class="typing-dots"><span></span><span></span><span></span></span>';
+      chatWithStatus.classList.add('typing');
+    } else {
+      chatWithStatus.classList.remove('typing');
+      chatWithStatus.textContent = activeChatIsChannel ? `${(d.members||[]).length} subscribers` : `${(d.members||[]).length} members`;
+    }
+  });
 
   // Reset own unread + set lastReadAt for group
   db.collection('groups').doc(groupId).update({
@@ -1980,12 +2094,15 @@ function listenToPartnerStatus(partnerUid) {
 function listenToMessages(chatId, isGroup) {
   if (unsubMessages) unsubMessages();
   messagesEl.innerHTML = '';
+  currentChatMessages = [];
+  closeChatSearch();
   const col = isGroup ? 'groups' : 'chats';
 
   unsubMessages = db.collection(col).doc(chatId)
     .collection('messages').orderBy('createdAt','asc')
     .onSnapshot(snap => {
       messagesEl.innerHTML = '';
+      currentChatMessages = [];
       let lastDate = null;
       snap.forEach(doc => {
         const msg = doc.data();
@@ -2006,6 +2123,12 @@ function listenToMessages(chatId, isGroup) {
           }
         }
         renderMessage(msg, doc.id, chatId, isGroup);
+        const justRenderedRow = messagesEl.lastElementChild;
+        const justRenderedBubble = justRenderedRow && justRenderedRow.querySelector('.bubble');
+        if (justRenderedBubble) {
+          const searchableText = msg.text || (msg.type === 'file' ? (msg.fileName || '') : '') || (msg.type === 'poll' ? (msg.pollQuestion || '') : '');
+          currentChatMessages.push({ id: doc.id, text: searchableText, el: justRenderedBubble });
+        }
       });
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }, err => console.error('Messages error:', err));
@@ -2493,6 +2616,31 @@ function canPostInActiveChat() {
   const admins = (activeChatPartner && activeChatPartner.admins) || [];
   return admins.includes(currentUser.uid) || (activeChatPartner && activeChatPartner.createdBy === currentUser.uid);
 }
+
+/* ===== TYPING INDICATOR ===== */
+function setTypingState(isTyping) {
+  if (!activeChatId || isSavedMessagesView) return;
+  const col = activeChatIsGroup ? 'groups' : 'chats';
+  const ref = db.collection(col).doc(activeChatId);
+  const updateData = { [`typing.${currentUser.uid}`]: isTyping ? firebase.firestore.FieldValue.serverTimestamp() : firebase.firestore.FieldValue.delete() };
+  if (activeChatIsGroup && isTyping && currentUserData) {
+    updateData[`typingNames.${currentUser.uid}`] = currentUserData.username;
+  }
+  ref.update(updateData).catch(()=>{});
+}
+messageInput.addEventListener('input', () => {
+  if (!activeChatId || isSavedMessagesView) return;
+  if (!isTypingFlag) { isTypingFlag = true; setTypingState(true); }
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => { isTypingFlag = false; setTypingState(false); }, 3000);
+  if (!messageInput.value.trim() && isTypingFlag) {
+    isTypingFlag = false; clearTimeout(typingTimeout); setTypingState(false);
+  }
+});
+messageInput.addEventListener('blur', () => {
+  if (isTypingFlag) { isTypingFlag = false; clearTimeout(typingTimeout); setTypingState(false); }
+});
+
 messageForm.addEventListener('submit', async e => {
   e.preventDefault();
   const text = messageInput.value.trim();
@@ -2503,6 +2651,7 @@ messageForm.addEventListener('submit', async e => {
     if (!isAdminUser) { showToast('Only admins can post in this channel'); return; }
   }
   messageInput.value = '';
+  if (isTypingFlag) { isTypingFlag = false; clearTimeout(typingTimeout); setTypingState(false); }
 
   const col = activeChatIsGroup ? 'groups' : 'chats';
   const msgData = {
@@ -2535,6 +2684,62 @@ messageForm.addEventListener('submit', async e => {
     }
     await ref.update(updateData);
   } catch(err) { alert('Failed to send: ' + friendlyError(err)); }
+});
+
+/* ===== IN-CHAT SEARCH ===== */
+function closeChatSearch() {
+  chatSearchBar.classList.add('hidden');
+  chatSearchInput.value = '';
+  chatSearchCount.textContent = '';
+  currentChatMessages.forEach(m => m.el.classList.remove('search-match', 'search-match-active'));
+  chatSearchMatches = [];
+  chatSearchActiveIdx = -1;
+}
+
+function runChatSearch() {
+  const term = chatSearchInput.value.trim().toLowerCase();
+  currentChatMessages.forEach(m => m.el.classList.remove('search-match', 'search-match-active'));
+  if (!term) { chatSearchMatches = []; chatSearchActiveIdx = -1; chatSearchCount.textContent = ''; return; }
+  chatSearchMatches = currentChatMessages.filter(m => m.text && m.text.toLowerCase().includes(term));
+  chatSearchMatches.forEach(m => m.el.classList.add('search-match'));
+  if (chatSearchMatches.length) {
+    chatSearchActiveIdx = chatSearchMatches.length - 1; // start from most recent match
+    goToChatSearchMatch();
+  } else {
+    chatSearchActiveIdx = -1;
+    chatSearchCount.textContent = '0/0';
+  }
+}
+
+function goToChatSearchMatch() {
+  chatSearchMatches.forEach(m => m.el.classList.remove('search-match-active'));
+  if (chatSearchActiveIdx < 0 || !chatSearchMatches.length) return;
+  const m = chatSearchMatches[chatSearchActiveIdx];
+  m.el.classList.add('search-match-active');
+  m.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  chatSearchCount.textContent = `${chatSearchActiveIdx + 1}/${chatSearchMatches.length}`;
+}
+
+chatSearchToggleBtn.addEventListener('click', () => {
+  const isOpen = !chatSearchBar.classList.contains('hidden');
+  if (isOpen) { closeChatSearch(); }
+  else { chatSearchBar.classList.remove('hidden'); chatSearchInput.focus(); }
+});
+chatSearchCloseBtn.addEventListener('click', closeChatSearch);
+chatSearchInput.addEventListener('input', runChatSearch);
+chatSearchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); if (e.shiftKey) chatSearchPrevBtn.click(); else chatSearchNextBtn.click(); }
+  if (e.key === 'Escape') closeChatSearch();
+});
+chatSearchNextBtn.addEventListener('click', () => {
+  if (!chatSearchMatches.length) return;
+  chatSearchActiveIdx = (chatSearchActiveIdx - 1 + chatSearchMatches.length) % chatSearchMatches.length;
+  goToChatSearchMatch();
+});
+chatSearchPrevBtn.addEventListener('click', () => {
+  if (!chatSearchMatches.length) return;
+  chatSearchActiveIdx = (chatSearchActiveIdx + 1) % chatSearchMatches.length;
+  goToChatSearchMatch();
 });
 
 /* ===== EMOJI PICKER ===== */
