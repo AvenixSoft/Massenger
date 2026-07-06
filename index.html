@@ -453,6 +453,42 @@ html,body{
 
 /* ===== SAVED MESSAGES ===== */
 .saved-row .avatar{background:linear-gradient(135deg,#f59e0b,#d97706)!important;}
+
+/* ===== AVENIX NOTIFICATION CHAT ===== */
+.avenix-row .avenix-avatar{
+  background:linear-gradient(135deg,#2563eb,#1d4ed8)!important;
+  overflow:hidden;
+}
+.avenix-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.verified-tick{
+  display:inline-flex;align-items:center;vertical-align:middle;
+  margin-left:4px;flex-shrink:0;
+}
+[data-theme="light"] .verified-tick circle{fill:#2563eb;}
+[data-theme="light"] .verified-tick path{stroke:#fff;}
+.avenix-notif-msg{
+  display:flex;flex-direction:column;gap:4px;
+}
+.avenix-notif-msg .notif-title{
+  font-size:13px;font-weight:700;color:var(--primary-light);
+  display:flex;align-items:center;gap:5px;
+}
+.avenix-notif-msg .notif-title svg{flex-shrink:0;}
+.avenix-notif-msg .notif-body{
+  font-size:13.5px;line-height:1.5;color:var(--text-primary);
+}
+.avenix-notif-msg .notif-meta{
+  font-size:11px;color:var(--text-muted);margin-top:2px;
+}
+.avenix-notif-msg.notif-warning .notif-title{color:#f59e0b;}
+.avenix-notif-msg.notif-danger .notif-title{color:#ef4444;}
+.avenix-notif-msg.notif-success .notif-title{color:#22c55e;}
+.avenix-row{
+  border-left:2px solid rgba(37,99,235,0.3);
+  background:rgba(37,99,235,0.04);
+}
+.avenix-row:hover{background:rgba(37,99,235,0.08);}
+.avenix-row.active{background:var(--row-active)!important;}
 .saved-source-tag{font-size:11px;color:var(--text-muted);margin-bottom:2px;font-weight:600;}
 
 /* ===== REPLY BAR ===== */
@@ -1498,6 +1534,17 @@ html,body{
       <span class="archive-badge" id="archive-badge">0</span>
     </div>
     <div id="archived-list" style="display:none;"></div>
+    <div id="avenix-notif-row" class="user-row avenix-row" tabindex="0" style="cursor:pointer;">
+      <div class="avatar-wrap">
+        <div class="avatar avenix-avatar">
+          <img src="2.png" alt="Avenix">
+        </div>
+      </div>
+      <div class="user-row-body">
+        <div class="user-row-top"><span class="user-row-name">Avenix</span><svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="unread-badge hidden" id="avenix-unread-badge"></span></div>
+        <div class="user-row-sub" id="avenix-notif-preview">Notifications from Avenix</div>
+      </div>
+    </div>
     <div id="saved-messages-row" class="user-row saved-row" tabindex="0" style="cursor:pointer;">
       <div class="avatar-wrap">
         <div class="avatar">
@@ -3417,14 +3464,23 @@ auth.onAuthStateChanged(async user => {
     renderMe();
     showApp();
     listenToChatsList();
-    window.addEventListener('beforeunload', () => updateUserOnlineStatus(false));
+    listenToAvenixNotifications();
+    checkAvenixWelcome();
+    avenixNotifyLogin();
+    startDeviceWatcher();
+    window.addEventListener('beforeunload', () => { updateUserOnlineStatus(false); try { avenixNotifyLogout(); } catch(_){} });
     handleInviteHash();
     window.addEventListener('hashchange', handleInviteHash);
-    if (deviceResult && deviceResult.isNew) handleNewDeviceLoginAlert(deviceResult.info);
+    if (deviceResult && deviceResult.isNew) {
+      handleNewDeviceLoginAlert(deviceResult.info);
+      avenixNotifyNewDevice(deviceResult.info);
+    }
     initSelfDestructSweep();
   } else {
     currentUser = null; currentUserData = null;
     activeChatId = null; activeChatPartner = null;
+    if (unsubAvenixMessages) { unsubAvenixMessages(); unsubAvenixMessages = null; }
+    stopDeviceWatcher();
     showAuth();
   }
 });
@@ -3433,6 +3489,7 @@ function cleanupListeners() {
   if (unsubMessages) { unsubMessages(); unsubMessages = null; }
   if (unsubChatsList) { unsubChatsList(); unsubChatsList = null; }
   if (unsubPartnerStatus) { unsubPartnerStatus(); unsubPartnerStatus = null; }
+  if (unsubSavedMessages) { unsubSavedMessages(); unsubSavedMessages = null; }
 }
 
 function showApp() {
@@ -3931,6 +3988,7 @@ async function openChatWith(partnerData) {
   closeAllPopups();
   clearReply();
   isSavedMessagesView = false;
+  isAvenixView = false;
   if (unsubSavedMessages) { unsubSavedMessages(); unsubSavedMessages = null; }
   messagesEl.classList.remove('has-wallpaper');
   applyWallpaper();
@@ -4036,6 +4094,7 @@ async function openGroupChat(groupId, groupData) {
   closeAllPopups();
   clearReply();
   isSavedMessagesView = false;
+  isAvenixView = false;
   if (unsubSavedMessages) { unsubSavedMessages(); unsubSavedMessages = null; }
   applyWallpaper();
   if (!(await requireChatUnlock(groupId, (groupData && groupData.name) || 'this chat'))) return;
@@ -4223,6 +4282,7 @@ function listenToMessages(chatId, isGroup) {
 function openSavedMessagesView() {
   closeAllPopups();
   clearReply();
+  isAvenixView = false;
   if (unsubMessages) { unsubMessages(); unsubMessages = null; }
   if (unsubChatDoc) { unsubChatDoc(); unsubChatDoc = null; }
   if (unsubGroupTyping) { unsubGroupTyping(); unsubGroupTyping = null; }
@@ -4334,6 +4394,395 @@ async function removeSavedMessage(savedId) {
 if (savedMessagesRow) {
   savedMessagesRow.addEventListener('click', openSavedMessagesView);
   savedMessagesRow.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSavedMessagesView(); } });
+}
+
+/* ===== AVENIX NOTIFICATION CHAT ===== */
+const avenixNotifRow = document.getElementById('avenix-notif-row');
+const avenixNotifPreview = document.getElementById('avenix-notif-preview');
+const avenixUnreadBadge = document.getElementById('avenix-unread-badge');
+let isAvenixView = false;
+let unsubAvenixMessages = null;
+let avenixUnreadCount = 0;
+let lastSeenAvenixMsgId = null;
+
+// Notification icons
+function notifIcon(type) {
+  const icons = {
+    login: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>`,
+    logout: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+    newdevice: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>`,
+    security: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+    sessionend: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    welcome: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+    password: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+  };
+  return icons[type] || icons.login;
+}
+
+// Add a notification to the Avenix chat
+async function addAvenixNotification({ title, body, type, meta, priority }) {
+  if (!currentUser) return;
+  try {
+    const notifData = {
+      title: title || 'Notification',
+      body: body || '',
+      type: type || 'login',
+      meta: meta || '',
+      priority: priority || 'normal',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      readBy: {}
+    };
+    await db.collection('users').doc(currentUser.uid).collection('avenixNotifications').add(notifData);
+  } catch (err) {
+    console.warn('Failed to add Avenix notification:', err);
+  }
+}
+
+// Listen to Avenix notifications
+function listenToAvenixNotifications() {
+  if (!currentUser) return;
+  if (unsubAvenixMessages) unsubAvenixMessages();
+
+  unsubAvenixMessages = db.collection('users').doc(currentUser.uid)
+    .collection('avenixNotifications')
+    .orderBy('createdAt', 'desc')
+    .limit(50)
+    .onSnapshot(snap => {
+      if (snap.empty) {
+        avenixNotifPreview.textContent = 'Notifications from Avenix';
+        avenixUnreadBadge.classList.add('hidden');
+        avenixUnreadCount = 0;
+        if (isAvenixView) {
+          messagesEl.innerHTML = '';
+          const empty = document.createElement('div');
+          empty.style.cssText = 'margin:auto;text-align:center;color:var(--text-muted);font-size:13px;padding:40px;display:flex;flex-direction:column;align-items:center;gap:12px;';
+          empty.innerHTML = `
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>No notifications yet.<br>Important account activity will appear here.</span>`;
+          messagesEl.appendChild(empty);
+        }
+        return;
+      }
+
+      // Count unread
+      const lastReadTs = getLastSeenAvenixTimestamp();
+      let unread = 0;
+      let latestMsg = null;
+      snap.docs.forEach(doc => {
+        const data = doc.data();
+        if (!latestMsg) latestMsg = data;
+        const msgTs = data.createdAt ? data.createdAt.toMillis() : 0;
+        if (msgTs > lastReadTs) unread++;
+      });
+
+      avenixUnreadCount = unread;
+      if (unread > 0) {
+        avenixUnreadBadge.textContent = unread > 99 ? '99+' : unread;
+        avenixUnreadBadge.classList.remove('hidden');
+      } else {
+        avenixUnreadBadge.classList.add('hidden');
+      }
+
+      // Update preview
+      if (latestMsg) {
+        const previewText = latestMsg.body || latestMsg.title || 'Notification';
+        avenixNotifPreview.textContent = previewText.slice(0, 60);
+        if (unread > 0) {
+          avenixNotifPreview.style.color = 'var(--text-primary)';
+          avenixNotifPreview.style.fontWeight = '600';
+        } else {
+          avenixNotifPreview.style.color = '';
+          avenixNotifPreview.style.fontWeight = '';
+        }
+      }
+
+      // If we're in Avenix view, re-render messages
+      if (isAvenixView) {
+        renderAvenixMessagesFromSnapshot({ docs: snap.docs.slice().reverse(), empty: snap.empty });
+      }
+    }, err => console.error('Avenix notif error:', err));
+}
+
+function getLastSeenAvenixTimestamp() {
+  const val = localStorage.getItem('avenixLastSeen_' + (currentUser ? currentUser.uid : ''));
+  return val ? parseInt(val, 10) : 0;
+}
+
+function markAvenixRead() {
+  if (currentUser) {
+    localStorage.setItem('avenixLastSeen_' + currentUser.uid, String(Date.now()));
+  }
+  avenixUnreadCount = 0;
+  avenixUnreadBadge.classList.add('hidden');
+  avenixNotifPreview.style.color = '';
+  avenixNotifPreview.style.fontWeight = '';
+}
+
+// Open Avenix notification chat view
+function openAvenixChatView() {
+  closeAllPopups();
+  clearReply();
+  isSavedMessagesView = false;
+  isAvenixView = true;
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+  if (unsubChatDoc) { unsubChatDoc(); unsubChatDoc = null; }
+  if (unsubGroupTyping) { unsubGroupTyping(); unsubGroupTyping = null; }
+  if (unsubPartnerStatus) { unsubPartnerStatus(); unsubPartnerStatus = null; }
+  if (unsubPinnedMsg) { unsubPinnedMsg(); unsubPinnedMsg = null; }
+  if (unsubSavedMessages) { unsubSavedMessages(); unsubSavedMessages = null; }
+  pinnedBar.classList.add('hidden');
+
+  activeChatId = null;
+  activeChatPartner = null;
+  activeChatIsGroup = false;
+  activeChatIsChannel = false;
+  activeChatIsAdmin = false;
+  activeChatAdminRole = 'member';
+  activeChatCanPost = false;
+  activeChatCanModerate = false;
+  activeChatCanPin = false;
+
+  chatEmpty.classList.add('hidden');
+  chatActive.classList.remove('hidden');
+
+  // Avatar with verified tick in header
+  const avWrap = chatAvatar;
+  avWrap.innerHTML = '';
+  avWrap.style.background = 'linear-gradient(135deg,#2563eb,#1d4ed8)';
+  const avImg = document.createElement('img');
+  avImg.src = '2.png';
+  avImg.alt = 'Avenix';
+  avImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+  avWrap.appendChild(avImg);
+
+  chatWithUsername.innerHTML = 'Avenix <svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  chatWithStatus.className = 'chat-with-status';
+  chatWithStatus.textContent = 'Notification Service';
+  document.getElementById('chat-status-dot').style.display = 'none';
+  document.getElementById('chat-header-actions').innerHTML = '';
+  document.getElementById('chat-header-info-btn').onclick = null;
+  document.getElementById('blocked-banner').style.display = 'none';
+  const lockBar0 = document.getElementById('channel-locked-bar');
+  if (lockBar0) lockBar0.style.display = 'none';
+
+  // No message input
+  messageForm.style.display = 'none';
+  if (composeMetaBar) composeMetaBar.classList.add('hidden');
+
+  document.querySelectorAll('.user-row').forEach(r => r.classList.remove('active'));
+  if (avenixNotifRow) avenixNotifRow.classList.add('active');
+  if (savedMessagesRow) savedMessagesRow.classList.remove('active');
+
+  if (window.innerWidth <= 768) { sidebar.classList.add('hide-mobile'); var _nav=document.getElementById('mobile-nav'); if(_nav) _nav.style.display='none'; }
+  userSearchInput.value = '';
+  searchResultsEl.innerHTML = '';
+  closeChatSearch();
+
+  // Mark as read
+  markAvenixRead();
+
+  // Render notifications
+  messagesEl.innerHTML = '';
+  currentChatMessages = [];
+
+  // Fetch and render
+  db.collection('users').doc(currentUser.uid)
+    .collection('avenixNotifications')
+    .orderBy('createdAt', 'asc')
+    .limit(100)
+    .get()
+    .then(snap => {
+      renderAvenixMessagesFromSnapshot({ docs: snap.docs, empty: snap.empty });
+    })
+    .catch(err => console.error('Avenix fetch error:', err));
+}
+
+function renderAvenixMessagesFromSnapshot(snap) {
+  messagesEl.innerHTML = '';
+  currentChatMessages = [];
+
+  const docs = snap.docs || [];
+  if (!docs.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'margin:auto;text-align:center;color:var(--text-muted);font-size:13px;padding:40px;display:flex;flex-direction:column;align-items:center;gap:12px;';
+    empty.innerHTML = `
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>No notifications yet.<br>Important account activity will appear here.</span>`;
+    messagesEl.appendChild(empty);
+    return;
+  }
+
+  let lastDate = '';
+  docs.forEach(doc => {
+    const msg = doc.data();
+    const ts = msg.createdAt ? msg.createdAt.toDate() : new Date();
+
+    // Date separator
+    const dateStr = ts.toLocaleDateString([], { year:'numeric', month:'short', day:'numeric' });
+    if (dateStr !== lastDate) {
+      lastDate = dateStr;
+      const sep = document.createElement('div');
+      sep.className = 'date-separator';
+      sep.innerHTML = `<span>${dateStr}</span>`;
+      messagesEl.appendChild(sep);
+    }
+
+    // Render notification bubble
+    const row = document.createElement('div');
+    row.className = 'message-row received';
+
+    const notifClass = msg.priority === 'danger' ? 'notif-danger' :
+                       msg.priority === 'warning' ? 'notif-warning' :
+                       msg.priority === 'success' ? 'notif-success' : '';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble avenix-notif-msg ' + notifClass;
+
+    // Title
+    const titleEl = document.createElement('div');
+    titleEl.className = 'notif-title';
+    titleEl.innerHTML = `${notifIcon(msg.type)} ${escapeHtml(msg.title || 'Notification')}`;
+    bubble.appendChild(titleEl);
+
+    // Body
+    if (msg.body) {
+      const bodyEl = document.createElement('div');
+      bodyEl.className = 'notif-body';
+      bodyEl.textContent = msg.body;
+      bubble.appendChild(bodyEl);
+    }
+
+    // Meta
+    if (msg.meta) {
+      const metaEl = document.createElement('div');
+      metaEl.className = 'notif-meta';
+      metaEl.textContent = msg.meta;
+      bubble.appendChild(metaEl);
+    }
+
+    row.appendChild(bubble);
+
+    // Time
+    const time = document.createElement('span');
+    time.className = 'msg-time';
+    time.textContent = formatTime(msg.createdAt);
+    row.appendChild(time);
+
+    messagesEl.appendChild(row);
+  });
+
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+// Click handler for Avenix row
+if (avenixNotifRow) {
+  avenixNotifRow.addEventListener('click', openAvenixChatView);
+  avenixNotifRow.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAvenixChatView(); } });
+}
+
+// Send login notification
+async function avenixNotifyLogin() {
+  if (!currentUser) return;
+  const device = getCurrentDeviceSnapshot();
+  await addAvenixNotification({
+    title: 'New Login',
+    body: `You logged in from ${device.name || 'a device'}`,
+    type: 'login',
+    meta: `${device.kind || 'Device'} · ${device.timezone || ''} · ${new Date().toLocaleString()}`,
+    priority: 'normal'
+  });
+}
+
+// Send logout notification (fire-and-forget for beforeunload)
+function avenixNotifyLogout() {
+  if (!currentUser) return;
+  const device = getCurrentDeviceSnapshot();
+  const notifData = {
+    title: 'Session Ended',
+    body: `Your session ended on ${device.name || 'a device'}`,
+    type: 'sessionend',
+    meta: `${device.kind || 'Device'} · ${new Date().toLocaleString()}`,
+    priority: 'normal',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    readBy: {}
+  };
+  db.collection('users').doc(currentUser.uid).collection('avenixNotifications').add(notifData).catch(() => {});
+}
+
+// Send new device warning
+async function avenixNotifyNewDevice(deviceInfo) {
+  if (!currentUser) return;
+  await addAvenixNotification({
+    title: '⚠ New Device Login Detected',
+    body: `A new device logged into your account: ${deviceInfo.name || 'Unknown device'}`,
+    type: 'newdevice',
+    meta: `${deviceInfo.kind || 'Device'} · ${deviceInfo.browser || ''} · ${deviceInfo.timezone || ''} · ${deviceInfo.platform || ''}`,
+    priority: 'warning'
+  });
+}
+
+// Send welcome notification (first time)
+async function avenixNotifyWelcome() {
+  if (!currentUser) return;
+  await addAvenixNotification({
+    title: 'Welcome to Avenix!',
+    body: 'This is your notification center. You\'ll receive important alerts about your account here — login activity, security updates, and more.',
+    type: 'welcome',
+    meta: 'Avenix Notification Service',
+    priority: 'success'
+  });
+}
+
+// Check if first time (no notifications yet) and send welcome
+async function checkAvenixWelcome() {
+  if (!currentUser) return;
+  try {
+    const snap = await db.collection('users').doc(currentUser.uid)
+      .collection('avenixNotifications')
+      .limit(1).get();
+    if (snap.empty) {
+      await avenixNotifyWelcome();
+    }
+  } catch (_) {}
+}
+
+// Listen for new devices connecting to the account in real-time
+let knownDeviceIds = new Set();
+let unsubDeviceWatcher = null;
+
+function startDeviceWatcher() {
+  if (!currentUser || unsubDeviceWatcher) return;
+  const myDeviceId = getCurrentDeviceId();
+
+  // Initialize known devices from current snapshot
+  const currentDevices = (currentUserData && currentUserData.connectedDevices) || {};
+  Object.keys(currentDevices).forEach(id => knownDeviceIds.add(id));
+
+  unsubDeviceWatcher = db.collection('users').doc(currentUser.uid)
+    .onSnapshot(snap => {
+      if (!snap.exists) return;
+      const data = snap.data();
+      const devices = data.connectedDevices || {};
+      const deviceIds = Object.keys(devices);
+
+      // Check for new devices that weren't known before
+      deviceIds.forEach(id => {
+        if (!knownDeviceIds.has(id) && id !== myDeviceId) {
+          // New device detected! (another session logged in)
+          knownDeviceIds.add(id);
+          const info = devices[id];
+          avenixNotifyNewDevice(info || { name: 'Unknown device', kind: 'Device' });
+        }
+      });
+
+      // Update known devices (remove disconnected ones)
+      knownDeviceIds = new Set(deviceIds);
+    }, err => console.warn('Device watcher error:', err));
+}
+
+function stopDeviceWatcher() {
+  if (unsubDeviceWatcher) { unsubDeviceWatcher(); unsubDeviceWatcher = null; }
+  knownDeviceIds.clear();
 }
 
 /* ===== FORWARD MESSAGE ===== */
@@ -7608,5 +8057,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
