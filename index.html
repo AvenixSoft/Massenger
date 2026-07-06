@@ -50,7 +50,7 @@
   --blue-glow:rgba(37,99,235,0.08);
   --gray:#eceef3;--white:#181b25;
 }
-[data-theme="light"] .message-row.sent .bubble{color:#0f3a66;}
+[data-theme="light"] .message-row.sent .bubble{color:var(--bubble-sent-text,#0f3a66);}
 [data-theme="light"] .message-row.sent .msg-time{color:#5b8fb3;}
 [data-theme="light"] .bubble{box-shadow:0 1px 2px rgba(20,30,60,0.06);}
 [data-theme="light"] .auth-screen{background:radial-gradient(ellipse 120% 80% at 50% 0%,#eef2fb 0%,#f4f5f9 60%);}
@@ -471,7 +471,7 @@ html,body{
   font-size:14.5px;line-height:1.55;
   word-wrap:break-word;word-break:break-word;max-width:100%;
 }
-.message-row.sent .bubble{background:var(--bubble-sent);color:#ddeeff;border-bottom-right-radius:4px;}
+.message-row.sent .bubble{background:var(--bubble-sent);color:var(--bubble-sent-text,#ddeeff);border-bottom-right-radius:4px;}
 .message-row.received .bubble{background:var(--bubble-received);color:var(--text-primary);border-bottom-left-radius:4px;}
 .group-sender-name{font-size:11.5px;font-weight:700;color:var(--primary-light);margin-bottom:3px;}
 
@@ -913,6 +913,180 @@ html,body{
   padding: 1px 7px; border-radius: 20px; min-width: 18px; text-align: center;
 }
 #archived-list { flex-shrink: 0; }
+
+
+/* ===== CUSTOM THEME / HASHTAGS / MESSAGE CATEGORIES ===== */
+.design-icon{display:inline-block;vertical-align:-0.18em;flex-shrink:0;}
+
+.custom-theme-panel{
+  border:1px solid var(--border);border-radius:14px;padding:12px;
+  background:var(--surface2);margin:-10px 0 20px;display:none;
+}
+.custom-theme-help{font-size:11.5px;color:var(--text-muted);line-height:1.45;margin-bottom:10px;}
+.theme-color-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.theme-color-row{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:var(--surface);border:1px solid var(--input-border);border-radius:11px;
+  padding:8px 9px;font-size:12px;font-weight:600;color:var(--text-secondary);
+}
+.theme-color-row input[type="color"]{
+  width:34px;height:28px;border:none;background:transparent;cursor:pointer;padding:0;border-radius:8px;
+}
+.custom-theme-actions{display:flex;gap:8px;margin-top:10px;}
+.hashtag-link{
+  appearance:none;-webkit-appearance:none;background:transparent;border:none;padding:0;margin:0;
+  color:var(--primary-light);font:inherit;font-weight:700;cursor:pointer;line-height:inherit;
+}
+.hashtag-link:hover{text-decoration:underline;text-underline-offset:2px;}
+.message-row.sent .hashtag-link{color:#93c5fd;}
+[data-theme="light"] .message-row.sent .hashtag-link{color:#2563eb;}
+.message-text{white-space:pre-wrap;}
+.message-category-pill{
+  display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;
+  border:1px solid var(--primary);border-radius:999px;padding:2px 8px;margin:0 0 6px;
+  background:rgba(37,99,235,0.12);color:var(--primary-light);
+  font-size:10.5px;font-weight:800;letter-spacing:.2px;line-height:1.3;
+  cursor:pointer;vertical-align:middle;
+}
+.message-category-pill:hover{filter:brightness(1.12);transform:translateY(-1px);}
+.category-compose-icon{font-size:17px;line-height:1;display:inline-flex;align-items:center;justify-content:center;}
+.category-picker-list{display:flex;flex-direction:column;gap:7px;}
+.category-picker-row{
+  display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text-primary);border-radius:12px;padding:10px 12px;
+  font-size:13.5px;font-weight:700;cursor:pointer;text-align:left;transition:all .15s ease;
+}
+.category-picker-row:hover,.category-picker-row.active{border-color:var(--primary);background:var(--blue-glow);}
+.category-picker-dot{
+  width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:#fff;font-size:15px;box-shadow:0 4px 12px rgba(0,0,0,.18);
+}
+.category-picker-meta{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.category-picker-desc{font-size:11.5px;font-weight:500;color:var(--text-muted);}
+@media(max-width:480px){.theme-color-grid{grid-template-columns:1fr;}}
+
+
+
+/* ===== CHAT LOCKS / CONNECTED DEVICES / LOGIN REPORTS ===== */
+.row-lock-icon{
+  color:#f59e0b;flex-shrink:0;margin-left:3px;display:inline-flex;align-items:center;
+}
+.user-row.locked-row .user-row-sub{filter:blur(2px);opacity:.72;}
+.security-panel{
+  border:1px solid var(--border);border-radius:14px;background:var(--surface2);
+  padding:12px;margin:4px 0 18px;display:flex;flex-direction:column;gap:8px;
+}
+.security-panel-hint{font-size:11.5px;color:var(--text-muted);line-height:1.45;margin-bottom:2px;}
+.security-action-btn{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border:1px solid var(--input-border);background:var(--surface);color:var(--text-primary);
+  border-radius:12px;padding:10px 12px;font-size:13.5px;font-weight:700;cursor:pointer;
+  transition:all .15s ease;text-align:left;
+}
+.security-action-btn:hover{border-color:var(--primary);background:var(--blue-glow);}
+.security-action-btn.danger{color:var(--error);background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.18);}
+.security-action-btn.danger:hover{background:rgba(239,68,68,0.14);}
+.device-list{display:flex;flex-direction:column;gap:9px;}
+.device-row{
+  border:1px solid var(--border);background:var(--surface2);border-radius:14px;
+  padding:12px;display:flex;gap:11px;align-items:flex-start;
+}
+.device-icon{
+  width:38px;height:38px;border-radius:12px;background:var(--blue-glow);color:var(--primary);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.device-info{flex:1;min-width:0;}
+.device-name{font-size:14px;font-weight:800;color:var(--text-primary);display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.device-meta{font-size:11.5px;color:var(--text-muted);line-height:1.55;margin-top:3px;word-break:break-word;}
+.device-current-badge{
+  display:inline-flex;align-items:center;border-radius:999px;background:rgba(34,197,94,.14);
+  color:#22c55e;border:1px solid rgba(34,197,94,.22);font-size:10px;font-weight:800;padding:1px 6px;
+}
+.device-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.device-action-btn{
+  border:1px solid var(--input-border);background:var(--surface);color:var(--text-secondary);
+  border-radius:10px;padding:7px 9px;font-size:12px;font-weight:700;cursor:pointer;
+}
+.device-action-btn:hover{color:var(--text-primary);border-color:var(--primary);}
+.device-action-btn.danger{color:var(--error);border-color:rgba(239,68,68,.22);background:rgba(239,68,68,.08);}
+.passcode-input{
+  width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--input-border);
+  background:var(--surface2);color:var(--text-primary);font-size:18px;letter-spacing:4px;text-align:center;outline:none;
+}
+.passcode-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--blue-glow);}
+.security-textarea{
+  width:100%;min-height:110px;resize:vertical;padding:11px 13px;border-radius:12px;
+  border:1.5px solid var(--input-border);background:var(--surface2);color:var(--text-primary);
+  outline:none;font-family:inherit;font-size:14px;line-height:1.45;
+}
+.security-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--blue-glow);}
+.security-select{
+  width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid var(--input-border);
+  background:var(--surface2);color:var(--text-primary);font-size:14px;outline:none;margin-bottom:12px;
+}
+
+
+
+/* ===== ADMIN ROLES ===== */
+.admin-role-badge{
+  display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 7px;
+  font-size:10px;font-weight:800;border:1px solid transparent;white-space:nowrap;
+}
+.admin-role-badge.role-owner{background:rgba(168,85,247,.16);color:#c084fc;border-color:rgba(168,85,247,.25);}
+.admin-role-badge.role-admin{background:rgba(37,99,235,.16);color:var(--primary-light);border-color:rgba(37,99,235,.25);}
+.admin-role-badge.role-moderator{background:rgba(34,197,94,.14);color:#22c55e;border-color:rgba(34,197,94,.22);}
+.admin-role-badge.role-publisher{background:rgba(245,158,11,.14);color:#f59e0b;border-color:rgba(245,158,11,.24);}
+.role-manage-btn{
+  border:1px solid var(--input-border);background:var(--surface2);color:var(--text-secondary);
+  border-radius:9px;padding:6px 8px;font-size:11.5px;font-weight:800;cursor:pointer;
+}
+.role-manage-btn:hover{color:var(--text-primary);border-color:var(--primary);background:var(--blue-glow);}
+.admin-role-list{display:flex;flex-direction:column;gap:8px;}
+.admin-role-option{
+  width:100%;display:flex;align-items:center;gap:10px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text-primary);border-radius:13px;padding:11px 12px;
+  cursor:pointer;text-align:left;transition:all .15s ease;
+}
+.admin-role-option:hover,.admin-role-option.active{border-color:var(--primary);background:var(--blue-glow);}
+.admin-role-dot{width:32px;height:32px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:900;font-size:13px;}
+.admin-role-title{font-size:13.5px;font-weight:800;color:var(--text-primary);}
+.admin-role-desc{font-size:11.5px;color:var(--text-muted);line-height:1.35;margin-top:1px;}
+
+
+
+/* ===== MOBILE SWIPE CHAT ACTIONS ===== */
+.chat-swipe-actions{display:none;}
+@media(max-width:768px){
+  .user-row.swipe-enabled{
+    position:relative;overflow:hidden;touch-action:pan-y;user-select:none;
+  }
+  .user-row.swipe-enabled > .avatar-wrap,
+  .user-row.swipe-enabled > .user-row-body{
+    position:relative;z-index:2;transition:transform .2s cubic-bezier(.22,.61,.36,1);
+  }
+  .user-row.swipe-enabled.swipe-open > .avatar-wrap,
+  .user-row.swipe-enabled.swipe-open > .user-row-body{
+    transform:translateX(-150px);
+  }
+  .chat-swipe-actions{
+    display:flex;align-items:center;gap:6px;position:absolute;right:8px;top:50%;
+    transform:translate(120%,-50%);opacity:0;pointer-events:none;z-index:5;
+    transition:transform .2s cubic-bezier(.22,.61,.36,1),opacity .16s ease;
+  }
+  .user-row.swipe-open .chat-swipe-actions{
+    transform:translate(0,-50%);opacity:1;pointer-events:auto;
+  }
+  .swipe-action-btn{
+    width:68px;height:44px;border:none;border-radius:14px;color:#fff;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    font-size:10px;font-weight:800;letter-spacing:.1px;box-shadow:0 6px 18px rgba(0,0,0,.22);
+  }
+  .swipe-action-btn svg{width:17px;height:17px;flex-shrink:0;}
+  .swipe-action-btn.archive{background:linear-gradient(135deg,#2563eb,#1d4ed8);}
+  .swipe-action-btn.more{width:52px;background:linear-gradient(135deg,#475569,#334155);font-size:18px;letter-spacing:1px;}
+  .swipe-action-btn:active{transform:scale(.96);}
+}
+
 </style>
 </head>
 <body>
@@ -1107,7 +1281,7 @@ html,body{
 
       <div id="chat-search-bar" class="chat-search-bar hidden">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--text-muted);flex-shrink:0;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="chat-search-input" placeholder="Search in this chat…" autocomplete="off">
+        <input type="text" id="chat-search-input" placeholder="Search messages, #tags, or category:todo…" autocomplete="off">
         <span class="chat-search-count" id="chat-search-count"></span>
         <button type="button" class="chat-search-nav-btn" id="chat-search-prev-btn" title="Previous">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
@@ -1155,6 +1329,9 @@ html,body{
             <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
           </svg>
         </button>
+        <button type="button" class="form-icon-btn" id="message-category-btn" title="Message category">
+          <span id="message-category-icon" class="category-compose-icon"></span>
+        </button>
         <div class="msg-input-wrap">
           <input type="text" id="message-input" placeholder="Write a message…" autocomplete="off">
         </div>
@@ -1180,7 +1357,7 @@ html,body{
       </form>
       <div id="channel-locked-bar" class="channel-locked-bar" style="display:none;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Only admins can post in this channel
+        Only admins and publishers can post in this channel
       </div>
       <div id="blocked-banner" class="channel-locked-bar" style="display:none;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
@@ -1201,6 +1378,7 @@ html,body{
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
 <script>
   const firebaseConfig = {
@@ -1216,6 +1394,7 @@ html,body{
 
   const auth = firebase.auth();
   const db = firebase.firestore();
+  const storage = firebase.storage();
 
 /* ===== DOM ===== */
 const authScreen      = document.getElementById('auth-screen');
@@ -1270,12 +1449,18 @@ const chatSearchNextBtn = document.getElementById('chat-search-next-btn');
 const chatSearchCloseBtn = document.getElementById('chat-search-close-btn');
 const savedMessagesRow = document.getElementById('saved-messages-row');
 const savedMessagesPreview = document.getElementById('saved-messages-preview');
+const messageCategoryBtn = document.getElementById('message-category-btn');
+const messageCategoryIcon = document.getElementById('message-category-icon');
 
 /* ===== STATE ===== */
 let currentUser = null, currentUserData = null;
 let activeChatId = null, activeChatPartner = null, activeChatIsGroup = false;
 let activeChatIsChannel = false;
-let activeChatIsAdmin = false; // tracks if current user is admin of active channel
+let activeChatIsAdmin = false; // tracks if current user has elevated permissions in active group/channel
+let activeChatAdminRole = 'member';
+let activeChatCanPost = true;
+let activeChatCanModerate = false;
+let activeChatCanPin = false;
 let activeFolder = 'all';
 let latestChatItems = [];
 let unsubMessages = null, unsubChatsList = null, unsubPartnerStatus = null;
@@ -1289,6 +1474,930 @@ let chatSearchMatches = [], chatSearchActiveIdx = -1;
 let isSavedMessagesView = false, unsubSavedMessages = null;
 let unsubGroupTyping = null;
 let pendingGroupAvatarBlob = null;
+let activeMessageCategory = localStorage.getItem('messageCategory') || 'general';
+
+/* ===== MESSAGE CATEGORIES + HASHTAGS ===== */
+const MESSAGE_CATEGORIES = [
+  { id:'general', label:'General', icon:'chat', color:'#64748b', desc:'Default everyday messages' },
+  { id:'important', label:'Important', icon:'star', color:'#f59e0b', desc:'High-priority notes and decisions' },
+  { id:'todo', label:'To-do', icon:'check', color:'#22c55e', desc:'Tasks and action items' },
+  { id:'question', label:'Question', icon:'question', color:'#3b82f6', desc:'Questions that need answers' },
+  { id:'idea', label:'Idea', icon:'idea', color:'#a855f7', desc:'Brainstorms and suggestions' },
+  { id:'announcement', label:'Announcement', icon:'megaphone', color:'#ef4444', desc:'Broadcasts and updates' },
+  { id:'follow-up', label:'Follow-up', icon:'repeat', color:'#06b6d4', desc:'Items to revisit later' }
+];
+const HASHTAG_PATTERN = /#([A-Za-z0-9_\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u0590-\u05FF\u0600-\u06FF\u0750-\u077F]{1,50})/g;
+
+function hexToRgba(hex, alpha) {
+  const fallback = `rgba(37,99,235,${alpha})`;
+  if (!hex || typeof hex !== 'string') return fallback;
+  let clean = hex.trim().replace('#','');
+  if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
+  if (!/^[0-9a-fA-F]{6}$/.test(clean)) return fallback;
+  const num = parseInt(clean, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function adjustHex(hex, amount) {
+  if (!hex || typeof hex !== 'string') return hex;
+  let clean = hex.trim().replace('#','');
+  if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
+  if (!/^[0-9a-fA-F]{6}$/.test(clean)) return hex;
+  const clamp = n => Math.max(0, Math.min(255, n));
+  const r = clamp(parseInt(clean.slice(0,2),16) + amount);
+  const g = clamp(parseInt(clean.slice(2,4),16) + amount);
+  const b = clamp(parseInt(clean.slice(4,6),16) + amount);
+  return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+function designIcon(name, size = 18) {
+  const common = `class="design-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"`;
+  const icons = {
+    chat: `<svg ${common}><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>`,
+    star: `<svg ${common}><path d="m12 3 2.7 5.47 6.03.88-4.36 4.25 1.03 6-5.4-2.84-5.4 2.84 1.03-6-4.36-4.25 6.03-.88z"/></svg>`,
+    check: `<svg ${common}><path d="M20 6 9 17l-5-5"/><circle cx="12" cy="12" r="10"/></svg>`,
+    question: `<svg ${common}><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 1 1 5.2 2c-.9.6-1.3 1.1-1.3 2"/><path d="M12 17h.01"/></svg>`,
+    idea: `<svg ${common}><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.6 14.5A6 6 0 1 1 15.4 14.5c-.7.5-1.1 1.3-1.2 2.1h-4.4c-.1-.8-.5-1.6-1.2-2.1z"/></svg>`,
+    megaphone: `<svg ${common}><path d="m3 11 18-5v12L3 13z"/><path d="M11.6 16.8a3 3 0 0 1-5.8-1.6"/></svg>`,
+    repeat: `<svg ${common}><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg>`,
+    lock: `<svg ${common}><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+    devices: `<svg ${common}><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>`,
+    flag: `<svg ${common}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>`,
+    moon: `<svg ${common}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>`,
+    sun: `<svg ${common}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
+    palette: `<svg ${common}><circle cx="13.5" cy="6.5" r=".7" fill="currentColor" stroke="none"/><circle cx="17.5" cy="10.5" r=".7" fill="currentColor" stroke="none"/><circle cx="8.5" cy="7.5" r=".7" fill="currentColor" stroke="none"/><circle cx="6.5" cy="12.5" r=".7" fill="currentColor" stroke="none"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.1 0-.9.7-1.7 1.7-1.7h2.1c3.1 0 5.6-2.5 5.6-5.6C22 6 17.5 2 12 2z"/></svg>`,
+    file: `<svg ${common}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`,
+    poll: `<svg ${common}><path d="M4 19V5"/><path d="M4 19h16"/><rect x="7" y="11" width="3" height="5" rx="1"/><rect x="12" y="7" width="3" height="9" rx="1"/><rect x="17" y="9" width="3" height="7" rx="1"/></svg>`,
+    users: `<svg ${common}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+    channel: `<svg ${common}><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4z"/></svg>`
+  };
+  return icons[name] || icons.chat;
+}
+function getMessageCategory(id) {
+  return MESSAGE_CATEGORIES.find(c => c.id === id) || MESSAGE_CATEGORIES[0];
+}
+function resolveCategoryId(query) {
+  const q = (query || '').toLowerCase().replace(/^category:/,'').replace(/^cat:/,'').trim().replace(/\s+/g,'-');
+  const compact = q.replace(/[\s-]+/g, '');
+  const found = MESSAGE_CATEGORIES.find(c =>
+    c.id === q || c.id.replace(/[\s-]+/g, '') === compact ||
+    c.label.toLowerCase() === q || c.label.toLowerCase().replace(/[\s-]+/g, '') === compact
+  );
+  return found ? found.id : q;
+}
+function setOutgoingCategory(id) {
+  const cat = getMessageCategory(id);
+  activeMessageCategory = cat.id;
+  localStorage.setItem('messageCategory', activeMessageCategory);
+  renderCategoryComposeButton();
+}
+function renderCategoryComposeButton() {
+  if (!messageCategoryBtn || !messageCategoryIcon) return;
+  const cat = getMessageCategory(activeMessageCategory);
+  messageCategoryIcon.innerHTML = designIcon(cat.icon, 18);
+  messageCategoryBtn.title = 'Message category: ' + cat.label;
+  messageCategoryBtn.classList.toggle('active', cat.id !== 'general');
+  messageCategoryBtn.style.color = cat.id === 'general' ? '' : cat.color;
+}
+function showCategoryPicker(options = {}) {
+  const mode = options.mode || 'compose';
+  const currentId = mode === 'compose' ? activeMessageCategory : (options.currentCategory || 'general');
+  const modal = createModal(mode === 'compose' ? 'Message Category' : 'Set Message Category');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+
+  const hint = document.createElement('div');
+  hint.style.cssText = 'font-size:12px;color:var(--text-muted);line-height:1.45;margin-bottom:12px;';
+  hint.textContent = mode === 'compose'
+    ? 'Choose the category for messages you send from now on. It appears as a small label on each message.'
+    : 'Change the label for this message. Category labels are searchable with category:important, category:todo, and more.';
+  body.appendChild(hint);
+
+  const list = document.createElement('div');
+  list.className = 'category-picker-list';
+  body.appendChild(list);
+
+  MESSAGE_CATEGORIES.forEach(cat => {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'category-picker-row' + (cat.id === currentId ? ' active' : '');
+
+    const dot = document.createElement('span');
+    dot.className = 'category-picker-dot';
+    dot.style.background = cat.color;
+    dot.innerHTML = designIcon(cat.icon, 16);
+    row.appendChild(dot);
+
+    const meta = document.createElement('span');
+    meta.className = 'category-picker-meta';
+    const label = document.createElement('span');
+    label.textContent = cat.label;
+    const desc = document.createElement('span');
+    desc.className = 'category-picker-desc';
+    desc.textContent = cat.desc;
+    meta.appendChild(label);
+    meta.appendChild(desc);
+    row.appendChild(meta);
+
+    row.addEventListener('click', async () => {
+      if (mode === 'compose') {
+        setOutgoingCategory(cat.id);
+        closeModal();
+        showToast('Outgoing category: ' + cat.label);
+      } else {
+        const ok = await updateMessageCategory(options.msgId, options.chatId, options.isGroup, cat.id);
+        if (ok) {
+          closeModal();
+          showToast('Message category updated');
+        }
+      }
+    });
+    list.appendChild(row);
+  });
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn-full';
+  closeBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;';
+  closeBtn.textContent = 'Close';
+  closeBtn.addEventListener('click', closeModal);
+  footer.appendChild(closeBtn);
+}
+async function updateMessageCategory(msgId, chatId, isGroup, categoryId) {
+  if (!msgId || !chatId) return false;
+  try {
+    const col = isGroup ? 'groups' : 'chats';
+    await db.collection(col).doc(chatId).collection('messages').doc(msgId).update({ category: categoryId });
+    return true;
+  } catch (err) {
+    showToast('Failed to update category: ' + friendlyError(err));
+    return false;
+  }
+}
+function createCategoryPill(categoryId) {
+  const cat = getMessageCategory(categoryId);
+  const pill = document.createElement('button');
+  pill.type = 'button';
+  pill.className = 'message-category-pill';
+  pill.dataset.category = cat.id;
+  pill.style.background = hexToRgba(cat.color, 0.14);
+  pill.style.borderColor = hexToRgba(cat.color, 0.42);
+  pill.style.color = cat.color;
+  const icon = document.createElement('span');
+  icon.innerHTML = designIcon(cat.icon, 12);
+  const label = document.createElement('span');
+  label.textContent = cat.label;
+  pill.appendChild(icon);
+  pill.appendChild(label);
+  pill.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    openCategorySearch(cat.id);
+  });
+  return pill;
+}
+function extractHashtags(text = '') {
+  const found = new Set();
+  const re = new RegExp(HASHTAG_PATTERN.source, 'g');
+  let m;
+  while ((m = re.exec(String(text))) !== null) found.add(m[1].toLowerCase());
+  return Array.from(found);
+}
+function appendMessageText(container, text = '') {
+  const raw = String(text || '');
+  const re = new RegExp(HASHTAG_PATTERN.source, 'g');
+  let last = 0, m;
+  while ((m = re.exec(raw)) !== null) {
+    if (m.index > last) container.appendChild(document.createTextNode(raw.slice(last, m.index)));
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'hashtag-link';
+    btn.textContent = m[0];
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      openHashtagSearch(m[0]);
+    });
+    container.appendChild(btn);
+    last = re.lastIndex;
+  }
+  if (last < raw.length) container.appendChild(document.createTextNode(raw.slice(last)));
+}
+function getMessageHashtags(msg) {
+  const base = msg.text || msg.pollQuestion || msg.fileName || '';
+  return Array.isArray(msg.hashtags) ? msg.hashtags : extractHashtags(base);
+}
+function getMessageSearchText(msg) {
+  const base = msg.text || (msg.type === 'file' ? (msg.fileName || '') : '') || (msg.type === 'poll' ? (msg.pollQuestion || '') : '') || '';
+  const tags = getMessageHashtags(msg).map(t => '#' + t);
+  const cat = getMessageCategory(msg.category || 'general');
+  return [base, ...tags, 'category:' + cat.id, cat.label].join(' ');
+}
+function openHashtagSearch(tag) {
+  const clean = '#' + String(tag || '').replace(/^#/,'').toLowerCase();
+  chatSearchBar.classList.remove('hidden');
+  chatSearchInput.value = clean;
+  runChatSearch();
+  showToast('Searching ' + clean);
+}
+function openCategorySearch(categoryId) {
+  const cat = getMessageCategory(categoryId);
+  chatSearchBar.classList.remove('hidden');
+  chatSearchInput.value = 'category:' + cat.id;
+  runChatSearch();
+  showToast('Filtering ' + cat.label);
+}
+if (messageCategoryBtn) {
+  messageCategoryBtn.addEventListener('click', () => showCategoryPicker({ mode:'compose' }));
+  renderCategoryComposeButton();
+}
+
+
+/* ===== CHAT LOCKS / CONNECTED DEVICES / LOGIN REPORTS ===== */
+function securityStorageKey(name) {
+  const uid = currentUser && currentUser.uid ? currentUser.uid : 'guest';
+  return `${name}:${uid}`;
+}
+async function sha256Text(value) {
+  const input = String(value || '');
+  if (window.crypto && crypto.subtle && window.TextEncoder) {
+    const data = new TextEncoder().encode(input);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < input.length; i++) {
+    const ch = input.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 'fallback-' + (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
+}
+function getChatLockHash() {
+  return localStorage.getItem(securityStorageKey('chatLockPasscodeHash')) || '';
+}
+async function setChatLockPasscode(passcode) {
+  const salt = currentUser && currentUser.uid ? currentUser.uid : 'local';
+  const hash = await sha256Text(`${salt}:${passcode}`);
+  localStorage.setItem(securityStorageKey('chatLockPasscodeHash'), hash);
+}
+async function verifyChatPasscodeValue(passcode) {
+  const stored = getChatLockHash();
+  if (!stored) return false;
+  const salt = currentUser && currentUser.uid ? currentUser.uid : 'local';
+  const hash = await sha256Text(`${salt}:${passcode}`);
+  return hash === stored;
+}
+function getLockedChatIds() {
+  try { return JSON.parse(localStorage.getItem(securityStorageKey('lockedChatIds')) || '[]') || []; }
+  catch (_) { return []; }
+}
+function saveLockedChatIds(ids) {
+  localStorage.setItem(securityStorageKey('lockedChatIds'), JSON.stringify(Array.from(new Set(ids))));
+}
+function isChatLocked(chatId) {
+  return !!chatId && getLockedChatIds().includes(chatId);
+}
+function setChatLocked(chatId, locked) {
+  if (!chatId) return;
+  const ids = getLockedChatIds().filter(id => id !== chatId);
+  if (locked) ids.push(chatId);
+  saveLockedChatIds(ids);
+}
+function attachSecurityModalResolution(modal, settle) {
+  const overlay = document.getElementById('active-modal');
+  const closeBtn = modal && modal.querySelector('.modal-close');
+  if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) settle(false); }, true);
+  if (closeBtn) closeBtn.addEventListener('click', () => settle(false), true);
+}
+function promptSetChatPasscode(title = 'Create Chat Lock Passcode') {
+  return new Promise(resolve => {
+    const modal = createModal(title);
+    const body = modal.querySelector('.modal-body');
+    const footer = modal.querySelector('.modal-footer');
+    let done = false;
+    const settle = value => { if (done) return; done = true; closeModal(); resolve(value); };
+    attachSecurityModalResolution(modal, settle);
+
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size:12px;color:var(--text-muted);line-height:1.45;margin-bottom:14px;';
+    hint.textContent = 'Choose a passcode with at least 4 characters. It is stored only on this device and protects chats you lock here.';
+    body.appendChild(hint);
+
+    const pass1 = document.createElement('input');
+    pass1.type = 'password';
+    pass1.inputMode = 'numeric';
+    pass1.autocomplete = 'new-password';
+    pass1.placeholder = 'Passcode';
+    pass1.className = 'passcode-input';
+    body.appendChild(pass1);
+
+    const pass2 = document.createElement('input');
+    pass2.type = 'password';
+    pass2.inputMode = 'numeric';
+    pass2.autocomplete = 'new-password';
+    pass2.placeholder = 'Confirm';
+    pass2.className = 'passcode-input';
+    pass2.style.marginTop = '10px';
+    body.appendChild(pass2);
+
+    const err = document.createElement('div');
+    err.style.cssText = 'min-height:18px;color:var(--error);font-size:12px;text-align:center;margin-top:9px;';
+    body.appendChild(err);
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn-full btn-blue';
+    saveBtn.textContent = 'Save Passcode';
+    saveBtn.addEventListener('click', async () => {
+      const a = pass1.value;
+      const b = pass2.value;
+      if (!a || a.length < 4) { err.textContent = 'Passcode must be at least 4 characters.'; return; }
+      if (a !== b) { err.textContent = 'Passcodes do not match.'; return; }
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+      await setChatLockPasscode(a);
+      settle(true);
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn-full';
+    cancelBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', () => settle(false));
+    [pass1, pass2].forEach(inp => inp.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn.click(); if (e.key === 'Escape') settle(false); }));
+    footer.appendChild(saveBtn);
+    footer.appendChild(cancelBtn);
+    setTimeout(() => pass1.focus(), 80);
+  });
+}
+function promptVerifyChatPasscode(title = 'Enter Passcode', message = 'Enter your chat lock passcode to continue.') {
+  return new Promise(resolve => {
+    const modal = createModal(title);
+    const body = modal.querySelector('.modal-body');
+    const footer = modal.querySelector('.modal-footer');
+    let done = false;
+    const settle = value => { if (done) return; done = true; closeModal(); resolve(value); };
+    attachSecurityModalResolution(modal, settle);
+
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size:12px;color:var(--text-muted);line-height:1.45;margin-bottom:14px;text-align:center;';
+    hint.textContent = message;
+    body.appendChild(hint);
+
+    const input = document.createElement('input');
+    input.type = 'password';
+    input.inputMode = 'numeric';
+    input.autocomplete = 'current-password';
+    input.placeholder = 'Passcode';
+    input.className = 'passcode-input';
+    body.appendChild(input);
+
+    const err = document.createElement('div');
+    err.style.cssText = 'min-height:18px;color:var(--error);font-size:12px;text-align:center;margin-top:9px;';
+    body.appendChild(err);
+
+    const unlockBtn = document.createElement('button');
+    unlockBtn.className = 'btn-full btn-blue';
+    unlockBtn.textContent = 'Unlock';
+    unlockBtn.addEventListener('click', async () => {
+      unlockBtn.disabled = true;
+      const ok = await verifyChatPasscodeValue(input.value);
+      unlockBtn.disabled = false;
+      if (ok) settle(true);
+      else { err.textContent = 'Incorrect passcode.'; input.select(); }
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn-full';
+    cancelBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', () => settle(false));
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') unlockBtn.click(); if (e.key === 'Escape') settle(false); });
+    footer.appendChild(unlockBtn);
+    footer.appendChild(cancelBtn);
+    setTimeout(() => input.focus(), 80);
+  });
+}
+async function ensureChatLockPasscode() {
+  if (getChatLockHash()) return true;
+  const ok = await promptSetChatPasscode();
+  if (ok) showToast('Chat lock passcode created');
+  return ok;
+}
+async function requireChatUnlock(chatId, displayName = 'chat') {
+  if (!isChatLocked(chatId)) return true;
+  if (!getChatLockHash()) {
+    const ok = await promptSetChatPasscode('Set Passcode to Unlock');
+    if (!ok) return false;
+  }
+  const ok = await promptVerifyChatPasscode('Locked Chat', `Enter your passcode to open ${displayName}.`);
+  if (!ok) showToast('Chat remains locked');
+  return ok;
+}
+function refreshChatLockUI() {
+  try { renderActiveFolderUI(); } catch (_) {}
+}
+function getChatItemName(type, item) {
+  if (!item) return 'chat';
+  return type === 'private'
+    ? ((item.partner && (item.partner.displayName || item.partner.username)) || 'chat')
+    : ((item.group && item.group.name) || 'chat');
+}
+async function toggleChatLock(chatId, type, item) {
+  const name = getChatItemName(type, item);
+  const locked = isChatLocked(chatId);
+  if (locked) {
+    const ok = await promptVerifyChatPasscode('Unlock Chat', `Enter your passcode to remove the lock from ${name}.`);
+    if (!ok) return;
+    setChatLocked(chatId, false);
+    showToast('Chat unlocked');
+  } else {
+    const ready = await ensureChatLockPasscode();
+    if (!ready) return;
+    setChatLocked(chatId, true);
+    showToast('Chat locked');
+  }
+  refreshChatLockUI();
+}
+async function changeChatLockPasscode() {
+  if (getChatLockHash()) {
+    const ok = await promptVerifyChatPasscode('Verify Current Passcode', 'Enter your current chat lock passcode first.');
+    if (!ok) return;
+  }
+  const saved = await promptSetChatPasscode(getChatLockHash() ? 'Change Chat Lock Passcode' : 'Create Chat Lock Passcode');
+  if (saved) showToast('Chat lock passcode saved');
+}
+async function clearChatLocks() {
+  const lockedCount = getLockedChatIds().length;
+  if (!getChatLockHash() && !lockedCount) { showToast('No chat locks are set'); return; }
+  if (getChatLockHash()) {
+    const ok = await promptVerifyChatPasscode('Remove Chat Locks', 'Enter your passcode to remove all local chat locks.');
+    if (!ok) return;
+  }
+  localStorage.removeItem(securityStorageKey('chatLockPasscodeHash'));
+  localStorage.removeItem(securityStorageKey('lockedChatIds'));
+  refreshChatLockUI();
+  showToast('All local chat locks removed');
+}
+
+function getCurrentDeviceId() {
+  let id = localStorage.getItem('securityDeviceId');
+  if (!id) {
+    const random = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+    id = 'dev_' + random.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 32);
+    localStorage.setItem('securityDeviceId', id);
+  }
+  return id;
+}
+function getBrowserName() {
+  const ua = navigator.userAgent || '';
+  if (/Edg\//.test(ua)) return 'Microsoft Edge';
+  if (/OPR\//.test(ua)) return 'Opera';
+  if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) return 'Chrome';
+  if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return 'Safari';
+  if (/Firefox\//.test(ua)) return 'Firefox';
+  return 'Browser';
+}
+function getDeviceKind() {
+  const ua = navigator.userAgent || '';
+  if (/iPad|Tablet|Android(?!.*Mobile)/i.test(ua)) return 'Tablet';
+  if (/Mobi|Android|iPhone|iPod/i.test(ua)) return 'Phone';
+  return 'Desktop';
+}
+function getCurrentDeviceSnapshot() {
+  const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'Unknown timezone';
+  return {
+    id: getCurrentDeviceId(),
+    name: `${getBrowserName()} on ${navigator.platform || getDeviceKind()}`,
+    browser: getBrowserName(),
+    kind: getDeviceKind(),
+    platform: navigator.platform || 'Unknown platform',
+    userAgent: navigator.userAgent || '',
+    language: navigator.language || '',
+    timezone: tz,
+    screen: window.screen ? `${window.screen.width}×${window.screen.height}` : '',
+    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+  };
+}
+async function registerCurrentDevice(userRef) {
+  if (!currentUser || !userRef) return;
+  try {
+    const id = getCurrentDeviceId();
+    const existing = currentUserData && currentUserData.connectedDevices && currentUserData.connectedDevices[id];
+    const info = getCurrentDeviceSnapshot();
+    if (!existing) info.firstSeen = firebase.firestore.FieldValue.serverTimestamp();
+    await userRef.update({ [`connectedDevices.${id}`]: info });
+  } catch (err) {
+    console.warn('Could not register device:', err);
+  }
+}
+function formatSecurityTimestamp(ts) {
+  if (!ts) return 'Unknown';
+  const d = ts.toDate ? ts.toDate() : (ts instanceof Date ? ts : new Date(ts));
+  if (isNaN(d.getTime())) return 'Unknown';
+  return d.toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function deviceIconSVG(kind) {
+  if (kind === 'Phone') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`;
+  if (kind === 'Tablet') return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`;
+  return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>`;
+}
+async function showConnectedDevices() {
+  if (!currentUser) return;
+  const modal = createModal('Connected Devices');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+
+  const intro = document.createElement('div');
+  intro.style.cssText = 'font-size:12px;color:var(--text-muted);line-height:1.45;margin-bottom:12px;';
+  intro.textContent = 'Devices that have used this browser app with your account are listed here. You can remove devices you do not recognize and report suspicious activity.';
+  body.appendChild(intro);
+
+  const list = document.createElement('div');
+  list.className = 'device-list';
+  body.appendChild(list);
+
+  try {
+    const snap = await db.collection('users').doc(currentUser.uid).get();
+    const data = snap.exists ? snap.data() : {};
+    let devices = data.connectedDevices || {};
+    if (!devices[getCurrentDeviceId()]) {
+      await registerCurrentDevice(db.collection('users').doc(currentUser.uid));
+      const fresh = await db.collection('users').doc(currentUser.uid).get();
+      devices = (fresh.data() && fresh.data().connectedDevices) || devices;
+    }
+    const entries = Object.entries(devices).sort((a,b) => {
+      const at = a[1].lastActive && a[1].lastActive.toMillis ? a[1].lastActive.toMillis() : 0;
+      const bt = b[1].lastActive && b[1].lastActive.toMillis ? b[1].lastActive.toMillis() : 0;
+      return bt - at;
+    });
+
+    if (!entries.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = '<p>No connected devices recorded yet.</p>';
+      list.appendChild(empty);
+    }
+
+    entries.forEach(([id, device]) => {
+      const isCurrent = id === getCurrentDeviceId();
+      const row = document.createElement('div');
+      row.className = 'device-row';
+
+      const icon = document.createElement('div');
+      icon.className = 'device-icon';
+      icon.innerHTML = deviceIconSVG(device.kind);
+      row.appendChild(icon);
+
+      const info = document.createElement('div');
+      info.className = 'device-info';
+      const name = document.createElement('div');
+      name.className = 'device-name';
+      const nameText = document.createElement('span');
+      nameText.textContent = device.name || `${device.browser || 'Browser'} on ${device.platform || 'Unknown'}`;
+      name.appendChild(nameText);
+      if (isCurrent) {
+        const badge = document.createElement('span');
+        badge.className = 'device-current-badge';
+        badge.textContent = 'Current';
+        name.appendChild(badge);
+      }
+      info.appendChild(name);
+
+      const meta = document.createElement('div');
+      meta.className = 'device-meta';
+      meta.textContent = `${device.kind || 'Device'} · ${device.platform || 'Unknown platform'} · ${device.timezone || 'Unknown timezone'} · Last active ${formatSecurityTimestamp(device.lastActive)} · First seen ${formatSecurityTimestamp(device.firstSeen)}`;
+      info.appendChild(meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'device-actions';
+      const reportBtn = document.createElement('button');
+      reportBtn.className = 'device-action-btn danger';
+      reportBtn.textContent = 'Report';
+      reportBtn.addEventListener('click', () => showReportSuspiciousLoginModal({ id, ...device }));
+      actions.appendChild(reportBtn);
+
+      if (!isCurrent) {
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'device-action-btn';
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', async () => {
+          if (!confirm('Remove this device from your connected devices list?')) return;
+          await disconnectDevice(id);
+          closeModal();
+          showConnectedDevices();
+        });
+        actions.appendChild(removeBtn);
+      }
+      info.appendChild(actions);
+      row.appendChild(info);
+      list.appendChild(row);
+    });
+  } catch (err) {
+    const error = document.createElement('div');
+    error.style.cssText = 'color:var(--error);font-size:13px;line-height:1.45;';
+    error.textContent = 'Could not load connected devices: ' + friendlyError(err);
+    body.appendChild(error);
+  }
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn-full';
+  closeBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;';
+  closeBtn.textContent = 'Close';
+  closeBtn.addEventListener('click', closeModal);
+  footer.appendChild(closeBtn);
+}
+async function disconnectDevice(deviceId) {
+  if (!currentUser || !deviceId) return;
+  if (deviceId === getCurrentDeviceId()) { showToast('You cannot remove the current device here'); return; }
+  try {
+    await db.collection('users').doc(currentUser.uid).update({ [`connectedDevices.${deviceId}`]: firebase.firestore.FieldValue.delete() });
+    showToast('Device removed');
+  } catch (err) { showToast('Failed to remove device: ' + friendlyError(err)); }
+}
+async function showReportSuspiciousLoginModal(prefillDevice = null) {
+  if (!currentUser) return;
+  const modal = createModal('Report Suspicious Login');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+
+  const hint = document.createElement('div');
+  hint.style.cssText = 'font-size:12px;color:var(--text-muted);line-height:1.45;margin-bottom:12px;';
+  hint.textContent = 'Tell us which device or login looks suspicious. A security report will be saved for review.';
+  body.appendChild(hint);
+
+  const deviceLabel = document.createElement('span');
+  deviceLabel.className = 'modal-label';
+  deviceLabel.textContent = 'Device / login';
+  body.appendChild(deviceLabel);
+
+  const select = document.createElement('select');
+  select.className = 'security-select';
+  body.appendChild(select);
+
+  let devices = {};
+  try {
+    const snap = await db.collection('users').doc(currentUser.uid).get();
+    devices = (snap.exists && snap.data().connectedDevices) || {};
+  } catch (_) {}
+  if (prefillDevice && prefillDevice.id) devices[prefillDevice.id] = prefillDevice;
+  if (!Object.keys(devices).length) {
+    const current = getCurrentDeviceSnapshot();
+    devices[current.id] = current;
+  }
+  Object.entries(devices).forEach(([id, device]) => {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = (device.name || device.browser || 'Unknown device') + (id === getCurrentDeviceId() ? ' (current)' : '');
+    select.appendChild(opt);
+  });
+  if (prefillDevice && prefillDevice.id) select.value = prefillDevice.id;
+
+  const reasonLabel = document.createElement('span');
+  reasonLabel.className = 'modal-label';
+  reasonLabel.textContent = 'What happened?';
+  body.appendChild(reasonLabel);
+
+  const textarea = document.createElement('textarea');
+  textarea.className = 'security-textarea';
+  textarea.placeholder = 'Example: I do not recognize this device, location, or login time.';
+  body.appendChild(textarea);
+
+  const err = document.createElement('div');
+  err.style.cssText = 'min-height:18px;color:var(--error);font-size:12px;text-align:center;margin-top:9px;';
+  body.appendChild(err);
+
+  const submitBtn = document.createElement('button');
+  submitBtn.className = 'btn-full btn-danger';
+  submitBtn.textContent = 'Submit Report';
+  submitBtn.addEventListener('click', async () => {
+    const reason = textarea.value.trim();
+    if (reason.length < 8) { err.textContent = 'Please add a short description.'; return; }
+    const selectedId = select.value;
+    const selectedDevice = devices[selectedId] || prefillDevice || {};
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+    try {
+      await db.collection('securityReports').add({
+        type: 'suspicious_login', status: 'new',
+        uid: currentUser.uid,
+        email: (currentUserData && currentUserData.email) || currentUser.email || '',
+        username: (currentUserData && currentUserData.username) || '',
+        reportedDeviceId: selectedId,
+        reportedDevice: selectedDevice,
+        reportedFromDevice: getCurrentDeviceSnapshot(),
+        reason,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      closeModal();
+      showToast('Suspicious login report submitted');
+    } catch (err2) {
+      err.textContent = 'Failed to submit report: ' + friendlyError(err2);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Report';
+    }
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn-full';
+  cancelBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', closeModal);
+  footer.appendChild(submitBtn);
+  footer.appendChild(cancelBtn);
+  setTimeout(() => textarea.focus(), 80);
+}
+function appendSecuritySettingsSection(body) {
+  const label = document.createElement('div');
+  label.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;';
+  label.textContent = 'Security';
+  body.appendChild(label);
+
+  const panel = document.createElement('div');
+  panel.className = 'security-panel';
+  const hint = document.createElement('div');
+  hint.className = 'security-panel-hint';
+  hint.textContent = 'Manage local chat locks, connected devices, and suspicious login reports.';
+  panel.appendChild(hint);
+
+  const passBtn = document.createElement('button');
+  passBtn.type = 'button';
+  passBtn.className = 'security-action-btn';
+  passBtn.innerHTML = `<span style="display:flex;align-items:center;gap:9px;">${designIcon('lock',16)} ${getChatLockHash() ? 'Change chat lock passcode' : 'Create chat lock passcode'}</span><span>›</span>`;
+  passBtn.addEventListener('click', changeChatLockPasscode);
+  panel.appendChild(passBtn);
+
+  const devicesBtn = document.createElement('button');
+  devicesBtn.type = 'button';
+  devicesBtn.className = 'security-action-btn';
+  devicesBtn.innerHTML = `<span style="display:flex;align-items:center;gap:9px;">${designIcon('devices',16)} Connected devices</span><span>›</span>`;
+  devicesBtn.addEventListener('click', showConnectedDevices);
+  panel.appendChild(devicesBtn);
+
+  const reportBtn = document.createElement('button');
+  reportBtn.type = 'button';
+  reportBtn.className = 'security-action-btn';
+  reportBtn.innerHTML = `<span style="display:flex;align-items:center;gap:9px;">${designIcon('flag',16)} Report suspicious login</span><span>›</span>`;
+  reportBtn.addEventListener('click', () => showReportSuspiciousLoginModal());
+  panel.appendChild(reportBtn);
+
+  const clearBtn = document.createElement('button');
+  clearBtn.type = 'button';
+  clearBtn.className = 'security-action-btn danger';
+  clearBtn.innerHTML = `<span>Remove all local chat locks</span><span>×</span>`;
+  clearBtn.addEventListener('click', clearChatLocks);
+  panel.appendChild(clearBtn);
+
+  body.appendChild(panel);
+}
+
+
+/* ===== ADMIN ROLES FOR GROUPS / CHANNELS ===== */
+const ADMIN_ROLE_DEFS = [
+  { id:'owner', label:'Owner', short:'O', color:'#a855f7', desc:'Full control. This role belongs to the creator.' },
+  { id:'admin', label:'Admin', short:'A', color:'#2563eb', desc:'Manage info, members, roles, moderation controls, and channel posts.' },
+  { id:'moderator', label:'Moderator', short:'M', color:'#22c55e', desc:'Manage members, pins, comments, and reactions.' },
+  { id:'publisher', label:'Publisher', short:'P', color:'#f59e0b', desc:'Can publish posts in channels, without managing members or roles.', channelOnly:true },
+  { id:'member', label:'Member', short:'U', color:'#64748b', desc:'Regular member with no admin privileges.' }
+];
+function getAdminRoleDef(role) {
+  return ADMIN_ROLE_DEFS.find(r => r.id === role) || ADMIN_ROLE_DEFS.find(r => r.id === 'member');
+}
+function getAdminRole(chatData, uid) {
+  if (!chatData || !uid) return 'member';
+  if (chatData.createdBy === uid) return 'owner';
+  const roles = chatData.adminRoles || {};
+  if (roles[uid] && roles[uid] !== 'owner') return roles[uid];
+  if (Array.isArray(chatData.admins) && chatData.admins.includes(uid)) return 'admin';
+  return 'member';
+}
+function hasGroupPermission(chatData, uid, permission) {
+  if (!chatData || !uid) return false;
+  const role = getAdminRole(chatData, uid);
+  const isChannel = !!chatData.isChannel;
+  if (role === 'owner') return true;
+  if (role === 'admin') return true;
+  if (permission === 'post') return !isChannel || role === 'publisher';
+  if (role === 'moderator') return ['manageMembers','moderate','pin'].includes(permission);
+  if (role === 'publisher') return permission === 'post';
+  return !isChannel && permission === 'post';
+}
+function roleCanBeAssigned(role, isChannel) {
+  if (role === 'owner') return false;
+  if (role === 'publisher' && !isChannel) return false;
+  return true;
+}
+function createAdminRoleBadge(role) {
+  const def = getAdminRoleDef(role);
+  const span = document.createElement('span');
+  span.className = `admin-role-badge role-${def.id}`;
+  span.textContent = def.label;
+  return span;
+}
+async function updateMemberAdminRole(groupId, groupData, targetUid, newRole) {
+  if (!groupId || !groupData || !targetUid) return;
+  if (groupData.createdBy === targetUid) { showToast('Owner role cannot be changed'); return; }
+  const updateData = {};
+  if (newRole === 'member') {
+    updateData[`adminRoles.${targetUid}`] = firebase.firestore.FieldValue.delete();
+    updateData.admins = firebase.firestore.FieldValue.arrayRemove(targetUid);
+  } else {
+    updateData[`adminRoles.${targetUid}`] = newRole;
+    updateData.admins = newRole === 'admin'
+      ? firebase.firestore.FieldValue.arrayUnion(targetUid)
+      : firebase.firestore.FieldValue.arrayRemove(targetUid);
+  }
+  await db.collection('groups').doc(groupId).update(updateData);
+}
+async function showAdminRolePicker(groupId, groupData, userData) {
+  if (!groupId || !groupData || !userData) return;
+  if (!hasGroupPermission(groupData, currentUser.uid, 'manageRoles')) { showToast('You cannot manage roles'); return; }
+  if (groupData.createdBy === userData.uid) { showToast('Owner role cannot be changed'); return; }
+
+  const currentRole = getAdminRole(groupData, userData.uid);
+  const modal = createModal('Set Admin Role');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+
+  const hint = document.createElement('div');
+  hint.style.cssText = 'font-size:12px;color:var(--text-muted);line-height:1.45;margin-bottom:12px;';
+  hint.textContent = `Choose a role for ${userData.username || 'this member'}.`;
+  body.appendChild(hint);
+
+  const list = document.createElement('div');
+  list.className = 'admin-role-list';
+  body.appendChild(list);
+
+  ADMIN_ROLE_DEFS.filter(r => roleCanBeAssigned(r.id, !!groupData.isChannel)).forEach(role => {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'admin-role-option' + (role.id === currentRole ? ' active' : '');
+
+    const dot = document.createElement('span');
+    dot.className = 'admin-role-dot';
+    dot.style.background = role.color;
+    dot.textContent = role.short;
+    row.appendChild(dot);
+
+    const meta = document.createElement('span');
+    meta.style.cssText = 'display:flex;flex-direction:column;min-width:0;';
+    const title = document.createElement('span');
+    title.className = 'admin-role-title';
+    title.textContent = role.label;
+    const desc = document.createElement('span');
+    desc.className = 'admin-role-desc';
+    desc.textContent = role.desc;
+    meta.appendChild(title);
+    meta.appendChild(desc);
+    row.appendChild(meta);
+
+    row.addEventListener('click', async () => {
+      row.disabled = true;
+      try {
+        await updateMemberAdminRole(groupId, groupData, userData.uid, role.id);
+        const fresh = await db.collection('groups').doc(groupId).get();
+        const freshData = fresh.exists ? fresh.data() : groupData;
+        if (activeChatId === groupId) {
+          activeChatPartner = freshData;
+          activeChatAdminRole = getAdminRole(freshData, currentUser.uid);
+          activeChatCanPost = hasGroupPermission(freshData, currentUser.uid, 'post');
+          activeChatCanModerate = hasGroupPermission(freshData, currentUser.uid, 'moderate');
+          activeChatCanPin = hasGroupPermission(freshData, currentUser.uid, 'pin');
+          activeChatIsAdmin = ['owner','admin','moderator','publisher'].includes(activeChatAdminRole);
+        }
+        closeModal();
+        showToast('Role updated');
+        freshData.isChannel ? showChannelSettings(groupId, freshData) : showGroupSettings(groupId, freshData);
+      } catch (err) {
+        row.disabled = false;
+        showToast('Failed to update role: ' + friendlyError(err));
+      }
+    });
+    list.appendChild(row);
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn-full';
+  cancelBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', closeModal);
+  footer.appendChild(cancelBtn);
+}
+function appendRoleControls(row, groupId, groupData, userData) {
+  const role = getAdminRole(groupData, userData.uid);
+  if (role !== 'member') row.appendChild(createAdminRoleBadge(role));
+  if (hasGroupPermission(groupData, currentUser.uid, 'manageRoles') && groupData.createdBy !== userData.uid) {
+    const roleBtn = document.createElement('button');
+    roleBtn.type = 'button';
+    roleBtn.className = 'role-manage-btn';
+    roleBtn.textContent = 'Role';
+    roleBtn.title = 'Change admin role';
+    roleBtn.addEventListener('click', () => showAdminRolePicker(groupId, groupData, userData));
+    row.appendChild(roleBtn);
+  }
+}
 
 /* ===== EMOJI DATA ===== */
 const EMOJI_CATS = [
@@ -1525,7 +2634,11 @@ loginForm.addEventListener('submit', async e => {
 /* ===== LOGOUT ===== */
 logoutBtn.addEventListener('click', async () => {
   try {
-    if (currentUser) await db.collection('users').doc(currentUser.uid).update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
+    if (currentUser) await db.collection('users').doc(currentUser.uid).update({
+      online: false,
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+      [`connectedDevices.${getCurrentDeviceId()}.lastActive`]: firebase.firestore.FieldValue.serverTimestamp()
+    });
   } catch(_) {}
   await auth.signOut();
 });
@@ -1549,6 +2662,8 @@ auth.onAuthStateChanged(async user => {
     } else {
       await ref.update({ online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
     }
+    currentUserData = (await ref.get()).data();
+    await registerCurrentDevice(ref);
     currentUserData = (await ref.get()).data();
     renderMe();
     showApp();
@@ -1598,9 +2713,9 @@ function setAvatarContent(el, username, photoURL) {
 }
 
 /* ===== BUILD USER ROW ===== */
-function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unreadCount, isPinned) {
+function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unreadCount, isPinned, isLocked) {
   const row = document.createElement('div');
-  row.className = 'user-row' + (isPinned ? ' pinned-row' : '');
+  row.className = 'user-row' + (isPinned ? ' pinned-row' : '') + (isLocked ? ' locked-row' : '');
   row.setAttribute('tabindex', '0');
 
   const wrap = document.createElement('div');
@@ -1631,6 +2746,15 @@ function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unread
     pinIco.className = 'row-pin-icon';
     pinIco.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg>`;
     top.appendChild(pinIco);
+  }
+
+  // Lock icon next to name
+  if (isLocked) {
+    const lockIco = document.createElement('span');
+    lockIco.className = 'row-lock-icon';
+    lockIco.title = 'Locked chat';
+    lockIco.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+    top.appendChild(lockIco);
   }
 
   if (isGroup) {
@@ -1811,7 +2935,7 @@ function listenToChatsList() {
         const { chatId, chat, partner } = item;
         const unread = (chat.unreadCounts && chat.unreadCounts[currentUser.uid]) || 0;
         const pinned = !!(chat.pinnedBy && chat.pinnedBy[currentUser.uid]);
-        row = buildUserRow(partner, chat.lastMessage || '', true, formatListTime(chat.lastMessageAt), false, null, unread, pinned);
+        row = buildUserRow(partner, chat.lastMessage || '', true, formatListTime(chat.lastMessageAt), false, null, unread, pinned, isChatLocked(chatId));
         row.dataset.chatId = chatId;
         if (chatId === activeChatId) row.classList.add('active');
         addRowContextMenu(row, chatId, item.type, item);
@@ -1822,7 +2946,7 @@ function listenToChatsList() {
         const subText = group.isChannel ? (group.lastMessage || `${(group.members||[]).length} subscribers`) : (group.lastMessage || '');
         const unread = (group.unreadCounts && group.unreadCounts[currentUser.uid]) || 0;
         const pinned = !!(group.pinnedBy && group.pinnedBy[currentUser.uid]);
-        row = buildUserRow({username: group.name, photoURL: group.photoURL}, subText, false, formatListTime(group.lastMessageAt), true, label, unread, pinned);
+        row = buildUserRow({username: group.name, photoURL: group.photoURL}, subText, false, formatListTime(group.lastMessageAt), true, label, unread, pinned, isChatLocked(chatId));
         row.dataset.chatId = chatId;
         if (chatId === activeChatId) row.classList.add('active');
         addRowContextMenu(row, chatId, item.type === 'channel' ? 'group' : item.type, item);
@@ -1927,7 +3051,7 @@ function renderActiveFolderUI() {
     if (item.type === 'private') {
       const unread = (item.chat.unreadCounts && item.chat.unreadCounts[currentUser.uid]) || 0;
       const pinned = !!(item.chat.pinnedBy && item.chat.pinnedBy[currentUser.uid]);
-      row = buildUserRow(item.partner, item.chat.lastMessage || '', true, formatListTime(item.chat.lastMessageAt), false, null, unread, pinned);
+      row = buildUserRow(item.partner, item.chat.lastMessage || '', true, formatListTime(item.chat.lastMessageAt), false, null, unread, pinned, isChatLocked(item.chatId));
       row.dataset.chatId = item.chatId;
       if (item.chatId === activeChatId) row.classList.add('active');
       addRowContextMenu(row, item.chatId, item.type, item);
@@ -1937,7 +3061,7 @@ function renderActiveFolderUI() {
       const subText = item.group.isChannel ? (item.group.lastMessage || `${(item.group.members||[]).length} subscribers`) : (item.group.lastMessage || '');
       const unread = (item.group.unreadCounts && item.group.unreadCounts[currentUser.uid]) || 0;
       const pinned = !!(item.group.pinnedBy && item.group.pinnedBy[currentUser.uid]);
-      row = buildUserRow({username: item.group.name, photoURL: item.group.photoURL}, subText, false, formatListTime(item.group.lastMessageAt), true, label, unread, pinned);
+      row = buildUserRow({username: item.group.name, photoURL: item.group.photoURL}, subText, false, formatListTime(item.group.lastMessageAt), true, label, unread, pinned, isChatLocked(item.chatId));
       row.dataset.chatId = item.chatId;
       if (item.chatId === activeChatId) row.classList.add('active');
       addRowContextMenu(row, item.chatId, item.type === 'channel' ? 'group' : item.type, item);
@@ -2045,11 +3169,16 @@ async function openChatWith(partnerData) {
   applyWallpaper();
 
   const chatId = getChatId(currentUser.uid, partnerData.uid);
+  if (!(await requireChatUnlock(chatId, partnerData.username || 'this chat'))) return;
   activeChatId = chatId;
   activeChatPartner = partnerData;
   activeChatIsGroup = false;
   activeChatIsChannel = false;
   activeChatIsAdmin = false;
+  activeChatAdminRole = 'member';
+  activeChatCanPost = true;
+  activeChatCanModerate = false;
+  activeChatCanPin = false;
   messageForm.style.display = 'flex';
   const lockBar0 = document.getElementById('channel-locked-bar');
   if (lockBar0) lockBar0.style.display = 'none';
@@ -2141,6 +3270,7 @@ async function openGroupChat(groupId, groupData) {
   isSavedMessagesView = false;
   if (unsubSavedMessages) { unsubSavedMessages(); unsubSavedMessages = null; }
   applyWallpaper();
+  if (!(await requireChatUnlock(groupId, (groupData && groupData.name) || 'this chat'))) return;
 
   activeChatId = groupId;
   activeChatPartner = groupData;
@@ -2153,9 +3283,11 @@ async function openGroupChat(groupId, groupData) {
   const g = gs.data();
   activeChatPartner = g;
   activeChatIsChannel = !!g.isChannel;
-  const admins = g.admins || [g.createdBy];
-  const isAdminUser = admins.includes(currentUser.uid) || g.createdBy === currentUser.uid;
-  activeChatIsAdmin = isAdminUser;
+  activeChatAdminRole = getAdminRole(g, currentUser.uid);
+  activeChatCanPost = hasGroupPermission(g, currentUser.uid, 'post');
+  activeChatCanModerate = hasGroupPermission(g, currentUser.uid, 'moderate');
+  activeChatCanPin = hasGroupPermission(g, currentUser.uid, 'pin');
+  activeChatIsAdmin = ['owner','admin','moderator','publisher'].includes(activeChatAdminRole);
 
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
@@ -2168,7 +3300,7 @@ async function openGroupChat(groupId, groupData) {
   // Header actions: group/channel settings
   const acts = document.getElementById('chat-header-actions');
   acts.innerHTML = '';
-  if ((!activeChatIsChannel && g.createdBy === currentUser.uid) || (activeChatIsChannel && isAdminUser)) {
+  if (hasGroupPermission(g, currentUser.uid, 'manageInfo') || hasGroupPermission(g, currentUser.uid, 'manageMembers') || hasGroupPermission(g, currentUser.uid, 'manageRoles')) {
     const settingsBtn = document.createElement('button');
     settingsBtn.className = 'icon-btn';
     settingsBtn.title = activeChatIsChannel ? 'Channel Settings' : 'Group Settings';
@@ -2182,7 +3314,7 @@ async function openGroupChat(groupId, groupData) {
 
   // Lock composer for channel non-admins
   const lockBar = document.getElementById('channel-locked-bar');
-  if (activeChatIsChannel && !isAdminUser) {
+  if (activeChatIsChannel && !activeChatCanPost) {
     messageForm.style.display = 'none';
     if (lockBar) lockBar.style.display = 'flex';
   } else {
@@ -2237,7 +3369,7 @@ async function openGroupChat(groupId, groupData) {
         pinnedBarText.textContent = data.pinnedMessageText;
         pinnedBar.classList.remove('hidden');
         // Only show close (unpin) button for admins
-        pinnedBarClose.style.display = activeChatIsAdmin ? '' : 'none';
+        pinnedBarClose.style.display = activeChatCanPin ? '' : 'none';
       } else {
         pinnedBar.classList.add('hidden');
       }
@@ -2304,8 +3436,13 @@ function listenToMessages(chatId, isGroup) {
         const justRenderedRow = messagesEl.lastElementChild;
         const justRenderedBubble = justRenderedRow && justRenderedRow.querySelector('.bubble');
         if (justRenderedBubble) {
-          const searchableText = msg.text || (msg.type === 'file' ? (msg.fileName || '') : '') || (msg.type === 'poll' ? (msg.pollQuestion || '') : '');
-          currentChatMessages.push({ id: doc.id, text: searchableText, el: justRenderedBubble });
+          currentChatMessages.push({
+            id: doc.id,
+            text: getMessageSearchText(msg),
+            hashtags: getMessageHashtags(msg),
+            category: msg.category || 'general',
+            el: justRenderedBubble
+          });
         }
       });
       messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -2328,6 +3465,11 @@ function openSavedMessagesView() {
   activeChatPartner = null;
   activeChatIsGroup = false;
   activeChatIsChannel = false;
+  activeChatIsAdmin = false;
+  activeChatAdminRole = 'member';
+  activeChatCanPost = false;
+  activeChatCanModerate = false;
+  activeChatCanPin = false;
 
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
@@ -2372,11 +3514,23 @@ function openSavedMessagesView() {
       snap.forEach(doc => {
         const msg = doc.data();
         if (lastSaved === null) lastSaved = msg;
-        renderMessage({ ...msg, senderId: currentUser.uid }, doc.id, null, false);
+        const renderedMsg = { ...msg, senderId: currentUser.uid };
+        renderMessage(renderedMsg, doc.id, null, false);
+        const justRenderedRow = messagesEl.lastElementChild;
+        const justRenderedBubble = justRenderedRow && justRenderedRow.querySelector('.bubble');
+        if (justRenderedBubble) {
+          currentChatMessages.push({
+            id: doc.id,
+            text: getMessageSearchText(renderedMsg),
+            hashtags: getMessageHashtags(renderedMsg),
+            category: renderedMsg.category || 'general',
+            el: justRenderedBubble
+          });
+        }
       });
       messagesEl.scrollTop = messagesEl.scrollHeight;
       const last = snap.docs[snap.docs.length - 1].data();
-      savedMessagesPreview.textContent = last.text || (last.type === 'file' ? '📎 ' + (last.fileName || 'File') : 'Saved item');
+      savedMessagesPreview.textContent = last.text || (last.type === 'file' ? 'Attachment: ' + (last.fileName || 'File') : 'Saved item');
     }, err => console.error('Saved messages error:', err));
 }
 
@@ -2388,6 +3542,9 @@ async function saveMessageToSaved(msg, msgId, chatId, isGroup) {
     const data = {
       text: msg.text || '', type: msg.type || 'text',
       fileName: msg.fileName || null, fileURL: msg.fileURL || null, fileSize: msg.fileSize || null,
+      pollQuestion: msg.pollQuestion || null, pollOptions: msg.pollOptions || null, pollVotes: msg.pollVotes || null,
+      hashtags: msg.hashtags || extractHashtags(msg.text || msg.pollQuestion || msg.fileName || ''),
+      category: msg.category || 'general',
       senderUsername: msg.senderUsername || '', originalChatId: chatId || null,
       originalMsgId: msgId || null, savedSourceName: sourceName,
       savedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2484,10 +3641,12 @@ async function forwardMessageTo(msg, targetItem) {
     }
   }
 
-  const fwdText = msg.text || (msg.type === 'file' ? '📎 ' + (msg.fileName || 'File') : (msg.type === 'poll' ? '📊 ' + (msg.pollQuestion || '') : ''));
+  const fwdText = msg.text || (msg.type === 'file' ? 'Attachment: ' + (msg.fileName || 'File') : (msg.type === 'poll' ? 'Poll: ' + (msg.pollQuestion || '') : ''));
   const msgData = {
     text: msg.type === 'poll' ? fwdText : (msg.text || ''), type: msg.type === 'poll' ? 'text' : (msg.type || 'text'),
     fileName: msg.fileName || null, fileURL: msg.fileURL || null, fileSize: msg.fileSize || null,
+    hashtags: msg.hashtags || extractHashtags(fwdText),
+    category: msg.category || 'general',
     senderId: currentUser.uid, senderUsername: currentUserData.username,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     forwardedFrom: msg.senderUsername || msg.savedSourceName || 'Unknown'
@@ -2507,9 +3666,85 @@ async function forwardMessageTo(msg, targetItem) {
 }
 
 /* ===== APPEARANCE: THEME / FONT SIZE / WALLPAPER ===== */
+const CUSTOM_THEME_DEFAULTS = {
+  primary:'#7c3aed', bg:'#100f1a', sidebarBg:'#151327', chatBg:'#0d0b16',
+  surface:'#18152b', surface2:'#241f3d', bubbleSent:'#4c1d95', bubbleReceived:'#1b1830',
+  textPrimary:'#f4f2ff', textSecondary:'#b6add6', textMuted:'#756d92', border:'#29243e'
+};
+const CUSTOM_THEME_FIELDS = [
+  { key:'primary', label:'Primary' },
+  { key:'bg', label:'App bg' },
+  { key:'sidebarBg', label:'Sidebar' },
+  { key:'chatBg', label:'Chat bg' },
+  { key:'surface', label:'Surface' },
+  { key:'surface2', label:'Surface 2' },
+  { key:'bubbleSent', label:'Sent bubble' },
+  { key:'bubbleReceived', label:'Received bubble' },
+  { key:'textPrimary', label:'Main text' },
+  { key:'textSecondary', label:'Sub text' },
+  { key:'textMuted', label:'Muted text' },
+  { key:'border', label:'Borders' }
+];
+const CUSTOM_THEME_VARIABLES = [
+  '--primary','--primary-dark','--primary-light','--accent','--bg','--sidebar-bg','--sidebar-header-bg',
+  '--chat-bg','--chat-header-bg','--bubble-sent','--bubble-received','--bubble-sent-text','--input-bg',
+  '--input-border','--text-primary','--text-secondary','--text-muted','--border','--row-hover','--row-active',
+  '--surface','--surface2','--scrollbar','--glass-bg','--blue-glow','--gray','--white'
+];
+function getCustomTheme() {
+  try {
+    return { ...CUSTOM_THEME_DEFAULTS, ...(JSON.parse(localStorage.getItem('appCustomTheme') || '{}') || {}) };
+  } catch (_) {
+    return { ...CUSTOM_THEME_DEFAULTS };
+  }
+}
+function saveCustomTheme(theme) {
+  localStorage.setItem('appCustomTheme', JSON.stringify({ ...CUSTOM_THEME_DEFAULTS, ...theme }));
+}
+function clearCustomThemeVariables() {
+  CUSTOM_THEME_VARIABLES.forEach(v => document.documentElement.style.removeProperty(v));
+}
+function applyCustomThemeVariables(theme) {
+  const t = { ...CUSTOM_THEME_DEFAULTS, ...theme };
+  const root = document.documentElement;
+  root.style.setProperty('--primary', t.primary);
+  root.style.setProperty('--primary-dark', adjustHex(t.primary, -26));
+  root.style.setProperty('--primary-light', adjustHex(t.primary, 42));
+  root.style.setProperty('--accent', t.primary);
+  root.style.setProperty('--bg', t.bg);
+  root.style.setProperty('--sidebar-bg', t.sidebarBg);
+  root.style.setProperty('--sidebar-header-bg', t.surface);
+  root.style.setProperty('--chat-bg', t.chatBg);
+  root.style.setProperty('--chat-header-bg', t.surface);
+  root.style.setProperty('--bubble-sent', t.bubbleSent);
+  root.style.setProperty('--bubble-received', t.bubbleReceived);
+  root.style.setProperty('--bubble-sent-text', t.textPrimary);
+  root.style.setProperty('--input-bg', t.surface);
+  root.style.setProperty('--input-border', t.border);
+  root.style.setProperty('--text-primary', t.textPrimary);
+  root.style.setProperty('--text-secondary', t.textSecondary);
+  root.style.setProperty('--text-muted', t.textMuted);
+  root.style.setProperty('--border', t.border);
+  root.style.setProperty('--row-hover', t.surface2);
+  root.style.setProperty('--row-active', hexToRgba(t.primary, 0.20));
+  root.style.setProperty('--surface', t.surface);
+  root.style.setProperty('--surface2', t.surface2);
+  root.style.setProperty('--scrollbar', t.surface2);
+  root.style.setProperty('--glass-bg', hexToRgba(t.surface, 0.92));
+  root.style.setProperty('--blue-glow', hexToRgba(t.primary, 0.15));
+  root.style.setProperty('--gray', t.surface2);
+  root.style.setProperty('--white', t.textPrimary);
+}
 function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
-  localStorage.setItem('appTheme', theme);
+  const selected = ['dark','light','custom'].includes(theme) ? theme : 'dark';
+  localStorage.setItem('appTheme', selected);
+  if (selected === 'custom') {
+    document.documentElement.setAttribute('data-theme', 'custom');
+    applyCustomThemeVariables(getCustomTheme());
+  } else {
+    clearCustomThemeVariables();
+    document.documentElement.setAttribute('data-theme', selected === 'light' ? 'light' : 'dark');
+  }
 }
 function getTheme() { return localStorage.getItem('appTheme') || 'dark'; }
 
@@ -2553,7 +3788,7 @@ function showAppearanceSettings() {
   const body = modal.querySelector('.modal-body');
   const footer = modal.querySelector('.modal-footer');
 
-  // Theme toggle
+  // Theme toggle + custom theme
   const themeLabel = document.createElement('div');
   themeLabel.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;';
   themeLabel.textContent = 'Theme';
@@ -2563,21 +3798,85 @@ function showAppearanceSettings() {
   themeRow.style.cssText = 'display:flex;gap:8px;margin-bottom:20px;';
   const darkBtn = document.createElement('button');
   const lightBtn = document.createElement('button');
-  [darkBtn, lightBtn].forEach(b => { b.type = 'button'; b.style.cssText = 'flex:1;padding:10px;border-radius:11px;border:1px solid var(--input-border);background:var(--surface2);color:var(--text-primary);font-size:13px;font-weight:600;cursor:pointer;'; });
-  darkBtn.textContent = '🌙 Dark';
-  lightBtn.textContent = '☀️ Light';
+  const customBtn = document.createElement('button');
+  [darkBtn, lightBtn, customBtn].forEach(b => {
+    b.type = 'button';
+    b.style.cssText = 'flex:1;padding:10px;border-radius:11px;border:1px solid var(--input-border);background:var(--surface2);color:var(--text-primary);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;';
+  });
+  darkBtn.innerHTML = `${designIcon('moon',15)} Dark`;
+  lightBtn.innerHTML = `${designIcon('sun',15)} Light`;
+  customBtn.innerHTML = `${designIcon('palette',15)} Custom`;
+  themeRow.appendChild(darkBtn);
+  themeRow.appendChild(lightBtn);
+  themeRow.appendChild(customBtn);
+  body.appendChild(themeRow);
+
+  const customPanel = document.createElement('div');
+  customPanel.className = 'custom-theme-panel';
+  const customHelp = document.createElement('div');
+  customHelp.className = 'custom-theme-help';
+  customHelp.textContent = 'Pick your own colors. Changes save locally and apply instantly.';
+  customPanel.appendChild(customHelp);
+
+  const colorGrid = document.createElement('div');
+  colorGrid.className = 'theme-color-grid';
+  const customInputs = {};
+  const currentCustomTheme = getCustomTheme();
+  CUSTOM_THEME_FIELDS.forEach(field => {
+    const row = document.createElement('label');
+    row.className = 'theme-color-row';
+    const span = document.createElement('span');
+    span.textContent = field.label;
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.value = currentCustomTheme[field.key] || CUSTOM_THEME_DEFAULTS[field.key];
+    input.addEventListener('input', () => {
+      const next = getCustomTheme();
+      next[field.key] = input.value;
+      saveCustomTheme(next);
+      applyTheme('custom');
+      refreshThemeBtns();
+    });
+    customInputs[field.key] = input;
+    row.appendChild(span);
+    row.appendChild(input);
+    colorGrid.appendChild(row);
+  });
+  customPanel.appendChild(colorGrid);
+
+  const customActions = document.createElement('div');
+  customActions.className = 'custom-theme-actions';
+  const resetCustomBtn = document.createElement('button');
+  resetCustomBtn.type = 'button';
+  resetCustomBtn.style.cssText = 'flex:1;padding:9px 11px;border-radius:10px;border:1px solid var(--input-border);background:var(--surface);color:var(--text-secondary);font-size:12.5px;font-weight:700;cursor:pointer;';
+  resetCustomBtn.textContent = 'Reset Custom Colors';
+  resetCustomBtn.addEventListener('click', () => {
+    saveCustomTheme({ ...CUSTOM_THEME_DEFAULTS });
+    Object.entries(customInputs).forEach(([key, input]) => { input.value = CUSTOM_THEME_DEFAULTS[key]; });
+    applyTheme('custom');
+    refreshThemeBtns();
+    showToast('Custom theme reset');
+  });
+  customActions.appendChild(resetCustomBtn);
+  customPanel.appendChild(customActions);
+  body.appendChild(customPanel);
+
   function refreshThemeBtns() {
     const t = getTheme();
-    darkBtn.style.borderColor = t === 'dark' ? 'var(--primary)' : 'var(--input-border)';
-    darkBtn.style.background = t === 'dark' ? 'var(--blue-glow)' : 'var(--surface2)';
-    lightBtn.style.borderColor = t === 'light' ? 'var(--primary)' : 'var(--input-border)';
-    lightBtn.style.background = t === 'light' ? 'var(--blue-glow)' : 'var(--surface2)';
+    const paint = (btn, active) => {
+      btn.style.borderColor = active ? 'var(--primary)' : 'var(--input-border)';
+      btn.style.background = active ? 'var(--blue-glow)' : 'var(--surface2)';
+      btn.style.color = active ? 'var(--text-primary)' : 'var(--text-secondary)';
+    };
+    paint(darkBtn, t === 'dark');
+    paint(lightBtn, t === 'light');
+    paint(customBtn, t === 'custom');
+    customPanel.style.display = t === 'custom' ? 'block' : 'none';
   }
   darkBtn.addEventListener('click', () => { applyTheme('dark'); refreshThemeBtns(); });
   lightBtn.addEventListener('click', () => { applyTheme('light'); refreshThemeBtns(); });
+  customBtn.addEventListener('click', () => { applyTheme('custom'); refreshThemeBtns(); });
   refreshThemeBtns();
-  themeRow.appendChild(darkBtn); themeRow.appendChild(lightBtn);
-  body.appendChild(themeRow);
 
   // Font size
   const fontLabel = document.createElement('div');
@@ -2679,6 +3978,8 @@ function showAppearanceSettings() {
   lsHint.textContent = 'Choose who can see when you were last online.';
   body.appendChild(lsHint);
 
+  appendSecuritySettingsSection(body);
+
   const closeBtn = document.createElement('button');
   closeBtn.className = 'btn-full';
   closeBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;';
@@ -2708,7 +4009,7 @@ function renderMessage(msg, msgId, chatId, isGroup) {
 
   // For channels, all posts are "received" style (left-aligned) for non-admins, but admins sent posts go right
   const isChannel = activeChatIsChannel;
-  const isAdminCtx = activeChatIsAdmin;
+  const isAdminCtx = activeChatCanModerate || activeChatCanPin;
   const commentsOff = !!msg.commentsDisabled;
   const reactionsOff = !!msg.reactionsDisabled;
 
@@ -2742,6 +4043,12 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     bubble.appendChild(src);
   }
 
+  // Message category label
+  const msgCategoryId = msg.category || 'general';
+  if (msgCategoryId && msgCategoryId !== 'general') {
+    bubble.appendChild(createCategoryPill(msgCategoryId));
+  }
+
   // Reply quote
   if (msg.replyTo) {
     const quote = document.createElement('div');
@@ -2751,7 +4058,7 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     qName.textContent = msg.replyTo.senderUsername;
     const qText = document.createElement('div');
     qText.className = 'reply-quote-text';
-    qText.textContent = msg.replyTo.text || (msg.replyTo.type === 'file' ? '📎 File' : '');
+    qText.textContent = msg.replyTo.text || (msg.replyTo.type === 'file' ? 'Attachment' : '');
     quote.appendChild(qName);
     quote.appendChild(qText);
     bubble.appendChild(quote);
@@ -2782,7 +4089,8 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     bubble.appendChild(renderPollWidget(msg, msgId, chatId, isGroup));
   } else {
     const textNode = document.createElement('span');
-    textNode.textContent = msg.text || '';
+    textNode.className = 'message-text';
+    appendMessageText(textNode, msg.text || '');
     bubble.appendChild(textNode);
   }
 
@@ -2841,6 +4149,17 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     actions.appendChild(saveBtn);
   }
 
+  // Category button — assign/change message category
+  if (msgId && chatId && !isSavedMessagesView) {
+    const catBtn = document.createElement('button');
+    catBtn.type = 'button';
+    catBtn.className = 'msg-action-btn';
+    catBtn.title = 'Message category';
+    catBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2.83 2.83 0 0 0 9 3H4a1 1 0 0 0-1 1v5a2.83 2.83 0 0 0 .83 2l9.58 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r=".8" fill="currentColor"/></svg>`;
+    catBtn.addEventListener('click', () => showCategoryPicker({ mode:'message', msgId, chatId, isGroup, currentCategory: msg.category || 'general' }));
+    actions.appendChild(catBtn);
+  }
+
   if (isSent && msgId && msg.type !== 'poll' && !isSavedMessagesView) {
     const editBtn = document.createElement('button');
     editBtn.type = 'button';
@@ -2869,7 +4188,7 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     pinBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg>`;
     pinBtn.style.color = 'var(--text-muted)';
     pinBtn.addEventListener('click', () => {
-      const msgText = msg.text || (msg.type === 'file' ? '📎 ' + (msg.fileName || 'File') : msg.type === 'poll' ? '📊 ' + msg.pollQuestion : '');
+      const msgText = msg.text || (msg.type === 'file' ? 'Attachment: ' + (msg.fileName || 'File') : msg.type === 'poll' ? 'Poll: ' + msg.pollQuestion : '');
       pinMessage(msgId, msgText);
     });
     actions.appendChild(pinBtn);
@@ -2979,7 +4298,7 @@ function renderPollWidget(msg, msgId, chatId, isGroup) {
   widget.className = 'poll-widget';
   const title = document.createElement('div');
   title.className = 'poll-title';
-  title.textContent = msg.pollQuestion || 'Poll';
+  appendMessageText(title, msg.pollQuestion || 'Poll');
   widget.appendChild(title);
 
   const totalVotes = Object.values(msg.pollVotes || {}).flat().length;
@@ -3008,7 +4327,8 @@ function renderPollWidget(msg, msgId, chatId, isGroup) {
     pctEl.textContent = pct + '%';
     optEl.appendChild(pctEl);
 
-    optEl.addEventListener('click', () => votePoll(msgId, chatId, isGroup, idx));
+    if (chatId) optEl.addEventListener('click', () => votePoll(msgId, chatId, isGroup, idx));
+    else optEl.style.cursor = 'default';
     widget.appendChild(optEl);
   });
 
@@ -3047,7 +4367,7 @@ async function votePoll(msgId, chatId, isGroup, optionIdx) {
 function startReply(msgId, msg) {
   replyToMsg = {
     id: msgId,
-    text: msg.type === 'file' ? '📎 ' + (msg.fileName || 'File') : (msg.text || ''),
+    text: msg.type === 'file' ? 'Attachment: ' + (msg.fileName || 'File') : (msg.text || ''),
     senderUsername: msg.senderUsername || '',
     type: msg.type || 'text'
   };
@@ -3067,7 +4387,7 @@ replyCancelBtn.addEventListener('click', clearReply);
 /* ===== PINNED MESSAGE ACTIONS ===== */
 pinnedBarClose.addEventListener('click', async (e) => {
   e.stopPropagation();
-  if (!activeChatId || !activeChatIsChannel || !activeChatIsAdmin) return;
+  if (!activeChatId || !activeChatIsChannel || !activeChatCanPin) return;
   try {
     await db.collection('groups').doc(activeChatId).update({ pinnedMessageId: firebase.firestore.FieldValue.delete(), pinnedMessageText: firebase.firestore.FieldValue.delete() });
     showToast('Message unpinned');
@@ -3075,7 +4395,7 @@ pinnedBarClose.addEventListener('click', async (e) => {
 });
 
 async function pinMessage(msgId, text) {
-  if (!activeChatId || !activeChatIsChannel || !activeChatIsAdmin) return;
+  if (!activeChatId || !activeChatIsChannel || !activeChatCanPin) return;
   try {
     const preview = (text || '').slice(0, 80);
     await db.collection('groups').doc(activeChatId).update({ pinnedMessageId: msgId, pinnedMessageText: preview });
@@ -3084,6 +4404,7 @@ async function pinMessage(msgId, text) {
 }
 
 async function toggleChannelFeature(msgId, chatId, field, currentVal) {
+  if (!activeChatCanModerate) { showToast('You cannot moderate this channel'); return; }
   try {
     await db.collection('groups').doc(chatId).collection('messages').doc(msgId).update({ [field]: !currentVal });
   } catch(err) { console.error('Toggle error:', err); }
@@ -3149,7 +4470,7 @@ function startEditMessage(bubbleEl, msgId, chatId, isGroup, currentText) {
   // Remove children except group sender name and reply quote
   const children = Array.from(bubbleEl.children);
   const toKeep = children.filter(c => c.classList.contains('group-sender-name') || c.classList.contains('reply-quote'));
-  const textSpan = bubbleEl.querySelector('span');
+  const textSpan = bubbleEl.querySelector('.message-text');
   if (textSpan) textSpan.remove();
 
   const input = document.createElement('input');
@@ -3169,14 +4490,15 @@ function startEditMessage(bubbleEl, msgId, chatId, isGroup, currentText) {
         try {
           const col = isGroup ? 'groups' : 'chats';
           await db.collection(col).doc(chatId).collection('messages').doc(msgId)
-            .update({ text: newText, edited: true });
+            .update({ text: newText, edited: true, hashtags: extractHashtags(newText) });
           return;
         } catch(err) { alert('Failed to edit: ' + friendlyError(err)); }
       }
     }
     input.remove();
     const span = document.createElement('span');
-    span.textContent = currentText;
+    span.className = 'message-text';
+    appendMessageText(span, currentText);
     bubbleEl.appendChild(span);
   }
 
@@ -3206,7 +4528,7 @@ async function refreshLastMessage(chatId, isGroup) {
       await ref.update({ lastMessage: '' });
     } else {
       const last = snap.docs[0].data();
-      const preview = last.type === 'file' ? '📎 ' + (last.fileName || 'File') : (last.type === 'poll' ? '📊 Poll' : last.text);
+      const preview = last.type === 'file' ? 'Attachment: ' + (last.fileName || 'File') : (last.type === 'poll' ? 'Poll' : last.text);
       await ref.update({ lastMessage: preview, lastMessageAt: last.createdAt });
     }
   } catch(err) { console.error('refreshLastMessage error:', err); }
@@ -3214,9 +4536,8 @@ async function refreshLastMessage(chatId, isGroup) {
 
 /* ===== SEND MESSAGE ===== */
 function canPostInActiveChat() {
-  if (!activeChatIsChannel) return true;
-  const admins = (activeChatPartner && activeChatPartner.admins) || [];
-  return admins.includes(currentUser.uid) || (activeChatPartner && activeChatPartner.createdBy === currentUser.uid);
+  if (!activeChatIsGroup) return true;
+  return hasGroupPermission(activeChatPartner, currentUser.uid, 'post');
 }
 
 /* ===== TYPING INDICATOR ===== */
@@ -3248,10 +4569,9 @@ messageForm.addEventListener('submit', async e => {
   const text = messageInput.value.trim();
   if (!text || !activeChatId) return;
   if (!activeChatIsGroup && isBlockedEitherWay(activeChatPartner)) { showToast('You cannot message this user'); return; }
-  if (activeChatIsChannel) {
-    const admins = (activeChatPartner && activeChatPartner.admins) || [];
-    const isAdminUser = admins.includes(currentUser.uid) || (activeChatPartner && activeChatPartner.createdBy === currentUser.uid);
-    if (!isAdminUser) { showToast('Only admins can post in this channel'); return; }
+  if (activeChatIsChannel && !canPostInActiveChat()) {
+    showToast('Only admins and publishers can post in this channel');
+    return;
   }
   messageInput.value = '';
   if (isTypingFlag) { isTypingFlag = false; clearTimeout(typingTimeout); setTypingState(false); }
@@ -3262,7 +4582,9 @@ messageForm.addEventListener('submit', async e => {
     senderId: currentUser.uid,
     senderUsername: currentUserData.username,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    type: 'text'
+    type: 'text',
+    hashtags: extractHashtags(text),
+    category: activeMessageCategory
   };
   if (replyToMsg) {
     msgData.replyTo = { ...replyToMsg };
@@ -3300,10 +4622,24 @@ function closeChatSearch() {
 }
 
 function runChatSearch() {
-  const term = chatSearchInput.value.trim().toLowerCase();
+  const rawTerm = chatSearchInput.value.trim();
+  const term = rawTerm.toLowerCase();
   currentChatMessages.forEach(m => m.el.classList.remove('search-match', 'search-match-active'));
   if (!term) { chatSearchMatches = []; chatSearchActiveIdx = -1; chatSearchCount.textContent = ''; return; }
-  chatSearchMatches = currentChatMessages.filter(m => m.text && m.text.toLowerCase().includes(term));
+
+  if (term.startsWith('#')) {
+    const tag = term.replace(/^#/, '');
+    chatSearchMatches = currentChatMessages.filter(m =>
+      (m.hashtags || []).map(String).map(t => t.toLowerCase()).includes(tag) ||
+      ((m.text || '').toLowerCase().includes('#' + tag))
+    );
+  } else if (term.startsWith('category:') || term.startsWith('cat:')) {
+    const categoryId = resolveCategoryId(term);
+    chatSearchMatches = currentChatMessages.filter(m => (m.category || 'general') === categoryId);
+  } else {
+    chatSearchMatches = currentChatMessages.filter(m => m.text && m.text.toLowerCase().includes(term));
+  }
+
   chatSearchMatches.forEach(m => m.el.classList.add('search-match'));
   if (chatSearchMatches.length) {
     chatSearchActiveIdx = chatSearchMatches.length - 1; // start from most recent match
@@ -3419,13 +4755,13 @@ document.addEventListener('click', () => closeAllPopups());
 function buildAttachMenu() {
   attachMenu.innerHTML = '';
   const items = [
-    { icon: '📄', label: 'File', action: () => { fileInput.click(); attachMenu.classList.add('hidden'); } },
-    { icon: '📊', label: 'Poll', action: () => { attachMenu.classList.add('hidden'); buildPollCreator(); pollPanel.classList.remove('hidden'); } },
+    { icon: 'file', label: 'File', action: () => { fileInput.click(); attachMenu.classList.add('hidden'); } },
+    { icon: 'poll', label: 'Poll', action: () => { attachMenu.classList.add('hidden'); buildPollCreator(); pollPanel.classList.remove('hidden'); } },
   ];
   items.forEach(item => {
     const el = document.createElement('div');
     el.className = 'attach-item';
-    el.innerHTML = `<div class="attach-item-icon">${item.icon}</div><span>${item.label}</span>`;
+    el.innerHTML = `<div class="attach-item-icon">${designIcon(item.icon,18)}</div><span>${item.label}</span>`;
     el.addEventListener('click', item.action);
     attachMenu.appendChild(el);
   });
@@ -3448,7 +4784,7 @@ fileInput.addEventListener('change', async () => {
   const file = fileInput.files[0];
   if (!file || !activeChatId) return;
   fileInput.value = '';
-  if (!canPostInActiveChat()) { showToast('Only admins can post in this channel'); return; }
+  if (!canPostInActiveChat()) { showToast('Only admins and publishers can post in this channel'); return; }
 
   if (file.size > 10 * 1024 * 1024) { alert('File must be under 10 MB'); return; }
 
@@ -3465,13 +4801,15 @@ fileInput.addEventListener('change', async () => {
       fileURL: url,
       senderId: currentUser.uid,
       senderUsername: currentUserData.username,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      hashtags: extractHashtags(file.name),
+      category: activeMessageCategory
     };
     if (replyToMsg) { msgData.replyTo = { ...replyToMsg }; clearReply(); }
 
     const ref = db.collection(col).doc(activeChatId);
     await ref.collection('messages').add(msgData);
-    const fileUpdate = { lastMessage: '📎 ' + file.name, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() };
+    const fileUpdate = { lastMessage: 'Attachment: ' + file.name, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() };
     if (!activeChatIsGroup) {
       const pUid = activeChatPartner && activeChatPartner.uid;
       if (pUid) fileUpdate[`unreadCounts.${pUid}`] = firebase.firestore.FieldValue.increment(1);
@@ -3547,7 +4885,7 @@ function buildPollCreator() {
     const options = Array.from(optsList.querySelectorAll('input')).map(i => i.value.trim()).filter(Boolean);
     if (!question) { alert('Enter a question'); return; }
     if (options.length < 2) { alert('Add at least 2 options'); return; }
-    if (!canPostInActiveChat()) { showToast('Only admins can post in this channel'); return; }
+    if (!canPostInActiveChat()) { showToast('Only admins and publishers can post in this channel'); return; }
 
     const col = activeChatIsGroup ? 'groups' : 'chats';
     const ref = db.collection(col).doc(activeChatId);
@@ -3558,9 +4896,11 @@ function buildPollCreator() {
       pollVotes: {},
       senderId: currentUser.uid,
       senderUsername: currentUserData.username,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      hashtags: extractHashtags(question),
+      category: activeMessageCategory
     });
-    await ref.update({ lastMessage: '📊 ' + question, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await ref.update({ lastMessage: 'Poll: ' + question, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() });
     pollPanel.classList.add('hidden');
   });
 
@@ -3587,7 +4927,7 @@ function showCreateGroupModal() {
   const avatarPreview = document.createElement('div');
   avatarPreview.className = 'avatar-picker-img';
   avatarPreview.style.cssText = 'width:70px;height:70px;font-size:26px;cursor:pointer;';
-  avatarPreview.textContent = '👥';
+  avatarPreview.innerHTML = designIcon('users', 30);
   pendingGroupAvatarBlob = null;
 
   avatarPreview.addEventListener('click', () => groupAvatarFileInput.click());
@@ -3701,6 +5041,7 @@ function showCreateGroupModal() {
         name,
         nameLower: name.toLowerCase(),
         members,
+        adminRoles: { [currentUser.uid]: 'owner' },
         createdBy: currentUser.uid,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastMessage: '',
@@ -3729,7 +5070,7 @@ function showCreateChannelModal() {
   const avatarPreview = document.createElement('div');
   avatarPreview.className = 'avatar-picker-img';
   avatarPreview.style.cssText = 'width:70px;height:70px;font-size:26px;cursor:pointer;';
-  avatarPreview.textContent = '📢';
+  avatarPreview.innerHTML = designIcon('channel', 30);
   pendingGroupAvatarBlob = null;
 
   avatarPreview.addEventListener('click', () => groupAvatarFileInput.click());
@@ -3857,6 +5198,7 @@ function showCreateChannelModal() {
         description: descInp.value.trim() || '',
         members,
         admins: [currentUser.uid],
+        adminRoles: { [currentUser.uid]: 'owner' },
         isChannel: true,
         createdBy: currentUser.uid,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -3877,9 +5219,12 @@ function showCreateChannelModal() {
 
 /* ===== CHANNEL SETTINGS ===== */
 async function showChannelSettings(channelId, channelData) {
-  const admins = channelData.admins || [channelData.createdBy];
-  const isOwner = channelData.createdBy === currentUser.uid;
-  const isAdmin = admins.includes(currentUser.uid) || isOwner;
+  const myRole = getAdminRole(channelData, currentUser.uid);
+  const isOwner = myRole === 'owner';
+  const canManageInfo = hasGroupPermission(channelData, currentUser.uid, 'manageInfo');
+  const canManageMembers = hasGroupPermission(channelData, currentUser.uid, 'manageMembers');
+  const canManageRoles = hasGroupPermission(channelData, currentUser.uid, 'manageRoles');
+  const isAdmin = canManageInfo || canManageMembers || canManageRoles;
   const modal = createModal('Channel Settings');
   const body = modal.querySelector('.modal-body');
   const footer = modal.querySelector('.modal-footer');
@@ -3890,14 +5235,14 @@ async function showChannelSettings(channelId, channelData) {
   const avPrev = document.createElement('div');
   avPrev.className = 'avatar-picker-img';
   setAvatarContent(avPrev, channelData.name, channelData.photoURL);
-  if (isAdmin) {
+  if (canManageInfo) {
     avPrev.style.cursor = 'pointer';
     avPrev.addEventListener('click', () => groupAvatarFileInput.click());
   }
   avatarSec.appendChild(avPrev);
 
   groupAvatarFileInput.onchange = async () => {
-    if (!isAdmin) return;
+    if (!canManageInfo) return;
     const file = groupAvatarFileInput.files[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
@@ -3928,7 +5273,7 @@ async function showChannelSettings(channelId, channelData) {
   });
   body.appendChild(inviteBtn);
 
-  if (isAdmin) {
+  if (canManageInfo) {
     const renameLabel = document.createElement('span');
     renameLabel.className = 'modal-label';
     renameLabel.textContent = 'Channel Name';
@@ -3993,57 +5338,27 @@ async function showChannelSettings(channelId, channelData) {
     info.style.flex = '1';
     info.innerHTML = `<div style="font-size:13.5px;font-weight:600">${u.username}</div>`;
     row.appendChild(info);
-    if (u.uid === channelData.createdBy) {
-      const badge = document.createElement('span');
-      badge.className = 'member-role-badge owner-badge';
-      badge.textContent = 'Owner';
-      row.appendChild(badge);
-    } else if (admins.includes(u.uid)) {
-      const badge = document.createElement('span');
-      badge.className = 'member-role-badge owner-badge';
-      badge.textContent = 'Admin';
-      row.appendChild(badge);
-      if (isOwner) {
-        const demoteBtn = document.createElement('button');
-        demoteBtn.className = 'member-remove-btn';
-        demoteBtn.title = 'Remove admin';
-        demoteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-        demoteBtn.addEventListener('click', async () => {
-          await db.collection('groups').doc(channelId).update({ admins: firebase.firestore.FieldValue.arrayRemove(u.uid) });
-          showToast('Admin removed');
-          closeModal();
+    appendRoleControls(row, channelId, channelData, u);
+    if (canManageMembers && u.uid !== channelData.createdBy && u.uid !== currentUser.uid) {
+      const rmBtn = document.createElement('button');
+      rmBtn.className = 'member-remove-btn';
+      rmBtn.title = 'Remove subscriber';
+      rmBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+      rmBtn.addEventListener('click', async () => {
+        if (!confirm(`Remove ${u.username} from channel?`)) return;
+        await db.collection('groups').doc(channelId).update({
+          members: firebase.firestore.FieldValue.arrayRemove(u.uid),
+          admins: firebase.firestore.FieldValue.arrayRemove(u.uid),
+          [`adminRoles.${u.uid}`]: firebase.firestore.FieldValue.delete()
         });
-        row.appendChild(demoteBtn);
-      }
-    } else if (isAdmin) {
-      const promoteBtn = document.createElement('button');
-      promoteBtn.className = 'icon-btn';
-      promoteBtn.title = 'Make admin';
-      promoteBtn.style.color = 'var(--primary)';
-      promoteBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>`;
-      promoteBtn.addEventListener('click', async () => {
-        await db.collection('groups').doc(channelId).update({ admins: firebase.firestore.FieldValue.arrayUnion(u.uid) });
-        showToast(`${u.username} is now an admin`);
-        closeModal();
+        row.remove();
       });
-      row.appendChild(promoteBtn);
-      if (isOwner) {
-        const rmBtn = document.createElement('button');
-        rmBtn.className = 'member-remove-btn';
-        rmBtn.title = 'Remove subscriber';
-        rmBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-        rmBtn.addEventListener('click', async () => {
-          if (!confirm(`Remove ${u.username} from channel?`)) return;
-          await db.collection('groups').doc(channelId).update({ members: firebase.firestore.FieldValue.arrayRemove(u.uid) });
-          row.remove();
-        });
-        row.appendChild(rmBtn);
-      }
+      row.appendChild(rmBtn);
     }
     subsContainer.appendChild(row);
   });
 
-  if (isAdmin) {
+  if (canManageMembers) {
     const addLabel = document.createElement('span');
     addLabel.className = 'modal-label';
     addLabel.style.marginTop = '12px';
@@ -4107,7 +5422,8 @@ async function showChannelSettings(channelId, channelData) {
       } else {
         await db.collection('groups').doc(channelId).update({
           members: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
-          admins: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+          admins: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
+          [`adminRoles.${currentUser.uid}`]: firebase.firestore.FieldValue.delete()
         });
       }
       closeModal();
@@ -4122,7 +5438,12 @@ async function showChannelSettings(channelId, channelData) {
 
 /* ===== GROUP SETTINGS ===== */
 async function showGroupSettings(groupId, groupData) {
-  const isAdmin = groupData.createdBy === currentUser.uid;
+  const myRole = getAdminRole(groupData, currentUser.uid);
+  const isOwner = myRole === 'owner';
+  const canManageInfo = hasGroupPermission(groupData, currentUser.uid, 'manageInfo');
+  const canManageMembers = hasGroupPermission(groupData, currentUser.uid, 'manageMembers');
+  const canManageRoles = hasGroupPermission(groupData, currentUser.uid, 'manageRoles');
+  const isAdmin = canManageInfo || canManageMembers || canManageRoles;
   const modal = createModal('Group Settings');
   const body = modal.querySelector('.modal-body');
   const footer = modal.querySelector('.modal-footer');
@@ -4134,14 +5455,14 @@ async function showGroupSettings(groupId, groupData) {
   const avPrev = document.createElement('div');
   avPrev.className = 'avatar-picker-img';
   setAvatarContent(avPrev, groupData.name, groupData.photoURL);
-  if (isAdmin) {
+  if (canManageInfo) {
     avPrev.style.cursor = 'pointer';
     avPrev.addEventListener('click', () => groupAvatarFileInput.click());
   }
   avatarSec.appendChild(avPrev);
 
   groupAvatarFileInput.onchange = async () => {
-    if (!isAdmin) return;
+    if (!canManageInfo) return;
     const file = groupAvatarFileInput.files[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
@@ -4167,7 +5488,7 @@ async function showGroupSettings(groupId, groupData) {
   });
   body.appendChild(inviteBtn);
 
-  if (isAdmin) {
+  if (canManageInfo) {
     // Rename
     const renameLabel = document.createElement('span');
     renameLabel.className = 'modal-label';
@@ -4235,19 +5556,19 @@ async function showGroupSettings(groupId, groupData) {
     info.style.flex = '1';
     info.innerHTML = `<div style="font-size:13.5px;font-weight:600">${u.username}</div>`;
     row.appendChild(info);
-    if (u.uid === groupData.createdBy) {
-      const badge = document.createElement('span');
-      badge.className = 'member-role-badge';
-      badge.textContent = 'Admin';
-      row.appendChild(badge);
-    } else if (isAdmin && u.uid !== currentUser.uid) {
+    appendRoleControls(row, groupId, groupData, u);
+    if (canManageMembers && u.uid !== groupData.createdBy && u.uid !== currentUser.uid) {
       const rmBtn = document.createElement('button');
       rmBtn.className = 'member-remove-btn';
       rmBtn.title = 'Remove';
       rmBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
       rmBtn.addEventListener('click', async () => {
         if (!confirm(`Remove ${u.username} from group?`)) return;
-        await db.collection('groups').doc(groupId).update({ members: firebase.firestore.FieldValue.arrayRemove(u.uid) });
+        await db.collection('groups').doc(groupId).update({
+          members: firebase.firestore.FieldValue.arrayRemove(u.uid),
+          admins: firebase.firestore.FieldValue.arrayRemove(u.uid),
+          [`adminRoles.${u.uid}`]: firebase.firestore.FieldValue.delete()
+        });
         row.remove();
       });
       row.appendChild(rmBtn);
@@ -4255,7 +5576,7 @@ async function showGroupSettings(groupId, groupData) {
     membersContainer.appendChild(row);
   });
 
-  if (isAdmin) {
+  if (canManageMembers) {
     // Add member
     const addLabel = document.createElement('span');
     addLabel.className = 'modal-label';
@@ -4305,14 +5626,14 @@ async function showGroupSettings(groupId, groupData) {
   // Leave / Delete group
   const leaveBtn = document.createElement('button');
   leaveBtn.className = 'btn-full btn-danger';
-  leaveBtn.textContent = isAdmin ? 'Delete Group' : 'Leave Group';
+  leaveBtn.textContent = isOwner ? 'Delete Group' : 'Leave Group';
   footer.appendChild(leaveBtn);
 
   leaveBtn.addEventListener('click', async () => {
-    const action = isAdmin ? 'delete this group' : 'leave this group';
+    const action = isOwner ? 'delete this group' : 'leave this group';
     if (!confirm(`Are you sure you want to ${action}?`)) return;
     try {
-      if (isAdmin) {
+      if (isOwner) {
         // Delete all messages then group doc
         const msgs = await db.collection('groups').doc(groupId).collection('messages').get();
         const batch = db.batch();
@@ -4320,7 +5641,11 @@ async function showGroupSettings(groupId, groupData) {
         batch.delete(db.collection('groups').doc(groupId));
         await batch.commit();
       } else {
-        await db.collection('groups').doc(groupId).update({ members: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) });
+        await db.collection('groups').doc(groupId).update({
+          members: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
+          admins: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
+          [`adminRoles.${currentUser.uid}`]: firebase.firestore.FieldValue.delete()
+        });
       }
       closeModal();
       if (activeChatId === groupId) {
@@ -4504,6 +5829,116 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeChatCtxMenu(); });
 
+
+function closeOpenSwipeRows(exceptRow) {
+  document.querySelectorAll('.user-row.swipe-open').forEach(row => {
+    if (row !== exceptRow) row.classList.remove('swipe-open');
+  });
+}
+function archiveActionSVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/></svg>`;
+}
+function moreActionSVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg>`;
+}
+function addMobileSwipeActions(row, chatId, type, item) {
+  if (!row || row.dataset.swipeReady === '1') return;
+  row.dataset.swipeReady = '1';
+  row.classList.add('swipe-enabled');
+
+  const isArchived = type === 'private'
+    ? !!(item.chat && item.chat.archivedBy && item.chat.archivedBy[currentUser.uid])
+    : !!(item.group && item.group.archivedBy && item.group.archivedBy[currentUser.uid]);
+
+  const actions = document.createElement('div');
+  actions.className = 'chat-swipe-actions';
+
+  const archiveBtn = document.createElement('button');
+  archiveBtn.type = 'button';
+  archiveBtn.className = 'swipe-action-btn archive';
+  archiveBtn.title = isArchived ? 'Unarchive chat' : 'Archive chat';
+  archiveBtn.innerHTML = `${archiveActionSVG()}<span>${isArchived ? 'Unarchive' : 'Archive'}</span>`;
+  archiveBtn.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    row.classList.remove('swipe-open');
+    toggleArchiveChat(chatId, type, isArchived);
+  });
+
+  const moreBtn = document.createElement('button');
+  moreBtn.type = 'button';
+  moreBtn.className = 'swipe-action-btn more';
+  moreBtn.title = 'More options';
+  moreBtn.innerHTML = `${moreActionSVG()}<span style="font-size:10px;letter-spacing:0;font-weight:800;">More</span>`;
+  moreBtn.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    row.classList.remove('swipe-open');
+    const rect = moreBtn.getBoundingClientRect();
+    showChatCtxMenu({
+      preventDefault(){},
+      stopPropagation(){},
+      clientX: Math.max(8, rect.left),
+      clientY: Math.min(window.innerHeight - 8, rect.bottom + 6)
+    }, chatId, type, item);
+  });
+
+  actions.appendChild(archiveBtn);
+  actions.appendChild(moreBtn);
+  row.appendChild(actions);
+
+  let startX = 0, startY = 0, lastX = 0, swiping = false;
+
+  row.addEventListener('touchstart', e => {
+    if (e.target.closest('.chat-swipe-actions')) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    lastX = startX;
+    swiping = false;
+    row._swipePreventClick = false;
+  }, { passive:true });
+
+  row.addEventListener('touchmove', e => {
+    if (e.target.closest('.chat-swipe-actions')) return;
+    lastX = e.touches[0].clientX;
+    const dx = lastX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      swiping = true;
+      row._swipePreventClick = true;
+      if (dx < -18) closeOpenSwipeRows(row);
+    }
+  }, { passive:true });
+
+  row.addEventListener('touchend', () => {
+    if (!swiping) return;
+    const dx = lastX - startX;
+    if (dx < -44) {
+      closeOpenSwipeRows(row);
+      row.classList.add('swipe-open');
+    } else if (dx > 28) {
+      row.classList.remove('swipe-open');
+    }
+    row._swipePreventClick = true;
+    setTimeout(() => { row._swipePreventClick = false; }, 350);
+  }, { passive:true });
+
+  row.addEventListener('click', e => {
+    if (e.target.closest('.chat-swipe-actions')) return;
+    if (row._swipePreventClick || row.classList.contains('swipe-open')) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      row.classList.remove('swipe-open');
+    } else {
+      closeOpenSwipeRows(row);
+    }
+  }, true);
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.user-row.swipe-open')) closeOpenSwipeRows();
+}, true);
+
 function showChatCtxMenu(e, chatId, type, item) {
   e.preventDefault();
   e.stopPropagation();
@@ -4517,12 +5952,18 @@ function showChatCtxMenu(e, chatId, type, item) {
     ? !!(item.chat.pinnedBy && item.chat.pinnedBy[currentUser.uid])
     : !!(item.group && item.group.pinnedBy && item.group.pinnedBy[currentUser.uid]);
 
+  const isLocked = isChatLocked(chatId);
+
   const menu = document.createElement('div');
   menu.className = 'chat-ctx-menu';
   menu.innerHTML = `
     <button class="chat-ctx-item" id="ctx-pin">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg>
       ${isPinned ? 'Unpin Chat' : 'Pin Chat'}
+    </button>
+    <button class="chat-ctx-item" id="ctx-lock">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      ${isLocked ? 'Unlock Chat' : 'Lock Chat'}
     </button>
     <button class="chat-ctx-item" id="ctx-archive">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
@@ -4553,6 +5994,11 @@ function showChatCtxMenu(e, chatId, type, item) {
     closeChatCtxMenu();
     togglePinChat(chatId, type, isPinned);
   });
+  menu.querySelector('#ctx-lock').addEventListener('click', e => {
+    e.stopPropagation();
+    closeChatCtxMenu();
+    toggleChatLock(chatId, type, item);
+  });
   menu.querySelector('#ctx-archive').addEventListener('click', e => {
     e.stopPropagation();
     closeChatCtxMenu();
@@ -4566,6 +6012,7 @@ function showChatCtxMenu(e, chatId, type, item) {
 }
 
 function addRowContextMenu(row, chatId, type, item) {
+  addMobileSwipeActions(row, chatId, type, item);
   // Desktop: right-click
   row.addEventListener('contextmenu', e => showChatCtxMenu(e, chatId, type, item));
   // Mobile: long press
@@ -4740,6 +6187,14 @@ function showMobileSettings() {
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
       Appearance
     </button>
+    <button onclick="closeModal();setTimeout(()=>showConnectedDevices(),50);" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;background:var(--surface2);border-radius:12px;color:var(--text-primary);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:left;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>
+      Connected Devices
+    </button>
+    <button onclick="closeModal();setTimeout(()=>showReportSuspiciousLoginModal(),50);" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;background:rgba(239,68,68,0.1);border-radius:12px;color:#ef4444;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:left;border:1px solid rgba(239,68,68,0.2);">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+      Report Suspicious Login
+    </button>
     <button onclick="closeModal();setTimeout(()=>document.getElementById('new-channel-btn').click(),50);" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;background:var(--surface2);border-radius:12px;color:var(--text-primary);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:left;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
       New Channel
@@ -4759,7 +6214,11 @@ function showMobileSettings() {
 
 /* ===== AUTH: online status ===== */
 function setOffline() {
-  if (currentUser) db.collection('users').doc(currentUser.uid).update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
+  if (currentUser) db.collection('users').doc(currentUser.uid).update({
+    online: false,
+    lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+    [`connectedDevices.${getCurrentDeviceId()}.lastActive`]: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
 }
 
 /* ===== SAFARI iOS KEYBOARD FIX ===== */
@@ -4880,5 +6339,5 @@ self.addEventListener('fetch', event => {
   );
 });
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
