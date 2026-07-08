@@ -1511,6 +1511,18 @@ html,body{
   margin-top: 12px; color: #aaa; font-size: 13px; text-align: center;
 }
 
+
+    /* VERIFIED TICK & BANNING SYSTEM STYLES */
+    .verified-tick {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      margin-left: 5px;
+      margin-right: 2px;
+      flex-shrink: 0;
+      width: 15px !important;
+      height: 15px !important;
+    }
 </style>
 </head>
 <body>
@@ -1932,6 +1944,10 @@ html,body{
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
         You can't send messages to this user
       </div>
+      <div id="banned-banner" class="channel-locked-bar" style="display:none; background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; font-weight: 600;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        <span>این چت یا کانال توسط مدیریت مسدود شده است.</span>
+      </div>
     </div>
   </main>
 </div>
@@ -2003,6 +2019,16 @@ const signupForm      = document.getElementById('signup-form');
 const loginError      = document.getElementById('login-error');
 const signupError     = document.getElementById('signup-error');
 const meAvatar        = document.getElementById('me-avatar');
+
+// VERIFIED TICKS SVGS AND HELPERS
+function getBlueTickSvg() {
+  return `<svg class="verified-tick" width="15" height="15" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-left: 4px; flex-shrink: 0;"><path d="M12 2.5c-.29 0-.57.11-.78.32l-1 1a1 1 0 0 1-.89.26l-1.4-.28a1.1 1.1 0 0 0-1.3.7l-.54 1.3a1 1 0 0 1-.63.63l-1.3.54a1.1 1.1 0 0 0-.7 1.3l.28 1.4a1 1 0 0 1-.26.89l-1 1a1.1 1.1 0 0 0 0 1.56l1 1a1 1 0 0 1 .26.89l-.28 1.4a1.1 1.1 0 0 0 .7 1.3l1.3.54a1 1 0 0 1 .63.63l.54 1.3a1.1 1.1 0 0 0 1.3.7l1.4-.28a1 1 0 0 1 .89.26l1 1a1.1 1.1 0 0 0 1.56 0l1-1a1 1 0 0 1 .89-.26l1.4.28a1.1 1.1 0 0 0 1.3-.7l.54-1.3a1 1 0 0 1 .63-.63l1.3-.54a1.1 1.1 0 0 0 .7-1.3l-.28-1.4a1 1 0 0 1 .26-.89l1-1a1.1 1.1 0 0 0 0-1.56l-1-1a1 1 0 0 1-.26-.89l.28-1.4a1.1 1.1 0 0 0-.7-1.3l-1.3-.54a1 1 0 0 1-.63-.63l-.54-1.3a1.1 1.1 0 0 0-1.3-.7l-1.4.28a1 1 0 0 1-.89-.26l-1-1a1.1 1.1 0 0 0-.78-.32z" fill="#0095f6"/><path d="M9.75 14.2L6.8 11.25a.75.75 0 1 0-1.06 1.06L9.22 15.8a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 0 0-1.06-1.06L10.28 13.7l-.53.5z" fill="#fff"/></svg>`;
+}
+
+function getGoldTickSvg() {
+  return `<svg class="verified-tick" width="15" height="15" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-left: 4px; flex-shrink: 0;"><path d="M12 2.5c-.29 0-.57.11-.78.32l-1 1a1 1 0 0 1-.89.26l-1.4-.28a1.1 1.1 0 0 0-1.3.7l-.54 1.3a1 1 0 0 1-.63.63l-1.3.54a1.1 1.1 0 0 0-.7 1.3l.28 1.4a1 1 0 0 1-.26.89l-1 1a1.1 1.1 0 0 0 0 1.56l1 1a1 1 0 0 1 .26.89l-.28 1.4a1.1 1.1 0 0 0 .7 1.3l1.3.54a1 1 0 0 1 .63.63l.54 1.3a1.1 1.1 0 0 0 1.3.7l1.4-.28a1 1 0 0 1 .89.26l1 1a1.1 1.1 0 0 0 1.56 0l1-1a1 1 0 0 1 .89-.26l1.4.28a1.1 1.1 0 0 0 1.3-.7l.54-1.3a1 1 0 0 1 .63-.63l1.3-.54a1.1 1.1 0 0 0 .7-1.3l-.28-1.4a1 1 0 0 1 .26-.89l1-1a1.1 1.1 0 0 0 0-1.56l-1-1a1 1 0 0 1-.26-.89l.28-1.4a1.1 1.1 0 0 0-.7-1.3l-1.3-.54a1 1 0 0 1-.63-.63l-.54-1.3a1.1 1.1 0 0 0-1.3-.7l-1.4.28a1 1 0 0 1-.89-.26l-1-1a1.1 1.1 0 0 0-.78-.32z" fill="#ffd700"/><path d="M9.75 14.2L6.8 11.25a.75.75 0 1 0-1.06 1.06L9.22 15.8a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 0 0-1.06-1.06L10.28 13.7l-.53.5z" fill="#fff"/></svg>`;
+}
+
 const meUsername      = document.getElementById('me-username');
 const logoutBtn       = document.getElementById('logout-btn');
 const userSearchInput = document.getElementById('user-search');
@@ -3727,6 +3753,11 @@ auth.onAuthStateChanged(async user => {
       await ref.update({ online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
     }
     currentUserData = (await ref.get()).data();
+    if (currentUserData && currentUserData.banned) {
+      alert("حساب کاربری شما توسط مدیر سیستم مسدود (بن) شده است و امکان استفاده از پیام‌رسان را ندارید.");
+      await auth.signOut();
+      return;
+    }
     const deviceResult = await registerCurrentDevice(ref);
     currentUserData = (await ref.get()).data();
     renderMe();
@@ -3824,6 +3855,17 @@ function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unread
   name.className = 'user-row-name';
   name.textContent = u.username || u.name;
   top.appendChild(name);
+
+  // Appending Instagram ticks
+  if (isGroup && badgeLabel === 'Channel' && u.verified) {
+    const tickSpan = document.createElement('span');
+    tickSpan.innerHTML = getBlueTickSvg();
+    top.appendChild(tickSpan);
+  } else if (!isGroup && u.verifiedGold) {
+    const tickSpan = document.createElement('span');
+    tickSpan.innerHTML = getGoldTickSvg();
+    top.appendChild(tickSpan);
+  }
 
   // Pin icon next to name
   if (isPinned) {
@@ -3930,7 +3972,7 @@ async function runSearch(term) {
       const label = g.isChannel ? 'Channel' : 'Group';
       const countText = g.isChannel ? `${(g.members||[]).length} subscribers` : `${(g.members||[]).length} members`;
       const subText = g.handle ? `@${g.handle} · ${countText}` : countText;
-      const row = buildUserRow({username: g.name, photoURL: g.photoURL}, subText, false, null, true, label);
+      const row = buildUserRow({username: g.name, photoURL: g.photoURL, verified: g.verified, isChannel: g.isChannel}, subText, false, null, true, label);
       row.addEventListener('click', async () => {
         if (!isMember) {
           await db.collection('groups').doc(doc.id).update({ members: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
@@ -4038,7 +4080,7 @@ function listenToChatsList() {
         const subText = group.isChannel ? (group.lastMessage || `${(group.members||[]).length} subscribers`) : (group.lastMessage || '');
         const unread = (group.unreadCounts && group.unreadCounts[currentUser.uid]) || 0;
         const pinned = !!(group.pinnedBy && group.pinnedBy[currentUser.uid]);
-        row = buildUserRow({username: group.name, photoURL: group.photoURL}, subText, false, formatListTime(group.lastMessageAt), true, label, unread, pinned, isChatLocked(chatId));
+        row = buildUserRow({username: group.name, photoURL: group.photoURL, verified: group.verified, isChannel: group.isChannel}, subText, false, formatListTime(group.lastMessageAt), true, label, unread, pinned, isChatLocked(chatId));
         row.dataset.chatId = chatId;
         if (chatId === activeChatId) row.classList.add('active');
         addRowContextMenu(row, chatId, item.type === 'channel' ? 'group' : item.type, item);
@@ -4272,7 +4314,20 @@ async function openChatWith(partnerData) {
   activeChatCanPost = true;
   activeChatCanModerate = false;
   activeChatCanPin = false;
-  messageForm.style.display = 'flex';
+  
+  // Check if partner user is banned
+  const bannedBanner = document.getElementById('banned-banner');
+  if (partnerData.banned) {
+    if (bannedBanner) {
+      bannedBanner.style.display = 'flex';
+      bannedBanner.querySelector('span').textContent = "این کاربر توسط مدیریت مسدود شده است.";
+    }
+    messageForm.style.display = 'none';
+  } else {
+    if (bannedBanner) bannedBanner.style.display = 'none';
+    messageForm.style.display = 'flex';
+  }
+
   renderComposeMetaBar();
   const lockBar0 = document.getElementById('channel-locked-bar');
   if (lockBar0) lockBar0.style.display = 'none';
@@ -4332,7 +4387,7 @@ async function openChatWith(partnerData) {
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
   setAvatarContent(chatAvatar, partnerData.username, partnerData.photoURL);
-  chatWithUsername.textContent = partnerData.username;
+  chatWithUsername.innerHTML = partnerData.username + (partnerData.verifiedGold ? ' ' + getGoldTickSvg() : '');
   chatWithStatus.textContent = formatStatusText(partnerData);
   chatWithStatus.className = 'chat-with-status';
   chatStatusDot.className = 'status-dot';
@@ -4384,10 +4439,25 @@ async function openGroupChat(groupId, groupData) {
   activeChatCanPin = hasGroupPermission(g, currentUser.uid, 'pin');
   activeChatIsAdmin = ['owner','admin','moderator','publisher'].includes(activeChatAdminRole);
 
+  // Check if channel/group is banned
+  const bannedBanner = document.getElementById('banned-banner');
+  if (g.banned) {
+    if (bannedBanner) {
+      bannedBanner.style.display = 'flex';
+      bannedBanner.querySelector('span').textContent = g.isChannel 
+        ? "این کانال توسط مدیریت مسدود شده است." 
+        : "این گروه توسط مدیریت مسدود شده است.";
+    }
+    messageForm.style.display = 'none';
+  } else {
+    if (bannedBanner) bannedBanner.style.display = 'none';
+    messageForm.style.display = 'flex';
+  }
+
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
   setAvatarContent(chatAvatar, g.name, g.photoURL);
-  chatWithUsername.textContent = g.name;
+  chatWithUsername.innerHTML = g.name + (g.isChannel && g.verified ? ' ' + getBlueTickSvg() : '');
   chatWithStatus.className = 'chat-with-status';
   chatWithStatus.textContent = activeChatIsChannel ? `${(g.members||[]).length} subscribers` : `${(g.members||[]).length} members`;
   document.getElementById('chat-status-dot').style.display = 'none';
@@ -5512,7 +5582,9 @@ function renderMessage(msg, msgId, chatId, isGroup) {
   if (isGroup && !isChannel && !isSent && msg.senderUsername) {
     const senderName = document.createElement('div');
     senderName.className = 'group-sender-name';
-    senderName.textContent = msg.senderUsername;
+    const cachedUser = partnerCache[msg.senderId];
+    const isGold = msg.senderVerifiedGold || (cachedUser && cachedUser.verifiedGold);
+    senderName.innerHTML = msg.senderUsername + (isGold ? ' ' + getGoldTickSvg() : '');
     bubble.appendChild(senderName);
   }
 
@@ -6084,6 +6156,7 @@ messageForm.addEventListener('submit', async e => {
     text,
     senderId: currentUser.uid,
     senderUsername: currentUserData.username,
+    senderVerifiedGold: !!(currentUserData && currentUserData.verifiedGold),
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     type: 'text',
     hashtags: extractHashtags(text),
@@ -6879,6 +6952,83 @@ async function showChannelSettings(channelId, channelData) {
   });
   body.appendChild(inviteBtn);
 
+  // If the logged in user is the Messenger Owner, render blue tick & ban controls
+  if (currentUserData && currentUserData.isAppOwner) {
+    const ownerSec = document.createElement('div');
+    ownerSec.style.cssText = 'margin-top:20px;padding:14px;border:1px solid rgba(255,255,255,0.08);background:var(--surface2);border-radius:12px;margin-bottom:16px;';
+    ownerSec.innerHTML = `
+      <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Owner Controls (مدیریت کل سیستم)</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.4;">به عنوان صاحب پیام‌رسان، می‌توانید تیک آبی را به این کانال اعطا یا آن را بن/مسدود کنید.</p>
+    `;
+    const verifyToggleBtn = document.createElement('button');
+    verifyToggleBtn.type = 'button';
+    verifyToggleBtn.className = 'btn-full';
+    
+    function updateBtnState() {
+      const isVerified = !!channelData.verified;
+      verifyToggleBtn.textContent = isVerified ? 'حذف تیک آبی تأیید شده' : 'اعطای تیک آبی تأیید شده';
+      verifyToggleBtn.style.cssText = `width:100%;padding:10px;border-radius:8px;border:none;font-weight:600;font-size:13px;cursor:pointer; transition: all 0.2s; background:${isVerified ? 'rgba(239,68,68,0.12)' : 'rgba(0,149,246,0.15)'};color:${isVerified ? '#ef4444' : '#0095f6'};`;
+    }
+    updateBtnState();
+
+    verifyToggleBtn.addEventListener('click', async () => {
+      verifyToggleBtn.disabled = true;
+      verifyToggleBtn.textContent = 'در حال ذخیره‌سازی…';
+      try {
+        const nextState = !channelData.verified;
+        await db.collection('groups').doc(channelId).update({ verified: nextState });
+        channelData.verified = nextState;
+        showToast(nextState ? 'تیک آبی به کانال اعطا شد' : 'تیک آبی از کانال حذف شد');
+        
+        if (activeChatId === channelId) {
+          chatWithUsername.innerHTML = channelData.name + (nextState ? ' ' + getBlueTickSvg() : '');
+        }
+        updateBtnState();
+      } catch (err) {
+        showToast('خطا در بروزرسانی تیک کانال');
+      } finally {
+        verifyToggleBtn.disabled = false;
+      }
+    });
+
+    ownerSec.appendChild(verifyToggleBtn);
+
+    // BAN CHANNEL BUTTON
+    const banToggleBtn = document.createElement('button');
+    banToggleBtn.type = 'button';
+    banToggleBtn.className = 'btn-full';
+    
+    function updateBanBtnState() {
+      const isBanned = !!channelData.banned;
+      banToggleBtn.textContent = isBanned ? 'رفع مسدودیت کانال (آن‌بن)' : 'مسدود کردن کانال (بن)';
+      banToggleBtn.style.cssText = `width:100%;padding:10px;border-radius:8px;border:none;font-weight:600;font-size:13px;cursor:pointer; transition: all 0.2s; background:${isBanned ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'};color:${isBanned ? '#22c55e' : '#ef4444'};margin-top:8px;`;
+    }
+    updateBanBtnState();
+
+    banToggleBtn.addEventListener('click', async () => {
+      banToggleBtn.disabled = true;
+      banToggleBtn.textContent = 'در حال ذخیره‌سازی…';
+      try {
+        const nextState = !channelData.banned;
+        await db.collection('groups').doc(channelId).update({ banned: nextState });
+        channelData.banned = nextState;
+        showToast(nextState ? 'کانال با موفقیت مسدود شد' : 'رفع مسدودیت کانال انجام شد');
+        
+        if (activeChatId === channelId) {
+          openGroupChat(channelId, channelData);
+        }
+        updateBanBtnState();
+      } catch (err) {
+        showToast('خطا در تغییر وضعیت مسدودیت کانال');
+      } finally {
+        banToggleBtn.disabled = false;
+      }
+    });
+
+    ownerSec.appendChild(banToggleBtn);
+    body.appendChild(ownerSec);
+  }
+
   if (canManageInfo) {
     const renameLabel = document.createElement('span');
     renameLabel.className = 'modal-label';
@@ -7637,6 +7787,17 @@ function showMyProfile() {
   saveErr.style.cssText = 'min-height:16px;color:var(--error);font-size:12px;text-align:center;margin-top:10px;';
   fieldsWrap.appendChild(saveErr);
 
+  const ownerSection = document.createElement('div');
+  ownerSection.style.cssText = 'margin-top:20px;padding-top:16px;border-top:1px dashed var(--border);margin-bottom:15px;';
+  ownerSection.innerHTML = `
+    <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">System Admin (ویژه مدیریت کل)</div>
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--text-primary);font-size:13.5px;">
+      <input type="checkbox" id="app-owner-toggle" ${currentUserData.isAppOwner ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer;">
+      <span>فعال‌سازی حالت صاحب پیام‌رسان (Messenger Owner Mode)</span>
+    </label>
+  `;
+  fieldsWrap.appendChild(ownerSection);
+
   const saveProfileBtn = document.createElement('button');
   saveProfileBtn.className = 'btn-full btn-blue';
   saveProfileBtn.style.marginTop = '4px';
@@ -7655,7 +7816,8 @@ function showMyProfile() {
         bio: bioInput.value.trim().slice(0, 250),
         dob: dobVal || null,
         phone: phoneInput.value.trim(),
-        links
+        links,
+        isAppOwner: document.getElementById('app-owner-toggle') ? document.getElementById('app-owner-toggle').checked : false
       };
       await db.collection('users').doc(currentUser.uid).update(updates);
       Object.assign(currentUserData, updates);
@@ -7722,6 +7884,83 @@ function showPartnerProfile(userData) {
     refreshBlockBtn();
   });
   footer.appendChild(blockBtn);
+
+  // If logged in user is Messenger Owner, render golden tick & ban control panel
+  if (currentUserData && currentUserData.isAppOwner) {
+    const ownerSec = document.createElement('div');
+    ownerSec.style.cssText = 'margin-top:20px;padding:14px;border:1px solid rgba(255,255,255,0.08);background:var(--surface2);border-radius:12px;margin:16px 20px;';
+    ownerSec.innerHTML = `
+      <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;text-transform:uppercase;">Owner Controls (مدیریت کل سیستم)</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.4;">به عنوان صاحب پیام‌رسان، می‌توانید تیک طلایی را به این کاربر اعطا یا حساب او را بن/مسدود کنید.</p>
+    `;
+    const verifyToggleBtn = document.createElement('button');
+    verifyToggleBtn.type = 'button';
+    verifyToggleBtn.className = 'btn-full';
+    
+    function updateBtnState() {
+      const isVerified = !!userData.verifiedGold;
+      verifyToggleBtn.textContent = isVerified ? 'حذف تیک طلایی تأیید شده' : 'اعطای تیک طلایی تأیید شده';
+      verifyToggleBtn.style.cssText = `width:100%;padding:10px;border-radius:8px;border:none;font-weight:600;font-size:13px;cursor:pointer; transition: all 0.2s; background:${isVerified ? 'rgba(239,68,68,0.12)' : 'rgba(250,204,21,0.15)'};color:${isVerified ? '#ef4444' : '#eab308'};`;
+    }
+    updateBtnState();
+
+    verifyToggleBtn.addEventListener('click', async () => {
+      verifyToggleBtn.disabled = true;
+      verifyToggleBtn.textContent = 'در حال ذخیره‌سازی…';
+      try {
+        const nextState = !userData.verifiedGold;
+        await db.collection('users').doc(userData.uid).update({ verifiedGold: nextState });
+        userData.verifiedGold = nextState;
+        showToast(nextState ? 'تیک طلایی به کاربر اعطا شد' : 'تیک طلایی از کاربر حذف شد');
+        
+        if (activeChatId === userData.uid) {
+          chatWithUsername.innerHTML = userData.username + (nextState ? ' ' + getGoldTickSvg() : '');
+        }
+        updateBtnState();
+      } catch (err) {
+        showToast('خطا در بروزرسانی تیک کاربر');
+      } finally {
+        verifyToggleBtn.disabled = false;
+      }
+    });
+
+    ownerSec.appendChild(verifyToggleBtn);
+
+    // BAN USER BUTTON
+    const banToggleBtn = document.createElement('button');
+    banToggleBtn.type = 'button';
+    banToggleBtn.className = 'btn-full';
+    
+    function updateBanBtnState() {
+      const isBanned = !!userData.banned;
+      banToggleBtn.textContent = isBanned ? 'رفع مسدودیت کاربر (آن‌بن)' : 'مسدود کردن کاربر (بن)';
+      banToggleBtn.style.cssText = `width:100%;padding:10px;border-radius:8px;border:none;font-weight:600;font-size:13px;cursor:pointer; transition: all 0.2s; background:${isBanned ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'};color:${isBanned ? '#22c55e' : '#ef4444'};margin-top:8px;`;
+    }
+    updateBanBtnState();
+
+    banToggleBtn.addEventListener('click', async () => {
+      banToggleBtn.disabled = true;
+      banToggleBtn.textContent = 'در حال ذخیره‌سازی…';
+      try {
+        const nextState = !userData.banned;
+        await db.collection('users').doc(userData.uid).update({ banned: nextState });
+        userData.banned = nextState;
+        showToast(nextState ? 'کاربر با موفقیت مسدود شد' : 'رفع مسدودیت کاربر انجام شد');
+        
+        if (activeChatId === userData.uid) {
+          openChatWith(userData);
+        }
+        updateBanBtnState();
+      } catch (err) {
+        showToast('خطا در تغییر وضعیت مسدودیت کاربر');
+      } finally {
+        banToggleBtn.disabled = false;
+      }
+    });
+
+    ownerSec.appendChild(banToggleBtn);
+    body.appendChild(ownerSec);
+  }
   footer.appendChild(closeBtn);
 }
 
@@ -8433,6 +8672,7 @@ async function uploadAndSendVoice(audioBlob, duration) {
       voiceDuration: duration,
       senderId: currentUser.uid,
       senderUsername: currentUserData.username,
+      senderVerifiedGold: !!(currentUserData && currentUserData.verifiedGold),
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       category: activeMessageCategory
     };
@@ -9348,5 +9588,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a18214b77de433bf',t:'MTc4MzU0NTA4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a182918ba949798e',t:'MTc4MzU1MDE5NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
