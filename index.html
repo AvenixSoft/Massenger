@@ -1289,6 +1289,228 @@ html,body{
   .swipe-action-btn:active{transform:scale(.96);}
 }
 
+
+
+/* ===== VOICE NOTE ===== */
+.voice-record-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); padding: 8px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.voice-record-btn:hover { color: var(--error); background: rgba(239,68,68,0.1); }
+.voice-record-btn.recording {
+  color: #ef4444; background: rgba(239,68,68,0.15);
+  animation: recPulse 1s infinite;
+}
+@keyframes recPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+}
+.voice-recording-indicator {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px; background: rgba(239,68,68,0.08);
+  border-radius: 20px; font-size: 12px; font-weight: 600; color: #ef4444;
+  animation: fadeIn 0.2s ease; flex-shrink: 0;
+}
+.voice-rec-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #ef4444;
+  animation: recBlink 0.6s infinite;
+}
+@keyframes recBlink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+.voice-rec-timer { font-variant-numeric: tabular-nums; }
+.voice-rec-cancel {
+  background: transparent; border: none; cursor: pointer; color: #ef4444;
+  padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 13px;
+}
+.voice-bubble {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 12px; min-width: 180px; cursor: pointer;
+}
+.voice-play-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--primary); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; flex-shrink: 0; transition: transform 0.15s;
+}
+.voice-play-btn:hover { transform: scale(1.08); }
+.voice-play-btn.playing { background: var(--error); }
+.voice-waveform {
+  flex: 1; height: 28px; display: flex; align-items: center; gap: 1px;
+  min-width: 60px;
+}
+.voice-waveform-bar {
+  flex: 1; background: var(--primary-light); border-radius: 2px;
+  min-width: 2px; transition: height 0.08s ease;
+}
+.voice-duration {
+  font-size: 12px; color: var(--text-muted); font-weight: 600;
+  font-variant-numeric: tabular-nums; flex-shrink: 0;
+}
+.voice-speed-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 10px; font-weight: 700;
+  padding: 2px 5px; border-radius: 4px;
+}
+.voice-speed-btn:hover { color: var(--primary); background: rgba(37,99,235,0.1); }
+.voice-speed-btn.active { color: var(--primary); background: rgba(37,99,235,0.15); }
+
+/* ===== GIF PICKER ===== */
+.gif-picker {
+  position: absolute; bottom: 70px; right: 14px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6); z-index: 100;
+  width: 340px; max-height: 420px; display: flex; flex-direction: column;
+  animation: popIn 0.2s ease;
+}
+.gif-picker-search {
+  width: 100%; padding: 9px 12px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--surface2);
+  color: var(--text-primary); font-size: 13.5px; outline: none;
+  margin-bottom: 10px; flex-shrink: 0;
+}
+.gif-picker-search:focus { border-color: var(--primary); }
+.gif-picker-tabs {
+  display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+.gif-picker-tabs::-webkit-scrollbar { display: none; }
+.gif-tab {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 14px; padding: 5px 11px; cursor: pointer;
+  font-size: 11.5px; font-weight: 600; color: var(--text-secondary);
+  white-space: nowrap; transition: all 0.15s; flex-shrink: 0;
+}
+.gif-tab:hover { background: var(--surface2); color: var(--text-primary); }
+.gif-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.gif-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 6px; overflow-y: auto; flex: 1;
+}
+.gif-item {
+  width: 100%; aspect-ratio: 1; border-radius: 10px;
+  overflow: hidden; cursor: pointer; position: relative;
+  background: var(--surface2); transition: transform 0.15s;
+}
+.gif-item:hover { transform: scale(1.03); z-index: 1; }
+.gif-item img { width: 100%; height: 100%; object-fit: cover; }
+.gif-item .gif-label {
+  position: absolute; bottom: 4px; left: 4px; right: 4px;
+  background: rgba(0,0,0,0.65); color: #fff; font-size: 9px;
+  font-weight: 600; padding: 2px 6px; border-radius: 4px;
+  text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gif-loading, .gif-empty {
+  grid-column: 1/-1; text-align: center; padding: 30px;
+  color: var(--text-muted); font-size: 13px;
+}
+.gif-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); padding: 8px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.gif-btn:hover { color: #a855f7; background: rgba(168,85,247,0.1); }
+.gif-btn.active { color: #a855f7; }
+
+/* ===== SCHEDULE PICKER ===== */
+.schedule-picker {
+  position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; padding: 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6); z-index: 100;
+  width: 320px; animation: popIn 0.2s ease;
+}
+.schedule-picker h3 {
+  font-size: 15px; font-weight: 700; margin-bottom: 14px;
+  color: var(--text-primary); display: flex; align-items: center; gap: 8px;
+}
+.schedule-picker h3 svg { color: var(--primary); }
+.schedule-date-input, .schedule-time-input {
+  width: 100%; padding: 10px 14px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--surface2);
+  color: var(--text-primary); font-size: 14px; outline: none;
+  margin-bottom: 10px; font-family: inherit;
+}
+.schedule-date-input:focus, .schedule-time-input:focus { border-color: var(--primary); }
+.schedule-preview {
+  font-size: 12px; color: var(--text-muted); padding: 8px 12px;
+  background: var(--surface2); border-radius: 10px; margin-bottom: 12px;
+  line-height: 1.5;
+}
+.schedule-actions { display: flex; gap: 8px; }
+.schedule-actions button { flex: 1; }
+.schedule-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10.5px; color: #f59e0b; font-weight: 600;
+}
+.schedule-badge svg { flex-shrink: 0; }
+
+/* ===== SHARED MEDIA GALLERY ===== */
+.media-gallery-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); padding: 8px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.media-gallery-btn:hover { color: var(--primary); background: rgba(37,99,235,0.1); }
+.media-gallery-modal { max-width: 500px; }
+.media-gallery-tabs {
+  display: flex; gap: 4px; margin-bottom: 14px;
+  background: var(--surface2); border-radius: 12px; padding: 4px;
+}
+.media-gallery-tab {
+  flex: 1; padding: 8px; border: none; background: transparent;
+  border-radius: 10px; cursor: pointer; font-size: 12.5px; font-weight: 600;
+  color: var(--text-secondary); transition: all 0.15s;
+}
+.media-gallery-tab.active { background: var(--primary); color: #fff; }
+.media-gallery-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 6px; max-height: 340px; overflow-y: auto;
+}
+.media-gallery-item {
+  aspect-ratio: 1; border-radius: 10px; overflow: hidden;
+  cursor: pointer; position: relative; background: var(--surface2);
+  transition: transform 0.15s;
+}
+.media-gallery-item:hover { transform: scale(1.04); z-index: 1; }
+.media-gallery-item img,
+.media-gallery-item video { width: 100%; height: 100%; object-fit: cover; }
+.media-gallery-item .media-file-icon {
+  width: 100%; height: 100%; display: flex; align-items: center;
+  justify-content: center; flex-direction: column; gap: 4px;
+  color: var(--text-muted);
+}
+.media-gallery-item .media-file-name {
+  font-size: 10px; text-align: center; padding: 2px 4px;
+  color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; max-width: 90%;
+}
+.media-gallery-empty {
+  grid-column: 1/-1; text-align: center; padding: 30px;
+  color: var(--text-muted); font-size: 13px;
+}
+.media-preview-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; cursor: pointer;
+}
+.media-preview-overlay img,
+.media-preview-overlay video { max-width: 92vw; max-height: 80vh; border-radius: 12px; }
+.media-preview-close {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(255,255,255,0.1); border: none; cursor: pointer;
+  color: #fff; width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; transition: background 0.2s;
+}
+.media-preview-close:hover { background: rgba(255,255,255,0.2); }
+.media-preview-info {
+  margin-top: 12px; color: #aaa; font-size: 13px; text-align: center;
+}
+
 </style>
 </head>
 <body>
@@ -1663,7 +1885,18 @@ html,body{
         <div class="msg-input-wrap">
           <input type="text" id="message-input" placeholder="Write a message…" autocomplete="off">
         </div>
-        <button type="button" class="form-icon-btn" id="emoji-btn" title="Emoji">
+                <button type="button" class="gif-btn" id="gif-btn" title="GIF">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 12h4l2-4 3 6 2-5 3 8"/>
+          </svg>
+        </button>
+        <button type="button" class="voice-record-btn" id="voice-btn" title="Voice Note">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+
+<button type="button" class="form-icon-btn" id="emoji-btn" title="Emoji">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
@@ -1682,6 +1915,14 @@ html,body{
         <div id="attach-menu" class="attach-menu hidden"></div>
         <!-- Poll Creator (hidden by default) -->
         <div id="poll-creator-panel" class="poll-creator hidden"></div>
+        <!-- GIF Picker -->
+        <div id="gif-picker" class="gif-picker hidden">
+          <input type="text" class="gif-picker-search" id="gif-search-input" placeholder="Search GIFs…">
+          <div class="gif-picker-tabs" id="gif-tabs"></div>
+          <div class="gif-grid" id="gif-grid"></div>
+        </div>
+        <!-- Schedule Message Picker -->
+        <div id="schedule-picker" class="schedule-picker hidden"></div>
       </form>
       <div id="channel-locked-bar" class="channel-locked-bar" style="display:none;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -1723,6 +1964,33 @@ html,body{
   const auth = firebase.auth();
   const db = firebase.firestore();
   const storage = firebase.storage();
+
+  // ===== Cloudinary Config (replaces Firebase Storage) =====
+  // 1. Go to cloudinary.com → sign up free
+  // 2. Get your Cloud Name from Dashboard
+  // 3. Go to Settings → Upload → Upload presets → Add upload preset
+  //    - Name: "messenger_uploads"
+  //    - Signing Mode: "Unsigned"
+  // 4. Replace YOUR_CLOUD_NAME below:
+  const CLOUDINARY_CLOUD_NAME = 'hwoz1nes';
+  const CLOUDINARY_UPLOAD_PRESET = 'messenger_uploads';
+
+  async function uploadToCloudinary(file, folder) {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    if (folder) fd.append('folder', folder);
+    const res = await fetch(
+      'https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/upload',
+      { method: 'POST', body: fd }
+    );
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error?.message || 'Upload failed');
+    }
+    const data = await res.json();
+    return data.secure_url;
+  }
 
 /* ===== DOM ===== */
 const loadingScreen   = document.getElementById('loading-screen');
@@ -6096,10 +6364,8 @@ fileInput.addEventListener('change', async () => {
   if (file.size > 10 * 1024 * 1024) { alert('File must be under 10 MB'); return; }
 
   const col = activeChatIsGroup ? 'groups' : 'chats';
-  const path = `files/${activeChatId}/${Date.now()}_${file.name}`;
   try {
-    const snap = await storage.ref(path).put(file);
-    const url = await snap.ref.getDownloadURL();
+    const url = await uploadToCloudinary(file, 'files/' + activeChatId);
 
     const msgData = {
       type: 'file',
@@ -6356,9 +6622,7 @@ function showCreateGroupModal() {
 
       let photoURL = null;
       if (pendingGroupAvatarBlob) {
-        const ref = storage.ref(`groups/${Date.now()}_avatar`);
-        await ref.put(pendingGroupAvatarBlob);
-        photoURL = await ref.getDownloadURL();
+        photoURL = await uploadToCloudinary(pendingGroupAvatarBlob, 'group_avatars');
         pendingGroupAvatarBlob = null;
       }
 
@@ -6517,9 +6781,7 @@ function showCreateChannelModal() {
 
       let photoURL = null;
       if (pendingGroupAvatarBlob) {
-        const ref = storage.ref(`groups/${Date.now()}_avatar`);
-        await ref.put(pendingGroupAvatarBlob);
-        photoURL = await ref.getDownloadURL();
+        photoURL = await uploadToCloudinary(pendingGroupAvatarBlob, 'group_avatars');
         pendingGroupAvatarBlob = null;
       }
 
@@ -6657,9 +6919,7 @@ async function showChannelSettings(channelId, channelData) {
           bio: bioField.getValue(), links: linksField.getValues()
         };
         if (pendingGroupAvatarBlob) {
-          const ref = storage.ref(`groups/${channelId}_avatar_${Date.now()}`);
-          await ref.put(pendingGroupAvatarBlob);
-          updates.photoURL = await ref.getDownloadURL();
+          updates.photoURL = await uploadToCloudinary(pendingGroupAvatarBlob, 'group_avatars');
           pendingGroupAvatarBlob = null;
         }
         await db.collection('groups').doc(channelId).update(updates);
@@ -6901,9 +7161,7 @@ async function showGroupSettings(groupId, groupData) {
           bio: bioField.getValue(), links: linksField.getValues()
         };
         if (pendingGroupAvatarBlob) {
-          const ref = storage.ref(`groups/${groupId}_avatar_${Date.now()}`);
-          await ref.put(pendingGroupAvatarBlob);
-          updates.photoURL = await ref.getDownloadURL();
+          updates.photoURL = await uploadToCloudinary(pendingGroupAvatarBlob, 'group_avatars');
           pendingGroupAvatarBlob = null;
         }
         await db.collection('groups').doc(groupId).update(updates);
@@ -7477,9 +7735,7 @@ avatarFileInput.addEventListener('change', async () => {
   if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5 MB'); return; }
 
   try {
-    const ref = storage.ref(`avatars/${currentUser.uid}`);
-    await ref.put(file);
-    const url = await ref.getDownloadURL();
+    const url = await uploadToCloudinary(file, 'avatars');
     await db.collection('users').doc(currentUser.uid).update({ photoURL: url });
     currentUserData.photoURL = url;
     setAvatarContent(meAvatar, currentUserData.username, url);
@@ -8053,9 +8309,1044 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+
+// ===== NEW FEATURES: Voice Notes, GIF Picker, Message Scheduler, Shared Media =====
+// ==================== FEATURE 1: VOICE NOTES ====================
+const voiceBtn = document.getElementById('voice-btn');
+
+
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingStartTime = 0;
+let recordingTimerInterval = null;
+let currentAudioEl = null;
+let currentAudioPlaybackRate = 1;
+
+// Create voice recording indicator (hidden by default)
+const voiceRecIndicator = document.createElement('div');
+voiceRecIndicator.className = 'voice-recording-indicator hidden';
+voiceRecIndicator.innerHTML = '<span class="voice-rec-dot"></span><span class="voice-rec-timer" id="voice-rec-timer">00:00</span><button class="voice-rec-cancel" id="voice-rec-cancel">✕</button>';
+document.querySelector('.msg-input-wrap').insertAdjacentElement('afterend', voiceRecIndicator);
+
+const voiceRecTimer = document.getElementById('voice-rec-timer');
+const voiceRecCancel = document.getElementById('voice-rec-cancel');
+
+voiceRecCancel.addEventListener('click', cancelRecording);
+
+async function startRecording() {
+  if (!activeChatId) return;
+  if (!activeChatIsGroup && isBlockedEitherWay(activeChatPartner)) { showToast('You cannot message this user'); return; }
+  if (activeChatIsChannel && !canPostInActiveChat()) { showToast('Only admins and publishers can post in this channel'); return; }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm' });
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      if (audioChunks.length === 0) return;
+
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const duration = Math.round((Date.now() - recordingStartTime) / 1000);
+
+      if (duration < 1) {
+        showToast('Recording too short');
+        return;
+      }
+
+      await uploadAndSendVoice(audioBlob, duration);
+    };
+
+    mediaRecorder.start();
+    recordingStartTime = Date.now();
+    voiceBtn.classList.add('recording');
+    voiceRecIndicator.classList.remove('hidden');
+    messageInput.placeholder = 'Recording voice…';
+
+    // Start timer
+    let elapsed = 0;
+    recordingTimerInterval = setInterval(() => {
+      elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+      const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+      const secs = (elapsed % 60).toString().padStart(2, '0');
+      voiceRecTimer.textContent = mins + ':' + secs;
+
+      // Auto-stop at 5 minutes
+      if (elapsed >= 300) {
+        stopRecording(true);
+      }
+    }, 200);
+
+  } catch (err) {
+    console.error('Mic access error:', err);
+    showToast('Microphone access denied. Please allow mic permissions.');
+  }
+}
+
+function stopRecording(send = true) {
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+
+  if (recordingTimerInterval) {
+    clearInterval(recordingTimerInterval);
+    recordingTimerInterval = null;
+  }
+
+  voiceBtn.classList.remove('recording');
+  voiceRecIndicator.classList.add('hidden');
+  messageInput.placeholder = 'Write a message…';
+
+  if (send && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  } else if (!send && mediaRecorder.state === 'recording') {
+    // Cancel: stop without saving
+    mediaRecorder.ondataavailable = () => {};
+    mediaRecorder.stop();
+    audioChunks = [];
+    // Stop tracks
+    if (mediaRecorder.stream) {
+      mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    }
+  }
+}
+
+function cancelRecording() {
+  stopRecording(false);
+  showToast('Recording cancelled');
+}
+
+async function uploadAndSendVoice(audioBlob, duration) {
+  if (!activeChatId) return;
+
+  const col = activeChatIsGroup ? 'groups' : 'chats';
+
+  try {
+    const url = await uploadToCloudinary(audioBlob, 'voice/' + activeChatId);
+
+    const msgData = {
+      type: 'voice',
+      voiceURL: url,
+      voiceDuration: duration,
+      senderId: currentUser.uid,
+      senderUsername: currentUserData.username,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      category: activeMessageCategory
+    };
+
+    if (activeSelfDestructSeconds > 0) {
+      msgData.selfDestructSeconds = activeSelfDestructSeconds;
+      msgData.expiresAt = firebase.firestore.Timestamp.fromMillis(Date.now() + activeSelfDestructSeconds * 1000);
+    }
+    if (replyToMsg) { msgData.replyTo = { ...replyToMsg }; clearReply(); }
+
+    const ref = db.collection(col).doc(activeChatId);
+    await ref.collection('messages').add(msgData);
+
+    const updateData = {
+      lastMessage: '🎤 Voice message',
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (!activeChatIsGroup) {
+      const pUid = activeChatPartner && activeChatPartner.uid;
+      if (pUid) updateData['unreadCounts.' + pUid] = firebase.firestore.FieldValue.increment(1);
+    } else {
+      const members = (activeChatPartner && activeChatPartner.members) || [];
+      members.forEach(uid => {
+        if (uid !== currentUser.uid) updateData['unreadCounts.' + uid] = firebase.firestore.FieldValue.increment(1);
+      });
+    }
+    await ref.update(updateData);
+  } catch (err) {
+    alert('Failed to send voice note: ' + friendlyError(err));
+  }
+}
+
+// Voice button: long press to record, click to start/stop
+let voicePressTimer = null;
+let isVoiceRecording = false;
+
+voiceBtn.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  voicePressTimer = setTimeout(() => {
+    isVoiceRecording = true;
+    startRecording();
+  }, 200);
+});
+
+voiceBtn.addEventListener('mouseup', () => {
+  clearTimeout(voicePressTimer);
+  if (isVoiceRecording) {
+    stopRecording(true);
+    isVoiceRecording = false;
+  }
+});
+
+voiceBtn.addEventListener('mouseleave', () => {
+  clearTimeout(voicePressTimer);
+  if (isVoiceRecording) {
+    stopRecording(true);
+    isVoiceRecording = false;
+  }
+});
+
+// Touch events for mobile
+voiceBtn.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  voicePressTimer = setTimeout(() => {
+    isVoiceRecording = true;
+    startRecording();
+  }, 200);
+});
+
+voiceBtn.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  clearTimeout(voicePressTimer);
+  if (isVoiceRecording) {
+    stopRecording(true);
+    isVoiceRecording = false;
+  }
+});
+
+voiceBtn.addEventListener('touchcancel', () => {
+  clearTimeout(voicePressTimer);
+  if (isVoiceRecording) {
+    stopRecording(false);
+    isVoiceRecording = false;
+  }
+});
+
+// Render voice message bubble (called from renderMessage)
+function renderVoiceBubble(bubble, msg) {
+  const voiceBubble = document.createElement('div');
+  voiceBubble.className = 'voice-bubble';
+
+  const playBtn = document.createElement('button');
+  playBtn.className = 'voice-play-btn';
+  playBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+  playBtn.title = 'Play';
+
+  const waveform = document.createElement('div');
+  waveform.className = 'voice-waveform';
+  // Generate random-looking waveform bars
+  const barCount = 20;
+  for (let i = 0; i < barCount; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'voice-waveform-bar';
+    bar.style.height = (6 + Math.random() * 22) + 'px';
+    waveform.appendChild(bar);
+  }
+
+  const durationEl = document.createElement('span');
+  durationEl.className = 'voice-duration';
+  const dur = msg.voiceDuration || 0;
+  const mins = Math.floor(dur / 60);
+  const secs = dur % 60;
+  durationEl.textContent = mins + ':' + secs.toString().padStart(2, '0');
+
+  voiceBubble.appendChild(playBtn);
+  voiceBubble.appendChild(waveform);
+  voiceBubble.appendChild(durationEl);
+
+  // Speed button
+  const speedBtn = document.createElement('button');
+  speedBtn.className = 'voice-speed-btn';
+  speedBtn.textContent = '1x';
+  speedBtn.title = 'Playback speed';
+  voiceBubble.appendChild(speedBtn);
+
+  let audio = null;
+  let isPlaying = false;
+  let animFrame = null;
+  let playbackRate = 1;
+
+  function stopAudio() {
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      audio = null;
+    }
+    if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+    isPlaying = false;
+    playBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+    playBtn.classList.remove('playing');
+    // Reset waveform
+    waveform.querySelectorAll('.voice-waveform-bar').forEach(b => {
+      b.style.height = (6 + Math.random() * 22) + 'px';
+      b.style.opacity = '1';
+    });
+  }
+
+  function animateWaveform() {
+    if (!audio || audio.paused) return;
+    const bars = waveform.querySelectorAll('.voice-waveform-bar');
+    const progress = audio.currentTime / (audio.duration || 1);
+    bars.forEach((bar, i) => {
+      const pos = i / bars.length;
+      if (pos <= progress) {
+        bar.style.opacity = '0.35';
+      } else {
+        bar.style.opacity = '1';
+      }
+    });
+    animFrame = requestAnimationFrame(animateWaveform);
+  }
+
+  playBtn.addEventListener('click', () => {
+    if (isPlaying) {
+      stopAudio();
+      return;
+    }
+
+    // Stop any other playing audio
+    if (currentAudioEl && currentAudioEl !== voiceBubble) {
+      currentAudioEl.querySelector('.voice-play-btn').click();
+    }
+    currentAudioEl = voiceBubble;
+
+    if (!audio) {
+      audio = new Audio(msg.voiceURL);
+      audio.playbackRate = playbackRate;
+      audio.addEventListener('ended', () => {
+        stopAudio();
+        currentAudioEl = null;
+      });
+      audio.addEventListener('error', () => {
+        stopAudio();
+        currentAudioEl = null;
+        showToast('Failed to load audio');
+      });
+    }
+
+    audio.play().then(() => {
+      isPlaying = true;
+      playBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+      playBtn.classList.add('playing');
+      animateWaveform();
+    }).catch(() => {
+      showToast('Failed to play audio');
+    });
+  });
+
+  speedBtn.addEventListener('click', () => {
+    if (playbackRate === 1) playbackRate = 1.5;
+    else if (playbackRate === 1.5) playbackRate = 2;
+    else playbackRate = 1;
+    speedBtn.textContent = playbackRate + 'x';
+    speedBtn.classList.toggle('active', playbackRate !== 1);
+    if (audio) {
+      audio.playbackRate = playbackRate;
+    }
+  });
+
+  bubble.appendChild(voiceBubble);
+}
+
+// Override renderMessage to handle voice type
+const originalRenderMessage = renderMessage;
+renderMessage = function(msg, msgId, chatId, isGroup) {
+  // Check if it's a voice message and handle specially
+  if (msg.type === 'voice') {
+    const row = document.createElement('div');
+    const isSent = msg.senderId === currentUser.uid;
+    row.className = 'message-row ' + (isSent ? 'sent' : 'received');
+
+    const bubbleWrap = document.createElement('div');
+    bubbleWrap.className = 'bubble-wrap';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    renderVoiceBubble(bubble, msg);
+
+    // Add time
+    const timeEl = document.createElement('div');
+    timeEl.className = 'msg-time';
+    if (msg.createdAt && msg.createdAt.toDate) {
+      timeEl.textContent = formatTime(msg.createdAt.toDate());
+    }
+    bubble.appendChild(timeEl);
+
+    bubbleWrap.appendChild(bubble);
+
+    // Add reply/forward actions
+    const actions = document.createElement('div');
+    actions.className = 'msg-actions';
+
+    if (msgId && !isSavedMessagesView) {
+      const replyBtn = document.createElement('button');
+      replyBtn.type = 'button';
+      replyBtn.className = 'msg-action-btn';
+      replyBtn.title = 'Reply';
+      replyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
+      replyBtn.addEventListener('click', () => startReply(msgId, msg));
+      actions.appendChild(replyBtn);
+
+      const fwdBtn = document.createElement('button');
+      fwdBtn.type = 'button';
+      fwdBtn.className = 'msg-action-btn';
+      fwdBtn.title = 'Forward';
+      fwdBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg>';
+      fwdBtn.addEventListener('click', () => showForwardModal(msg));
+      actions.appendChild(fwdBtn);
+
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'msg-action-btn';
+      saveBtn.title = 'Save message';
+      saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+      saveBtn.addEventListener('click', () => saveMessageToSaved(msg, msgId, chatId, isGroup));
+      actions.appendChild(saveBtn);
+    }
+
+    if (isSent && msgId && !isSavedMessagesView) {
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'msg-action-btn danger';
+      delBtn.title = 'Delete';
+      delBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+      delBtn.addEventListener('click', () => deleteMessage(msgId, chatId, isGroup));
+      actions.appendChild(delBtn);
+    }
+
+    bubbleWrap.appendChild(actions);
+    row.appendChild(bubbleWrap);
+
+    // Reactions
+    if (msg.reactions && Object.keys(msg.reactions).length > 0 && msgId) {
+      const reactionsBar = document.createElement('div');
+      reactionsBar.className = 'reactions-bar';
+      const reactionsMap = msg.reactions;
+      Object.entries(reactionsMap).forEach(([emoji, uids]) => {
+        if (!Array.isArray(uids) || uids.length === 0) return;
+        const pill = document.createElement('div');
+        pill.className = 'reaction-pill' + (uids.includes(currentUser.uid) ? ' mine' : '');
+        pill.innerHTML = emoji + ' <span>' + uids.length + '</span>';
+        pill.addEventListener('click', () => toggleReaction(msgId, chatId, isGroup, emoji));
+        reactionsBar.appendChild(pill);
+      });
+      row.appendChild(reactionsBar);
+    }
+
+    return row;
+  }
+
+  // For non-voice messages, use the original function
+  return originalRenderMessage(msg, msgId, chatId, isGroup);
+};
+
+// ==================== FEATURE 2: GIF PICKER ====================
+const gifBtn = document.getElementById('gif-btn');
+const gifPicker = document.getElementById('gif-picker');
+const gifSearchInput = document.getElementById('gif-search-input');
+const gifTabs = document.getElementById('gif-tabs');
+const gifGrid = document.getElementById('gif-grid');
+
+// Popular GIF categories with Tenor search URLs
+const GIF_CATEGORIES = [
+  { id: 'trending', label: '🔥 Trending', query: 'trending' },
+  { id: 'happy', label: '😄 Happy', query: 'happy' },
+  { id: 'sad', label: '😢 Sad', query: 'sad' },
+  { id: 'angry', label: '😠 Angry', query: 'angry' },
+  { id: 'love', label: '❤️ Love', query: 'love' },
+  { id: 'laugh', label: '😂 Laugh', query: 'laugh' },
+  { id: 'wow', label: '😮 Wow', query: 'wow' },
+  { id: 'dog', label: '🐕 Dogs', query: 'cute dog' },
+  { id: 'cat', label: '🐱 Cats', query: 'cute cat' },
+  { id: 'hello', label: '👋 Hello', query: 'hello' },
+  { id: 'bye', label: '👋 Bye', query: 'goodbye' },
+  { id: 'yes', label: '👍 Yes', query: 'yes' },
+  { id: 'no', label: '👎 No', query: 'no' },
+  { id: 'dance', label: '💃 Dance', query: 'dance' }
+];
+
+let currentGifCategory = 'trending';
+let gifSearchTimeout = null;
+
+// Tenor API - using the public anonymous key approach via their v2 API
+// Using a well-known public Tenor API key for development
+const TENOR_API_KEY = 'LIVDSRZULELA';
+const GIF_LIMIT = 20;
+
+async function searchGifs(query, categoryId) {
+  gifGrid.innerHTML = '<div class="gif-loading">Loading GIFs…</div>';
+
+  try {
+    let url;
+    if (categoryId === 'trending' && !query) {
+      url = 'https://tenor.googleapis.com/v2/featured?key=' + TENOR_API_KEY + '&limit=' + GIF_LIMIT + '&media_filter=gif';
+    } else {
+      const q = query || categoryId || 'trending';
+      url = 'https://tenor.googleapis.com/v2/search?q=' + encodeURIComponent(q) + '&key=' + TENOR_API_KEY + '&limit=' + GIF_LIMIT + '&media_filter=gif';
+    }
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.results || data.results.length === 0) {
+      gifGrid.innerHTML = '<div class="gif-empty">No GIFs found 😕</div>';
+      return;
+    }
+
+    gifGrid.innerHTML = '';
+    data.results.forEach(gif => {
+      const item = document.createElement('div');
+      item.className = 'gif-item';
+      const img = document.createElement('img');
+      // Use tinygif for preview
+      img.src = gif.media_formats.tinygif ? gif.media_formats.tinygif.url : gif.media_formats.gif.url;
+      img.alt = gif.content_description || 'GIF';
+      img.loading = 'lazy';
+
+      const label = document.createElement('div');
+      label.className = 'gif-label';
+      label.textContent = gif.content_description || 'GIF';
+
+      item.appendChild(img);
+      item.appendChild(label);
+
+      item.addEventListener('click', () => {
+        sendGif(gif);
+        gifPicker.classList.add('hidden');
+        gifBtn.classList.remove('active');
+      });
+
+      gifGrid.appendChild(item);
+    });
+  } catch (err) {
+    console.error('GIF search error:', err);
+    gifGrid.innerHTML = '<div class="gif-empty">Failed to load GIFs. Try again.</div>';
+  }
+}
+
+async function sendGif(gifData) {
+  if (!activeChatId) return;
+  if (!activeChatIsGroup && isBlockedEitherWay(activeChatPartner)) { showToast('You cannot message this user'); return; }
+  if (activeChatIsChannel && !canPostInActiveChat()) { showToast('Only admins and publishers can post in this channel'); return; }
+
+  const gifUrl = gifData.media_formats.gif.url;
+  const gifPreview = gifData.media_formats.tinygif ? gifData.media_formats.tinygif.url : gifUrl;
+  const gifDesc = gifData.content_description || 'GIF';
+
+  const col = activeChatIsGroup ? 'groups' : 'chats';
+  const msgData = {
+    type: 'gif',
+    gifUrl: gifUrl,
+    gifPreview: gifPreview,
+    gifDescription: gifDesc,
+    senderId: currentUser.uid,
+    senderUsername: currentUserData.username,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    category: activeMessageCategory
+  };
+
+  if (activeSelfDestructSeconds > 0) {
+    msgData.selfDestructSeconds = activeSelfDestructSeconds;
+    msgData.expiresAt = firebase.firestore.Timestamp.fromMillis(Date.now() + activeSelfDestructSeconds * 1000);
+  }
+  if (replyToMsg) { msgData.replyTo = { ...replyToMsg }; clearReply(); }
+
+  try {
+    const ref = db.collection(col).doc(activeChatId);
+    await ref.collection('messages').add(msgData);
+    const updateData = {
+      lastMessage: '🎞️ GIF',
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (!activeChatIsGroup) {
+      const pUid = activeChatPartner && activeChatPartner.uid;
+      if (pUid) updateData['unreadCounts.' + pUid] = firebase.firestore.FieldValue.increment(1);
+    } else {
+      (activeChatPartner && activeChatPartner.members || []).forEach(uid => {
+        if (uid !== currentUser.uid) updateData['unreadCounts.' + uid] = firebase.firestore.FieldValue.increment(1);
+      });
+    }
+    await ref.update(updateData);
+  } catch (err) {
+    showToast('Failed to send GIF: ' + friendlyError(err));
+  }
+}
+
+function buildGifTabs() {
+  gifTabs.innerHTML = '';
+  GIF_CATEGORIES.forEach(cat => {
+    const tab = document.createElement('button');
+    tab.className = 'gif-tab' + (cat.id === currentGifCategory ? ' active' : '');
+    tab.textContent = cat.label;
+    tab.addEventListener('click', () => {
+      currentGifCategory = cat.id;
+      buildGifTabs();
+      gifSearchInput.value = '';
+      searchGifs('', cat.id);
+    });
+    gifTabs.appendChild(tab);
+  });
+}
+
+gifBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = !gifPicker.classList.contains('hidden');
+  closeAllPopups();
+  if (!isOpen) {
+    buildGifTabs();
+    searchGifs('', currentGifCategory);
+    gifPicker.classList.remove('hidden');
+    gifBtn.classList.add('active');
+  }
+});
+
+gifSearchInput.addEventListener('input', () => {
+  clearTimeout(gifSearchTimeout);
+  gifSearchTimeout = setTimeout(() => {
+    const q = gifSearchInput.value.trim();
+    if (q) {
+      searchGifs(q, '');
+    } else {
+      searchGifs('', currentGifCategory);
+    }
+  }, 400);
+});
+
+gifPicker.addEventListener('click', e => e.stopPropagation());
+
+// Update closeAllPopups to include gif picker
+const originalCloseAllPopups = closeAllPopups;
+closeAllPopups = function() {
+  originalCloseAllPopups();
+  gifPicker.classList.add('hidden');
+  gifBtn.classList.remove('active');
+  schedulePicker.classList.add('hidden');
+};
+
+// GIF render in messages
+function renderGifBubble(bubble, msg) {
+  const gifContainer = document.createElement('div');
+  gifContainer.style.cssText = 'max-width:260px;border-radius:12px;overflow:hidden;cursor:pointer;';
+  
+  const img = document.createElement('img');
+  img.src = msg.gifPreview || msg.gifUrl;
+  img.style.cssText = 'width:100%;display:block;border-radius:12px;';
+  img.alt = msg.gifDescription || 'GIF';
+  img.loading = 'lazy';
+
+  gifContainer.appendChild(img);
+  
+  // Click to view full size
+  gifContainer.addEventListener('click', () => {
+    window.open(msg.gifUrl, '_blank');
+  });
+
+  bubble.appendChild(gifContainer);
+}
+
+// Extend renderMessage for GIF type (add before voice handling)
+const renderMessageVoiceGif = renderMessage;
+renderMessage = function(msg, msgId, chatId, isGroup) {
+  if (msg.type === 'gif') {
+    const row = document.createElement('div');
+    const isSent = msg.senderId === currentUser.uid;
+    row.className = 'message-row ' + (isSent ? 'sent' : 'received');
+
+    const bubbleWrap = document.createElement('div');
+    bubbleWrap.className = 'bubble-wrap';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.style.cssText = 'padding:4px;background:transparent!important;';
+
+    renderGifBubble(bubble, msg);
+
+    const timeEl = document.createElement('div');
+    timeEl.className = 'msg-time';
+    if (msg.createdAt && msg.createdAt.toDate) {
+      timeEl.textContent = formatTime(msg.createdAt.toDate());
+    }
+    bubble.appendChild(timeEl);
+
+    bubbleWrap.appendChild(bubble);
+    row.appendChild(bubbleWrap);
+
+    // Reactions
+    if (msg.reactions && Object.keys(msg.reactions).length > 0 && msgId) {
+      const reactionsBar = document.createElement('div');
+      reactionsBar.className = 'reactions-bar';
+      Object.entries(msg.reactions).forEach(([emoji, uids]) => {
+        if (!Array.isArray(uids) || uids.length === 0) return;
+        const pill = document.createElement('div');
+        pill.className = 'reaction-pill' + (uids.includes(currentUser.uid) ? ' mine' : '');
+        pill.innerHTML = emoji + ' <span>' + uids.length + '</span>';
+        pill.addEventListener('click', () => toggleReaction(msgId, chatId, isGroup, emoji));
+        reactionsBar.appendChild(pill);
+      });
+      row.appendChild(reactionsBar);
+    }
+
+    return row;
+  }
+  return renderMessageVoiceGif(msg, msgId, chatId, isGroup);
+};
+
+// ==================== FEATURE 3: MESSAGE SCHEDULER ====================
+const schedulePicker = document.getElementById('schedule-picker');
+
+function buildSchedulePicker() {
+  schedulePicker.innerHTML = '';
+
+  const title = document.createElement('h3');
+  title.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Schedule Message';
+  schedulePicker.appendChild(title);
+
+  const textInput = document.createElement('input');
+  textInput.type = 'text';
+  textInput.className = 'modal-input';
+  textInput.placeholder = 'Message text…';
+  textInput.value = messageInput.value;
+  textInput.style.marginBottom = '10px';
+  schedulePicker.appendChild(textInput);
+
+  const dateInput = document.createElement('input');
+  dateInput.type = 'date';
+  dateInput.className = 'schedule-date-input';
+  dateInput.value = new Date().toISOString().split('T')[0];
+  schedulePicker.appendChild(dateInput);
+
+  const timeInput = document.createElement('input');
+  timeInput.type = 'time';
+  timeInput.className = 'schedule-time-input';
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 5);
+  timeInput.value = now.toTimeString().slice(0, 5);
+  schedulePicker.appendChild(timeInput);
+
+  const preview = document.createElement('div');
+  preview.className = 'schedule-preview';
+  preview.id = 'schedule-preview-text';
+  schedulePicker.appendChild(preview);
+
+  function updatePreview() {
+    const text = textInput.value.trim() || '(empty message)';
+    const date = dateInput.value;
+    const time = timeInput.value;
+    if (date && time) {
+      const dt = new Date(date + 'T' + time);
+      preview.innerHTML = '<strong>Message:</strong> "' + text.substring(0, 60) + (text.length > 60 ? '…' : '') + '"<br><strong>Scheduled for:</strong> ' + dt.toLocaleString();
+    } else {
+      preview.textContent = 'Set date and time';
+    }
+  }
+
+  textInput.addEventListener('input', updatePreview);
+  dateInput.addEventListener('input', updatePreview);
+  timeInput.addEventListener('input', updatePreview);
+  updatePreview();
+
+  const actions = document.createElement('div');
+  actions.className = 'schedule-actions';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'btn-sm ghost';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', () => schedulePicker.classList.add('hidden'));
+
+  const scheduleBtn = document.createElement('button');
+  scheduleBtn.type = 'button';
+  scheduleBtn.className = 'btn-sm primary';
+  scheduleBtn.textContent = 'Schedule';
+
+  scheduleBtn.addEventListener('click', async () => {
+    const text = textInput.value.trim();
+    if (!text) { showToast('Enter a message'); return; }
+    const date = dateInput.value;
+    const time = timeInput.value;
+    if (!date || !time) { showToast('Set date and time'); return; }
+
+    const scheduledTime = new Date(date + 'T' + time);
+    if (scheduledTime <= new Date()) { showToast('Choose a future time'); return; }
+
+    try {
+      await db.collection('scheduledMessages').add({
+        text: text,
+        scheduledAt: firebase.firestore.Timestamp.fromDate(scheduledTime),
+        chatId: activeChatId,
+        isGroup: activeChatIsGroup,
+        senderId: currentUser.uid,
+        senderUsername: currentUserData.username,
+        category: activeMessageCategory,
+        selfDestructSeconds: activeSelfDestructSeconds,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        sent: false
+      });
+
+      showToast('✅ Message scheduled for ' + scheduledTime.toLocaleString());
+      schedulePicker.classList.add('hidden');
+      messageInput.value = '';
+    } catch (err) {
+      showToast('Failed to schedule: ' + friendlyError(err));
+    }
+  });
+
+  actions.appendChild(cancelBtn);
+  actions.appendChild(scheduleBtn);
+  schedulePicker.appendChild(actions);
+}
+
+// Add Schedule option to attach menu
+const originalBuildAttachMenu = buildAttachMenu;
+buildAttachMenu = function() {
+  originalBuildAttachMenu();
+  
+  // Add schedule option
+  const div = document.createElement('div');
+  div.className = 'attach-menu-divider';
+  attachMenu.appendChild(div);
+  
+  const sec = document.createElement('div');
+  sec.className = 'attach-menu-section-label';
+  sec.textContent = 'More';
+  attachMenu.appendChild(sec);
+
+  buildAttachMenuItem({
+    icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    iconColor: '#f59e0b', iconBg: 'rgba(245,158,11,0.16)',
+    title: 'Schedule Message', sub: 'Send at a specific date & time',
+    action: () => { attachMenu.classList.add('hidden'); buildSchedulePicker(); schedulePicker.classList.remove('hidden'); }
+  });
+};
+
+schedulePicker.addEventListener('click', e => e.stopPropagation());
+
+// Periodically check for scheduled messages to send (every 60 seconds)
+setInterval(async () => {
+  if (!currentUser) return;
+  try {
+    const now = firebase.firestore.Timestamp.now();
+    const snap = await db.collection('scheduledMessages')
+      .where('senderId', '==', currentUser.uid)
+      .where('sent', '==', false)
+      .where('scheduledAt', '<=', now)
+      .get();
+
+    for (const doc of snap.docs) {
+      const data = doc.data();
+      const col = data.isGroup ? 'groups' : 'chats';
+      const ref = db.collection(col).doc(data.chatId);
+
+      await ref.collection('messages').add({
+        text: data.text,
+        senderId: data.senderId,
+        senderUsername: data.senderUsername,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        type: 'text',
+        category: data.category || 'general',
+        selfDestructSeconds: data.selfDestructSeconds || 0
+      });
+
+      await ref.update({
+        lastMessage: data.text,
+        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      await doc.ref.update({ sent: true, sentAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+  } catch (err) {
+    // Silently fail - will retry next interval
+  }
+}, 60000);
+
+// ==================== FEATURE 4: SHARED MEDIA GALLERY ====================
+const mediaGalleryBtn = document.getElementById('media-gallery-btn');
+
+if (mediaGalleryBtn) {
+  mediaGalleryBtn.addEventListener('click', () => {
+    if (!activeChatId) { showToast('Open a chat first'); return; }
+    showSharedMediaGallery();
+  });
+}
+
+let mediaGalleryActiveTab = 'images';
+
+async function showSharedMediaGallery() {
+  const modal = createModal('Shared Media');
+  const body = modal.querySelector('.modal-body');
+  body.style.padding = '12px';
+
+  const tabs = document.createElement('div');
+  tabs.className = 'media-gallery-tabs';
+
+  const tabDefs = [
+    { id: 'images', label: '🖼️ Images', icon: 'image' },
+    { id: 'videos', label: '🎬 Videos', icon: 'video' },
+    { id: 'files', label: '📁 Files', icon: 'file' },
+    { id: 'voice', label: '🎤 Voice', icon: 'mic' }
+  ];
+
+  tabDefs.forEach(td => {
+    const tab = document.createElement('button');
+    tab.className = 'media-gallery-tab' + (td.id === mediaGalleryActiveTab ? ' active' : '');
+    tab.textContent = td.label;
+    tab.addEventListener('click', () => {
+      mediaGalleryActiveTab = td.id;
+      tabs.querySelectorAll('.media-gallery-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      loadMediaContent(grid, td.id);
+    });
+    tabs.appendChild(tab);
+  });
+
+  body.appendChild(tabs);
+
+  const grid = document.createElement('div');
+  grid.className = 'media-gallery-grid';
+  body.appendChild(grid);
+
+  // Load initial tab
+  loadMediaContent(grid, mediaGalleryActiveTab);
+}
+
+async function loadMediaContent(grid, tabId) {
+  grid.innerHTML = '<div class="media-gallery-empty">Loading…</div>';
+  if (!activeChatId) return;
+
+  const col = activeChatIsGroup ? 'groups' : 'chats';
+
+  try {
+    let query = db.collection(col).doc(activeChatId).collection('messages');
+
+    if (tabId === 'voice') {
+      query = query.where('type', '==', 'voice');
+    } else if (tabId === 'files') {
+      query = query.where('type', '==', 'file');
+    } else if (tabId === 'images') {
+      // Images are files with image extensions
+      query = query.where('type', '==', 'file');
+    } else if (tabId === 'videos') {
+      query = query.where('type', '==', 'file');
+    }
+
+    const snap = await query.orderBy('createdAt', 'desc').limit(50).get();
+
+    if (snap.empty) {
+      grid.innerHTML = '<div class="media-gallery-empty">No media found 📭</div>';
+      return;
+    }
+
+    grid.innerHTML = '';
+
+    snap.docs.forEach(doc => {
+      const msg = doc.data();
+      const msgId = doc.id;
+
+      if (tabId === 'voice' && msg.type !== 'voice') return;
+      if (tabId === 'files' && msg.type !== 'file') return;
+
+      if (tabId === 'images' && msg.type === 'file') {
+        const fn = (msg.fileName || '').toLowerCase();
+        const isImage = fn.endsWith('.jpg') || fn.endsWith('.jpeg') || fn.endsWith('.png') || fn.endsWith('.gif') || fn.endsWith('.webp') || fn.endsWith('.bmp') || fn.endsWith('.svg');
+        if (!isImage) return;
+      }
+
+      if (tabId === 'videos' && msg.type === 'file') {
+        const fn = (msg.fileName || '').toLowerCase();
+        const isVideo = fn.endsWith('.mp4') || fn.endsWith('.webm') || fn.endsWith('.mov') || fn.endsWith('.avi') || fn.endsWith('.mkv') || fn.endsWith('.ogg');
+        if (!isVideo) return;
+      }
+
+      const item = document.createElement('div');
+      item.className = 'media-gallery-item';
+
+      if (tabId === 'images' && msg.fileURL) {
+        const img = document.createElement('img');
+        img.src = msg.fileURL;
+        img.alt = msg.fileName || 'Image';
+        img.loading = 'lazy';
+        item.appendChild(img);
+        item.addEventListener('click', () => showMediaPreview(msg.fileURL, 'image', msg.fileName));
+      } else if (tabId === 'videos' && msg.fileURL) {
+        const vid = document.createElement('video');
+        vid.src = msg.fileURL;
+        vid.preload = 'metadata';
+        item.appendChild(vid);
+        item.addEventListener('click', () => showMediaPreview(msg.fileURL, 'video', msg.fileName));
+      } else if (tabId === 'voice' && msg.voiceURL) {
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'media-file-icon';
+        iconDiv.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+        const name = document.createElement('div');
+        name.className = 'media-file-name';
+        name.textContent = (msg.voiceDuration || 0) + 's';
+        iconDiv.appendChild(name);
+        item.appendChild(iconDiv);
+        item.addEventListener('click', () => {
+          const audio = new Audio(msg.voiceURL);
+          audio.play().catch(() => showToast('Failed to play audio'));
+        });
+      } else if (tabId === 'files' && msg.fileURL) {
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'media-file-icon';
+        iconDiv.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+        const name = document.createElement('div');
+        name.className = 'media-file-name';
+        name.textContent = msg.fileName || 'File';
+        iconDiv.appendChild(name);
+        item.appendChild(iconDiv);
+        item.addEventListener('click', () => window.open(msg.fileURL, '_blank'));
+      }
+
+      grid.appendChild(item);
+    });
+
+    if (grid.children.length === 0) {
+      grid.innerHTML = '<div class="media-gallery-empty">No ' + tabId + ' found 📭</div>';
+    }
+  } catch (err) {
+    grid.innerHTML = '<div class="media-gallery-empty">Failed to load: ' + friendlyError(err) + '</div>';
+  }
+}
+
+function showMediaPreview(url, type, name) {
+  const overlay = document.createElement('div');
+  overlay.className = 'media-preview-overlay';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'media-preview-close';
+  closeBtn.innerHTML = '✕';
+  closeBtn.addEventListener('click', (e) => { e.stopPropagation(); overlay.remove(); });
+
+  if (type === 'image') {
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = name || 'Image';
+    overlay.appendChild(img);
+  } else if (type === 'video') {
+    const vid = document.createElement('video');
+    vid.src = url;
+    vid.controls = true;
+    vid.autoplay = true;
+    overlay.appendChild(vid);
+  }
+
+  const info = document.createElement('div');
+  info.className = 'media-preview-info';
+  info.textContent = name || '';
+  overlay.appendChild(info);
+  overlay.appendChild(closeBtn);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+
+  document.body.appendChild(overlay);
+}
+
+// === END NEW FEATURES ===
+
 document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
