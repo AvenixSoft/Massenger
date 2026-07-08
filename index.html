@@ -454,11 +454,40 @@ html,body{
 /* ===== SAVED MESSAGES ===== */
 .saved-row .avatar{background:linear-gradient(135deg,#f59e0b,#d97706)!important;}
 
-/* ===== AVENIX NOTIFICATION CHAT ===== */
+/* ===== SIDEBAR PINNED SECTION ===== */
+.sidebar-pinned-section{
+  display:flex;flex-direction:column;flex-shrink:0;
+  border-bottom:1px solid var(--border);
+  background:var(--sidebar-bg);
+}
+.sidebar-pinned-section .user-row-body{
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.sidebar-pinned-section .user-row:last-child .user-row-body{
+  border-bottom:none;
+}
+
+/* ===== AVENIX TIPS CHANNEL ===== */
 .avenix-row .avenix-avatar{
   background:linear-gradient(135deg,#2563eb,#1d4ed8)!important;
   overflow:hidden;
 }
+.avenix-tips-admin-btn{
+  background:transparent;border:none;cursor:pointer;color:var(--text-muted);
+  padding:7px;border-radius:10px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;
+}
+.avenix-tips-admin-btn:hover{background:rgba(37,99,235,0.12);color:var(--primary);}
+.avenix-tips-poster-row{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border:1px solid var(--border);border-radius:12px;background:var(--surface2);margin-bottom:8px;
+}
+.avenix-tips-poster-row .poster-info{flex:1;min-width:0;}
+.avenix-tips-poster-row .poster-name{font-size:13.5px;font-weight:700;color:var(--text-primary);}
+.avenix-tips-poster-row .poster-role{font-size:11px;color:var(--text-muted);}
+.avenix-tips-poster-row .poster-remove{
+  background:transparent;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;transition:color 0.2s;
+}
+.avenix-tips-poster-row .poster-remove:hover{color:var(--error);}
 .avenix-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .verified-tick{
   display:inline-flex;align-items:center;vertical-align:middle;
@@ -1750,34 +1779,47 @@ html,body{
 
     <div id="search-results" class="search-results"></div>
     <div id="folder-tabs" class="folder-tabs"></div>
+
+    <!-- PINNED SECTION: Avenix Tips + Saved Messages -->
+    <div class="sidebar-pinned-section">
+      <div id="avenix-notif-row" class="user-row avenix-row" tabindex="0" style="cursor:pointer;">
+        <div class="avatar-wrap">
+          <div class="avatar avenix-avatar">
+            <img src="2.png" alt="Avenix Tips">
+          </div>
+        </div>
+        <div class="user-row-body">
+          <div class="user-row-top">
+            <span class="user-row-name">Avenix Tips</span>
+            <svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="channel-badge" style="background:rgba(37,99,235,0.16);color:var(--primary-light);">Channel</span>
+            <span class="unread-badge hidden" id="avenix-unread-badge"></span>
+          </div>
+          <div class="user-row-sub" id="avenix-notif-preview">Official tips & announcements</div>
+        </div>
+      </div>
+      <div id="saved-messages-row" class="user-row saved-row" tabindex="0" style="cursor:pointer;">
+        <div class="avatar-wrap">
+          <div class="avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </div>
+        </div>
+        <div class="user-row-body">
+          <div class="user-row-top"><span class="user-row-name">Saved Messages</span></div>
+          <div class="user-row-sub" id="saved-messages-preview">Your bookmarked messages</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARCHIVE SECTION -->
     <div id="archive-toggle-row" class="archive-toggle" onclick="toggleArchiveSection()" style="display:none;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
       Archived
       <span class="archive-badge" id="archive-badge">0</span>
     </div>
     <div id="archived-list" style="display:none;"></div>
-    <div id="avenix-notif-row" class="user-row avenix-row" tabindex="0" style="cursor:pointer;">
-      <div class="avatar-wrap">
-        <div class="avatar avenix-avatar">
-          <img src="2.png" alt="Avenix">
-        </div>
-      </div>
-      <div class="user-row-body">
-        <div class="user-row-top"><span class="user-row-name">Avenix</span><svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="unread-badge hidden" id="avenix-unread-badge"></span></div>
-        <div class="user-row-sub" id="avenix-notif-preview">Notifications from Avenix</div>
-      </div>
-    </div>
-    <div id="saved-messages-row" class="user-row saved-row" tabindex="0" style="cursor:pointer;">
-      <div class="avatar-wrap">
-        <div class="avatar">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        </div>
-      </div>
-      <div class="user-row-body">
-        <div class="user-row-top"><span class="user-row-name">Saved Messages</span></div>
-        <div class="user-row-sub" id="saved-messages-preview">Your bookmarked messages</div>
-      </div>
-    </div>
+
+    <!-- CHATS LIST -->
     <div class="chats-list-label">Chats</div>
     <div id="chats-list" class="chats-list"></div>
   </aside>
@@ -3748,6 +3790,8 @@ auth.onAuthStateChanged(async user => {
     currentUser = null; currentUserData = null;
     activeChatId = null; activeChatPartner = null;
     if (unsubAvenixMessages) { unsubAvenixMessages(); unsubAvenixMessages = null; }
+    if (unsubAvenixConfig) { unsubAvenixConfig(); unsubAvenixConfig = null; }
+    avenixTipsConfig = null;
     stopDeviceWatcher();
     showAuth();
   }
@@ -4664,75 +4708,81 @@ if (savedMessagesRow) {
   savedMessagesRow.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSavedMessagesView(); } });
 }
 
-/* ===== AVENIX NOTIFICATION CHAT ===== */
+/* ===== AVENIX TIPS CHANNEL (Global Broadcast) ===== */
 const avenixNotifRow = document.getElementById('avenix-notif-row');
 const avenixNotifPreview = document.getElementById('avenix-notif-preview');
 const avenixUnreadBadge = document.getElementById('avenix-unread-badge');
 let isAvenixView = false;
 let unsubAvenixMessages = null;
 let avenixUnreadCount = 0;
-let lastSeenAvenixMsgId = null;
+let avenixTipsConfig = null;
+let unsubAvenixConfig = null;
 
-// Notification icons
-function notifIcon(type) {
-  const icons = {
-    login: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>`,
-    logout: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
-    newdevice: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>`,
-    security: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
-    sessionend: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-    welcome: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
-    password: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
-  };
-  return icons[type] || icons.login;
-}
-
-// Add a notification to the Avenix chat
-async function addAvenixNotification({ title, body, type, meta, priority }) {
-  if (!currentUser) return;
+// ===== AVENIX TIPS: Config & Permissions =====
+async function ensureAvenixTipsConfig() {
   try {
-    const notifData = {
-      title: title || 'Notification',
-      body: body || '',
-      type: type || 'login',
-      meta: meta || '',
-      priority: priority || 'normal',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      readBy: {}
-    };
-    await db.collection('users').doc(currentUser.uid).collection('avenixNotifications').add(notifData);
+    const configRef = db.collection('avenixTipsChannel').doc('config');
+    const configSnap = await configRef.get();
+    if (!configSnap.exists) {
+      await configRef.set({
+        ownerUid: currentUser.uid,
+        ownerUsername: currentUserData.username,
+        allowedPosters: [currentUser.uid],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      avenixTipsConfig = { ownerUid: currentUser.uid, ownerUsername: currentUserData.username, allowedPosters: [currentUser.uid] };
+    } else {
+      avenixTipsConfig = configSnap.data();
+    }
   } catch (err) {
-    console.warn('Failed to add Avenix notification:', err);
+    console.warn('Avenix Tips config error:', err);
   }
 }
 
-// Listen to Avenix notifications
+function isAvenixTipsOwner() {
+  return avenixTipsConfig && currentUser && avenixTipsConfig.ownerUid === currentUser.uid;
+}
+
+function canPostToAvenixTips() {
+  if (!avenixTipsConfig || !currentUser) return false;
+  const posters = avenixTipsConfig.allowedPosters || [];
+  return posters.includes(currentUser.uid);
+}
+
+function listenToAvenixTipsConfig() {
+  if (!currentUser) return;
+  if (unsubAvenixConfig) unsubAvenixConfig();
+  unsubAvenixConfig = db.collection('avenixTipsChannel').doc('config')
+    .onSnapshot(snap => {
+      if (snap.exists) {
+        avenixTipsConfig = snap.data();
+        if (isAvenixView) updateAvenixTipsInputVisibility();
+      }
+    }, err => console.warn('Avenix config listener error:', err));
+}
+
+// ===== AVENIX TIPS: Listen to global messages =====
 function listenToAvenixNotifications() {
   if (!currentUser) return;
   if (unsubAvenixMessages) unsubAvenixMessages();
 
-  unsubAvenixMessages = db.collection('users').doc(currentUser.uid)
-    .collection('avenixNotifications')
+  unsubAvenixMessages = db.collection('avenixTipsChannel').doc('channel').collection('messages')
     .orderBy('createdAt', 'desc')
     .limit(50)
     .onSnapshot(snap => {
       if (snap.empty) {
-        avenixNotifPreview.textContent = 'Notifications from Avenix';
+        avenixNotifPreview.textContent = 'Official tips & announcements';
         avenixUnreadBadge.classList.add('hidden');
         avenixUnreadCount = 0;
         if (isAvenixView) {
           messagesEl.innerHTML = '';
           const empty = document.createElement('div');
           empty.style.cssText = 'margin:auto;text-align:center;color:var(--text-muted);font-size:13px;padding:40px;display:flex;flex-direction:column;align-items:center;gap:12px;';
-          empty.innerHTML = `
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>No notifications yet.<br>Important account activity will appear here.</span>`;
+          empty.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>No announcements yet.<br>Tips and updates from Avenix will appear here.</span>';
           messagesEl.appendChild(empty);
         }
         return;
       }
-
-      // Count unread
       const lastReadTs = getLastSeenAvenixTimestamp();
       let unread = 0;
       let latestMsg = null;
@@ -4742,7 +4792,6 @@ function listenToAvenixNotifications() {
         const msgTs = data.createdAt ? data.createdAt.toMillis() : 0;
         if (msgTs > lastReadTs) unread++;
       });
-
       avenixUnreadCount = unread;
       if (unread > 0) {
         avenixUnreadBadge.textContent = unread > 99 ? '99+' : unread;
@@ -4750,10 +4799,8 @@ function listenToAvenixNotifications() {
       } else {
         avenixUnreadBadge.classList.add('hidden');
       }
-
-      // Update preview
       if (latestMsg) {
-        const previewText = latestMsg.body || latestMsg.title || 'Notification';
+        const previewText = latestMsg.text || latestMsg.title || 'New announcement';
         avenixNotifPreview.textContent = previewText.slice(0, 60);
         if (unread > 0) {
           avenixNotifPreview.style.color = 'var(--text-primary)';
@@ -4763,22 +4810,20 @@ function listenToAvenixNotifications() {
           avenixNotifPreview.style.fontWeight = '';
         }
       }
-
-      // If we're in Avenix view, re-render messages
       if (isAvenixView) {
-        renderAvenixMessagesFromSnapshot({ docs: snap.docs.slice().reverse(), empty: snap.empty });
+        renderAvenixTipsMessages({ docs: snap.docs.slice().reverse(), empty: snap.empty });
       }
-    }, err => console.error('Avenix notif error:', err));
+    }, err => console.error('Avenix Tips error:', err));
 }
 
 function getLastSeenAvenixTimestamp() {
-  const val = localStorage.getItem('avenixLastSeen_' + (currentUser ? currentUser.uid : ''));
+  const val = localStorage.getItem('avenixTipsLastSeen_' + (currentUser ? currentUser.uid : ''));
   return val ? parseInt(val, 10) : 0;
 }
 
 function markAvenixRead() {
   if (currentUser) {
-    localStorage.setItem('avenixLastSeen_' + currentUser.uid, String(Date.now()));
+    localStorage.setItem('avenixTipsLastSeen_' + currentUser.uid, String(Date.now()));
   }
   avenixUnreadCount = 0;
   avenixUnreadBadge.classList.add('hidden');
@@ -4786,7 +4831,7 @@ function markAvenixRead() {
   avenixNotifPreview.style.fontWeight = '';
 }
 
-// Open Avenix notification chat view
+// ===== AVENIX TIPS: Open Channel View =====
 function openAvenixChatView() {
   closeAllPopups();
   clearReply();
@@ -4813,28 +4858,37 @@ function openAvenixChatView() {
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
 
-  // Avatar with verified tick in header
   const avWrap = chatAvatar;
   avWrap.innerHTML = '';
   avWrap.style.background = 'linear-gradient(135deg,#2563eb,#1d4ed8)';
   const avImg = document.createElement('img');
   avImg.src = '2.png';
-  avImg.alt = 'Avenix';
+  avImg.alt = 'Avenix Tips';
   avImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
   avWrap.appendChild(avImg);
 
-  chatWithUsername.innerHTML = 'Avenix <svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  chatWithUsername.innerHTML = 'Avenix Tips <svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   chatWithStatus.className = 'chat-with-status';
-  chatWithStatus.textContent = 'Notification Service';
+  chatWithStatus.textContent = 'Channel \u00b7 Official Announcements';
   document.getElementById('chat-status-dot').style.display = 'none';
-  document.getElementById('chat-header-actions').innerHTML = '';
+
+  const headerActions = document.getElementById('chat-header-actions');
+  headerActions.innerHTML = '';
+  if (isAvenixTipsOwner()) {
+    const adminBtn = document.createElement('button');
+    adminBtn.className = 'avenix-tips-admin-btn';
+    adminBtn.title = 'Channel Admin';
+    adminBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+    adminBtn.addEventListener('click', () => showAvenixTipsAdmin());
+    headerActions.appendChild(adminBtn);
+  }
+
   document.getElementById('chat-header-info-btn').onclick = null;
   document.getElementById('blocked-banner').style.display = 'none';
   const lockBar0 = document.getElementById('channel-locked-bar');
   if (lockBar0) lockBar0.style.display = 'none';
 
-  // No message input
-  messageForm.style.display = 'none';
+  updateAvenixTipsInputVisibility();
   if (composeMetaBar) composeMetaBar.classList.add('hidden');
 
   document.querySelectorAll('.user-row').forEach(r => r.classList.remove('active'));
@@ -4845,205 +4899,319 @@ function openAvenixChatView() {
   userSearchInput.value = '';
   searchResultsEl.innerHTML = '';
   closeChatSearch();
-
-  // Mark as read
   markAvenixRead();
 
-  // Render notifications
   messagesEl.innerHTML = '';
   currentChatMessages = [];
 
-  // Fetch and render
-  db.collection('users').doc(currentUser.uid)
-    .collection('avenixNotifications')
+  db.collection('avenixTipsChannel').doc('channel').collection('messages')
     .orderBy('createdAt', 'asc')
-    .limit(100)
+    .limit(200)
     .get()
     .then(snap => {
-      renderAvenixMessagesFromSnapshot({ docs: snap.docs, empty: snap.empty });
+      renderAvenixTipsMessages({ docs: snap.docs, empty: snap.empty });
     })
-    .catch(err => console.error('Avenix fetch error:', err));
+    .catch(err => console.error('Avenix Tips fetch error:', err));
 }
 
-function renderAvenixMessagesFromSnapshot(snap) {
+function updateAvenixTipsInputVisibility() {
+  if (!isAvenixView) return;
+  const lockBar = document.getElementById('channel-locked-bar');
+  if (canPostToAvenixTips()) {
+    messageForm.style.display = 'flex';
+    if (lockBar) lockBar.style.display = 'none';
+    messageInput.placeholder = isAvenixTipsOwner() ? 'Write an announcement\u2026' : 'Write a message\u2026';
+  } else {
+    messageForm.style.display = 'none';
+    if (lockBar) {
+      lockBar.style.display = 'flex';
+      lockBar.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Only authorized admins can post in this channel';
+    }
+  }
+}
+
+// ===== AVENIX TIPS: Render Messages =====
+function renderAvenixTipsMessages(snap) {
   messagesEl.innerHTML = '';
   currentChatMessages = [];
-
   const docs = snap.docs || [];
   if (!docs.length) {
     const empty = document.createElement('div');
     empty.style.cssText = 'margin:auto;text-align:center;color:var(--text-muted);font-size:13px;padding:40px;display:flex;flex-direction:column;align-items:center;gap:12px;';
-    empty.innerHTML = `
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span>No notifications yet.<br>Important account activity will appear here.</span>`;
+    empty.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>No announcements yet.<br>Tips and updates from Avenix will appear here.</span>';
     messagesEl.appendChild(empty);
     return;
   }
-
   let lastDate = '';
   docs.forEach(doc => {
     const msg = doc.data();
+    const msgId = doc.id;
     const ts = msg.createdAt ? msg.createdAt.toDate() : new Date();
-
-    // Date separator
     const dateStr = ts.toLocaleDateString([], { year:'numeric', month:'short', day:'numeric' });
     if (dateStr !== lastDate) {
       lastDate = dateStr;
       const sep = document.createElement('div');
       sep.className = 'date-separator';
-      sep.innerHTML = `<span>${dateStr}</span>`;
+      sep.innerHTML = '<span>' + dateStr + '</span>';
       messagesEl.appendChild(sep);
     }
-
-    // Render notification bubble
+    const isSent = msg.senderId === currentUser.uid;
+    const isOwner = avenixTipsConfig && msg.senderId === avenixTipsConfig.ownerUid;
     const row = document.createElement('div');
-    row.className = 'message-row received';
-
-    const notifClass = msg.priority === 'danger' ? 'notif-danger' :
-                       msg.priority === 'warning' ? 'notif-warning' :
-                       msg.priority === 'success' ? 'notif-success' : '';
-
+    row.className = 'message-row ' + (isSent ? 'sent' : 'received');
+    if (!isSent && msg.senderUsername) {
+      const senderName = document.createElement('div');
+      senderName.className = 'group-sender-name';
+      senderName.innerHTML = escapeHtml(msg.senderUsername) + (isOwner ? ' <svg class="verified-tick" width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '');
+      row.appendChild(senderName);
+    }
+    const bubbleWrap = document.createElement('div');
+    bubbleWrap.className = 'bubble-wrap';
     const bubble = document.createElement('div');
-    bubble.className = 'bubble avenix-notif-msg ' + notifClass;
-
-    // Title
-    const titleEl = document.createElement('div');
-    titleEl.className = 'notif-title';
-    titleEl.innerHTML = `${notifIcon(msg.type)} ${escapeHtml(msg.title || 'Notification')}`;
-    bubble.appendChild(titleEl);
-
-    // Body
-    if (msg.body) {
-      const bodyEl = document.createElement('div');
-      bodyEl.className = 'notif-body';
-      bodyEl.textContent = msg.body;
-      bubble.appendChild(bodyEl);
+    bubble.className = 'bubble';
+    if (msg.text) {
+      const textEl = document.createElement('span');
+      textEl.className = 'message-text';
+      appendMessageText(textEl, msg.text);
+      bubble.appendChild(textEl);
     }
-
-    // Meta
-    if (msg.meta) {
-      const metaEl = document.createElement('div');
-      metaEl.className = 'notif-meta';
-      metaEl.textContent = msg.meta;
-      bubble.appendChild(metaEl);
+    const timeEl = document.createElement('div');
+    timeEl.className = 'msg-time';
+    if (msg.createdAt && msg.createdAt.toDate) {
+      timeEl.textContent = formatTime(msg.createdAt.toDate());
     }
-
-    row.appendChild(bubble);
-
-    // Time
-    const time = document.createElement('span');
-    time.className = 'msg-time';
-    time.textContent = formatTime(msg.createdAt);
-    row.appendChild(time);
-
+    bubble.appendChild(timeEl);
+    bubbleWrap.appendChild(bubble);
+    if (isSent) {
+      const actions = document.createElement('div');
+      actions.className = 'msg-actions';
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'msg-action-btn danger';
+      delBtn.title = 'Delete';
+      delBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+      delBtn.addEventListener('click', async () => {
+        if (!confirm('Delete this announcement?')) return;
+        try {
+          await db.collection('avenixTipsChannel').doc('channel').collection('messages').doc(msgId).delete();
+          showToast('Announcement deleted');
+        } catch (err) { showToast('Failed: ' + friendlyError(err)); }
+      });
+      actions.appendChild(delBtn);
+      bubbleWrap.appendChild(actions);
+    }
+    row.appendChild(bubbleWrap);
     messagesEl.appendChild(row);
   });
-
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-// Click handler for Avenix row
+// ===== AVENIX TIPS: Send Message =====
+async function sendAvenixTipsMessage(text) {
+  if (!text || !canPostToAvenixTips()) return;
+  try {
+    await db.collection('avenixTipsChannel').doc('channel').collection('messages').add({
+      text: text,
+      senderId: currentUser.uid,
+      senderUsername: currentUserData.username,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      type: 'text'
+    });
+    await db.collection('avenixTipsChannel').doc('channel').set({
+      lastMessage: text.slice(0, 100),
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch (err) {
+    showToast('Failed to send: ' + friendlyError(err));
+  }
+}
+
+// ===== AVENIX TIPS: Admin Panel =====
+async function showAvenixTipsAdmin() {
+  if (!isAvenixTipsOwner()) return;
+  const modal = createModal('Avenix Tips Admin');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+
+  const info = document.createElement('div');
+  info.style.cssText = 'font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:16px;padding:12px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);';
+  info.innerHTML = '<strong style="color:var(--text-primary);">Channel Owner:</strong> ' + escapeHtml(currentUserData.username) + '<br><span style="font-size:11px;">Manage who can post announcements in this channel.</span>';
+  body.appendChild(info);
+
+  const postersLabel = document.createElement('div');
+  postersLabel.className = 'modal-label';
+  postersLabel.textContent = 'Allowed Posters';
+  body.appendChild(postersLabel);
+
+  const postersContainer = document.createElement('div');
+  postersContainer.id = 'avenix-tips-posters-list';
+  body.appendChild(postersContainer);
+
+  async function renderPosters() {
+    postersContainer.innerHTML = '';
+    const posters = (avenixTipsConfig && avenixTipsConfig.allowedPosters) || [];
+    for (const uid of posters) {
+      let username = uid === currentUser.uid ? currentUserData.username : 'Loading...';
+      if (uid !== currentUser.uid) {
+        try {
+          const uSnap = await db.collection('users').doc(uid).get();
+          if (uSnap.exists) username = uSnap.data().username;
+        } catch(_) {}
+      }
+      const row = document.createElement('div');
+      row.className = 'avenix-tips-poster-row';
+      const av = document.createElement('div');
+      av.className = 'avatar';
+      av.style.cssText = 'width:32px;height:32px;font-size:12px;flex-shrink:0;';
+      av.textContent = username.charAt(0).toUpperCase();
+      row.appendChild(av);
+      const info2 = document.createElement('div');
+      info2.className = 'poster-info';
+      const isOwnerRow = uid === (avenixTipsConfig && avenixTipsConfig.ownerUid);
+      info2.innerHTML = '<div class="poster-name">' + escapeHtml(username) + (isOwnerRow ? ' <span style="font-size:10px;color:#c084fc;font-weight:800;background:rgba(168,85,247,0.16);padding:2px 7px;border-radius:10px;margin-left:4px;">OWNER</span>' : '') + '</div><div class="poster-role">' + (isOwnerRow ? 'Channel creator \u00b7 Cannot be removed' : 'Can post announcements') + '</div>';
+      row.appendChild(info2);
+      if (!isOwnerRow) {
+        const rmBtn = document.createElement('button');
+        rmBtn.className = 'poster-remove';
+        rmBtn.title = 'Remove poster';
+        rmBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+        rmBtn.addEventListener('click', async () => {
+          if (!confirm('Remove ' + username + ' from allowed posters?')) return;
+          try {
+            await db.collection('avenixTipsChannel').doc('config').update({
+              allowedPosters: firebase.firestore.FieldValue.arrayRemove(uid)
+            });
+            showToast(username + ' removed');
+            renderPosters();
+          } catch(err) { showToast('Error: ' + friendlyError(err)); }
+        });
+        row.appendChild(rmBtn);
+      }
+      postersContainer.appendChild(row);
+    }
+  }
+  renderPosters();
+
+  const addLabel = document.createElement('div');
+  addLabel.className = 'modal-label';
+  addLabel.style.marginTop = '16px';
+  addLabel.textContent = 'Add Poster';
+  body.appendChild(addLabel);
+
+  const addSearch = document.createElement('input');
+  addSearch.className = 'modal-input';
+  addSearch.placeholder = 'Search username to add\u2026';
+  body.appendChild(addSearch);
+
+  const addResults = document.createElement('div');
+  addResults.style.cssText = 'max-height:120px;overflow-y:auto;';
+  body.appendChild(addResults);
+
+  let addSearchT;
+  addSearch.addEventListener('input', () => {
+    clearTimeout(addSearchT);
+    const term = addSearch.value.trim().toLowerCase();
+    if (!term) { addResults.innerHTML = ''; return; }
+    addSearchT = setTimeout(async () => {
+      const snap2 = await db.collection('users').where('username_lower','>=',term).where('username_lower','<=',term+'\uf8ff').limit(6).get();
+      addResults.innerHTML = '';
+      const currentPosters = (avenixTipsConfig && avenixTipsConfig.allowedPosters) || [];
+      snap2.docs.filter(d => d.id !== currentUser.uid && !currentPosters.includes(d.id)).forEach(doc2 => {
+        const u = doc2.data();
+        const row2 = document.createElement('div');
+        row2.className = 'member-row';
+        row2.style.cursor = 'pointer';
+        row2.innerHTML = '<div class="avatar" style="width:28px;height:28px;font-size:11px;flex-shrink:0">' + u.username.charAt(0).toUpperCase() + '</div><div style="flex:1;font-size:13px;font-weight:600">' + u.username + '</div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+        row2.addEventListener('click', async () => {
+          try {
+            await db.collection('avenixTipsChannel').doc('config').update({
+              allowedPosters: firebase.firestore.FieldValue.arrayUnion(u.uid)
+            });
+            showToast(u.username + ' can now post');
+            addSearch.value = '';
+            addResults.innerHTML = '';
+            renderPosters();
+          } catch(err) { showToast('Error: ' + friendlyError(err)); }
+        });
+        addResults.appendChild(row2);
+      });
+    }, 250);
+  });
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn-full';
+  closeBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;';
+  closeBtn.textContent = 'Close';
+  closeBtn.addEventListener('click', closeModal);
+  footer.appendChild(closeBtn);
+}
+
+// Click handler for Avenix Tips row
 if (avenixNotifRow) {
   avenixNotifRow.addEventListener('click', openAvenixChatView);
   avenixNotifRow.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAvenixChatView(); } });
 }
 
-// Send login notification
+// ===== PERSONAL SECURITY NOTIFICATIONS (shown as toasts) =====
+async function addAvenixNotification({ title, body, type, meta, priority }) {
+  if (!currentUser) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).collection('securityAlerts').add({
+      title: title || 'Notification', body: body || '', type: type || 'info',
+      meta: meta || '', priority: priority || 'normal',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (err) { console.warn('Security alert error:', err); }
+}
+
 async function avenixNotifyLogin() {
   if (!currentUser) return;
   const device = getCurrentDeviceSnapshot();
-  await addAvenixNotification({
-    title: 'New Login',
-    body: `You logged in from ${device.name || 'a device'}`,
-    type: 'login',
-    meta: `${device.kind || 'Device'} · ${device.timezone || ''} · ${new Date().toLocaleString()}`,
-    priority: 'normal'
-  });
+  showToast('\ud83d\udd10 Logged in from ' + (device.name || 'a device'));
 }
 
-// Send logout notification (fire-and-forget for beforeunload)
-function avenixNotifyLogout() {
-  if (!currentUser) return;
-  const device = getCurrentDeviceSnapshot();
-  const notifData = {
-    title: 'Session Ended',
-    body: `Your session ended on ${device.name || 'a device'}`,
-    type: 'sessionend',
-    meta: `${device.kind || 'Device'} · ${new Date().toLocaleString()}`,
-    priority: 'normal',
-    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    readBy: {}
-  };
-  db.collection('users').doc(currentUser.uid).collection('avenixNotifications').add(notifData).catch(() => {});
-}
+function avenixNotifyLogout() {}
 
-// Send new device warning
 async function avenixNotifyNewDevice(deviceInfo) {
   if (!currentUser) return;
+  showToast('\u26a0\ufe0f New device: ' + (deviceInfo.name || 'Unknown'));
   await addAvenixNotification({
-    title: '⚠ New Device Login Detected',
-    body: `A new device logged into your account: ${deviceInfo.name || 'Unknown device'}`,
+    title: '\u26a0 New Device Login Detected',
+    body: 'A new device logged into your account: ' + (deviceInfo.name || 'Unknown device'),
     type: 'newdevice',
-    meta: `${deviceInfo.kind || 'Device'} · ${deviceInfo.browser || ''} · ${deviceInfo.timezone || ''} · ${deviceInfo.platform || ''}`,
+    meta: (deviceInfo.kind || 'Device') + ' \u00b7 ' + (deviceInfo.browser || ''),
     priority: 'warning'
   });
 }
 
-// Send welcome notification (first time)
-async function avenixNotifyWelcome() {
-  if (!currentUser) return;
-  await addAvenixNotification({
-    title: 'Welcome to Avenix!',
-    body: 'This is your notification center. You\'ll receive important alerts about your account here — login activity, security updates, and more.',
-    type: 'welcome',
-    meta: 'Avenix Notification Service',
-    priority: 'success'
-  });
-}
-
-// Check if first time (no notifications yet) and send welcome
+async function avenixNotifyWelcome() {}
 async function checkAvenixWelcome() {
-  if (!currentUser) return;
-  try {
-    const snap = await db.collection('users').doc(currentUser.uid)
-      .collection('avenixNotifications')
-      .limit(1).get();
-    if (snap.empty) {
-      await avenixNotifyWelcome();
-    }
-  } catch (_) {}
+  await ensureAvenixTipsConfig();
+  listenToAvenixTipsConfig();
 }
 
-// Listen for new devices connecting to the account in real-time
+// Listen for new devices (security alerts via toast)
 let knownDeviceIds = new Set();
 let unsubDeviceWatcher = null;
 
 function startDeviceWatcher() {
   if (!currentUser || unsubDeviceWatcher) return;
   const myDeviceId = getCurrentDeviceId();
-
-  // Initialize known devices from current snapshot
   const currentDevices = (currentUserData && currentUserData.connectedDevices) || {};
   Object.keys(currentDevices).forEach(id => knownDeviceIds.add(id));
-
   unsubDeviceWatcher = db.collection('users').doc(currentUser.uid)
     .onSnapshot(snap => {
       if (!snap.exists) return;
       const data = snap.data();
       const devices = data.connectedDevices || {};
       const deviceIds = Object.keys(devices);
-
-      // Check for new devices that weren't known before
       deviceIds.forEach(id => {
         if (!knownDeviceIds.has(id) && id !== myDeviceId) {
-          // New device detected! (another session logged in)
           knownDeviceIds.add(id);
           const info = devices[id];
           avenixNotifyNewDevice(info || { name: 'Unknown device', kind: 'Device' });
         }
       });
-
-      // Update known devices (remove disconnected ones)
       knownDeviceIds = new Set(deviceIds);
     }, err => console.warn('Device watcher error:', err));
 }
@@ -6070,6 +6238,13 @@ messageInput.addEventListener('blur', () => {
 messageForm.addEventListener('submit', async e => {
   e.preventDefault();
   const text = messageInput.value.trim();
+  // Handle Avenix Tips channel sending
+  if (isAvenixView && text) {
+    if (!canPostToAvenixTips()) { showToast('Only authorized admins can post'); return; }
+    messageInput.value = '';
+    await sendAvenixTipsMessage(text);
+    return;
+  }
   if (!text || !activeChatId) return;
   if (!activeChatIsGroup && isBlockedEitherWay(activeChatPartner)) { showToast('You cannot message this user'); return; }
   if (activeChatIsChannel && !canPostInActiveChat()) {
@@ -9348,5 +9523,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1816da62afd5c8d',t:'MTc4MzUzODIzOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
