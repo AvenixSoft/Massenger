@@ -454,40 +454,11 @@ html,body{
 /* ===== SAVED MESSAGES ===== */
 .saved-row .avatar{background:linear-gradient(135deg,#f59e0b,#d97706)!important;}
 
-/* ===== SIDEBAR PINNED SECTION ===== */
-.sidebar-pinned-section{
-  display:flex;flex-direction:column;flex-shrink:0;
-  border-bottom:1px solid var(--border);
-  background:var(--sidebar-bg);
-}
-.sidebar-pinned-section .user-row-body{
-  border-bottom:1px solid rgba(255,255,255,0.03);
-}
-.sidebar-pinned-section .user-row:last-child .user-row-body{
-  border-bottom:none;
-}
-
-/* ===== AVENIX TIPS CHANNEL ===== */
+/* ===== AVENIX NOTIFICATION CHAT ===== */
 .avenix-row .avenix-avatar{
   background:linear-gradient(135deg,#2563eb,#1d4ed8)!important;
   overflow:hidden;
 }
-.avenix-tips-admin-btn{
-  background:transparent;border:none;cursor:pointer;color:var(--text-muted);
-  padding:7px;border-radius:10px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;
-}
-.avenix-tips-admin-btn:hover{background:rgba(37,99,235,0.12);color:var(--primary);}
-.avenix-tips-poster-row{
-  display:flex;align-items:center;gap:10px;padding:10px 12px;
-  border:1px solid var(--border);border-radius:12px;background:var(--surface2);margin-bottom:8px;
-}
-.avenix-tips-poster-row .poster-info{flex:1;min-width:0;}
-.avenix-tips-poster-row .poster-name{font-size:13.5px;font-weight:700;color:var(--text-primary);}
-.avenix-tips-poster-row .poster-role{font-size:11px;color:var(--text-muted);}
-.avenix-tips-poster-row .poster-remove{
-  background:transparent;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;transition:color 0.2s;
-}
-.avenix-tips-poster-row .poster-remove:hover{color:var(--error);}
 .avenix-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .verified-tick{
   display:inline-flex;align-items:center;vertical-align:middle;
@@ -1781,37 +1752,28 @@ html,body{
     <div id="folder-tabs" class="folder-tabs"></div>
 
     <!-- PINNED SECTION: Avenix Tips + Saved Messages -->
-    <div class="sidebar-pinned-section">
-      <div id="avenix-notif-row" class="user-row avenix-row" tabindex="0" style="cursor:pointer;">
-        <div class="avatar-wrap">
-          <div class="avatar avenix-avatar">
-            <img src="2.png" alt="Avenix Tips">
-          </div>
-        </div>
-        <div class="user-row-body">
-          <div class="user-row-top">
-            <span class="user-row-name">Avenix Tips</span>
-            <svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span class="channel-badge" style="background:rgba(37,99,235,0.16);color:var(--primary-light);">Channel</span>
-            <span class="unread-badge hidden" id="avenix-unread-badge"></span>
-          </div>
-          <div class="user-row-sub" id="avenix-notif-preview">Official tips & announcements</div>
+    <div id="avenix-notif-row" class="user-row avenix-row" tabindex="0" style="cursor:pointer;">
+      <div class="avatar-wrap">
+        <div class="avatar avenix-avatar">
+          <img src="2.png" alt="Avenix">
         </div>
       </div>
-      <div id="saved-messages-row" class="user-row saved-row" tabindex="0" style="cursor:pointer;">
-        <div class="avatar-wrap">
-          <div class="avatar">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-          </div>
-        </div>
-        <div class="user-row-body">
-          <div class="user-row-top"><span class="user-row-name">Saved Messages</span></div>
-          <div class="user-row-sub" id="saved-messages-preview">Your bookmarked messages</div>
-        </div>
+      <div class="user-row-body">
+        <div class="user-row-top"><span class="user-row-name">Avenix</span><svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="unread-badge hidden" id="avenix-unread-badge"></span></div>
+        <div class="user-row-sub" id="avenix-notif-preview">Notifications from Avenix</div>
       </div>
     </div>
-
-    <!-- ARCHIVE SECTION -->
+    <div id="saved-messages-row" class="user-row saved-row" tabindex="0" style="cursor:pointer;">
+      <div class="avatar-wrap">
+        <div class="avatar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+      </div>
+      <div class="user-row-body">
+        <div class="user-row-top"><span class="user-row-name">Saved Messages</span></div>
+        <div class="user-row-sub" id="saved-messages-preview">Your bookmarked messages</div>
+      </div>
+    </div>
     <div id="archive-toggle-row" class="archive-toggle" onclick="toggleArchiveSection()" style="display:none;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
       Archived
@@ -3777,6 +3739,7 @@ auth.onAuthStateChanged(async user => {
     listenToAvenixNotifications();
     checkAvenixWelcome();
     avenixNotifyLogin();
+    ensureAvenixTipsChannel();
     startDeviceWatcher();
     window.addEventListener('beforeunload', () => { updateUserOnlineStatus(false); try { avenixNotifyLogout(); } catch(_){} });
     handleInviteHash();
@@ -3842,7 +3805,7 @@ function setAvatarContent(el, username, photoURL) {
 }
 
 /* ===== BUILD USER ROW ===== */
-function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unreadCount, isPinned, isLocked) {
+function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unreadCount, isPinned, isLocked, isVerified) {
   const row = document.createElement('div');
   row.className = 'user-row' + (isPinned ? ' pinned-row' : '') + (isLocked ? ' locked-row' : '');
   row.setAttribute('tabindex', '0');
@@ -3868,6 +3831,14 @@ function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unread
   name.className = 'user-row-name';
   name.textContent = u.username || u.name;
   top.appendChild(name);
+
+  // Verified tick for Avenix Tips channel
+  if (isVerified) {
+    const tick = document.createElement('span');
+    tick.className = 'verified-tick';
+    tick.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    top.appendChild(tick);
+  }
 
   // Pin icon next to name
   if (isPinned) {
@@ -3974,7 +3945,7 @@ async function runSearch(term) {
       const label = g.isChannel ? 'Channel' : 'Group';
       const countText = g.isChannel ? `${(g.members||[]).length} subscribers` : `${(g.members||[]).length} members`;
       const subText = g.handle ? `@${g.handle} · ${countText}` : countText;
-      const row = buildUserRow({username: g.name, photoURL: g.photoURL}, subText, false, null, true, label);
+      const row = buildUserRow({username: g.name, photoURL: g.photoURL}, subText, false, null, true, label, 0, false, false, !!g.isAvenixTips);
       row.addEventListener('click', async () => {
         if (!isMember) {
           await db.collection('groups').doc(doc.id).update({ members: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
@@ -4082,7 +4053,7 @@ function listenToChatsList() {
         const subText = group.isChannel ? (group.lastMessage || `${(group.members||[]).length} subscribers`) : (group.lastMessage || '');
         const unread = (group.unreadCounts && group.unreadCounts[currentUser.uid]) || 0;
         const pinned = !!(group.pinnedBy && group.pinnedBy[currentUser.uid]);
-        row = buildUserRow({username: group.name, photoURL: group.photoURL}, subText, false, formatListTime(group.lastMessageAt), true, label, unread, pinned, isChatLocked(chatId));
+        row = buildUserRow({username: group.name, photoURL: group.photoURL}, subText, false, formatListTime(group.lastMessageAt), true, label, unread, pinned, isChatLocked(chatId), !!group.isAvenixTips);
         row.dataset.chatId = chatId;
         if (chatId === activeChatId) row.classList.add('active');
         addRowContextMenu(row, chatId, item.type === 'channel' ? 'group' : item.type, item);
@@ -4197,7 +4168,8 @@ function renderActiveFolderUI() {
       const subText = item.group.isChannel ? (item.group.lastMessage || `${(item.group.members||[]).length} subscribers`) : (item.group.lastMessage || '');
       const unread = (item.group.unreadCounts && item.group.unreadCounts[currentUser.uid]) || 0;
       const pinned = !!(item.group.pinnedBy && item.group.pinnedBy[currentUser.uid]);
-      row = buildUserRow({username: item.group.name, photoURL: item.group.photoURL}, subText, false, formatListTime(item.group.lastMessageAt), true, label, unread, pinned, isChatLocked(item.chatId));
+      const isAvenixTips = !!item.group.isAvenixTips;
+      row = buildUserRow({username: item.group.name, photoURL: item.group.photoURL}, subText, false, formatListTime(item.group.lastMessageAt), true, label, unread, pinned, isChatLocked(item.chatId), isAvenixTips);
       row.dataset.chatId = item.chatId;
       if (item.chatId === activeChatId) row.classList.add('active');
       addRowContextMenu(row, item.chatId, item.type === 'channel' ? 'group' : item.type, item);
@@ -4431,7 +4403,11 @@ async function openGroupChat(groupId, groupData) {
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
   setAvatarContent(chatAvatar, g.name, g.photoURL);
-  chatWithUsername.textContent = g.name;
+  if (g.isAvenixTips) {
+    chatWithUsername.innerHTML = escapeHtml(g.name) + ' <svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:inline;vertical-align:middle;"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  } else {
+    chatWithUsername.textContent = g.name;
+  }
   chatWithStatus.className = 'chat-with-status';
   chatWithStatus.textContent = activeChatIsChannel ? `${(g.members||[]).length} subscribers` : `${(g.members||[]).length} members`;
   document.getElementById('chat-status-dot').style.display = 'none';
@@ -5219,6 +5195,60 @@ function startDeviceWatcher() {
 function stopDeviceWatcher() {
   if (unsubDeviceWatcher) { unsubDeviceWatcher(); unsubDeviceWatcher = null; }
   knownDeviceIds.clear();
+}
+
+/* ===== AVENIX TIPS CHANNEL (Auto-join global channel) ===== */
+async function ensureAvenixTipsChannel() {
+  if (!currentUser) return;
+  try {
+    // Check if the Avenix Tips channel already exists
+    const snap = await db.collection('groups').where('isAvenixTips', '==', true).limit(1).get();
+
+    let channelId = null;
+    if (snap.empty) {
+      // First user to login creates the channel
+      const docRef = await db.collection('groups').add({
+        name: 'Avenix Tips',
+        nameLower: 'avenix tips',
+        isChannel: true,
+        isAvenixTips: true,
+        members: [currentUser.uid],
+        admins: [currentUser.uid],
+        adminRoles: { [currentUser.uid]: 'owner' },
+        createdBy: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastMessage: 'Welcome to Avenix Tips! Official tips and announcements.',
+        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+        photoURL: null,
+        inviteCode: generateInviteCode()
+      });
+      channelId = docRef.id;
+
+      // Also add the welcome message
+      await docRef.collection('messages').add({
+        text: 'Welcome to Avenix Tips! \ud83c\udf89\n\nThis is the official announcement channel. Here you\'ll receive tips, updates, and important information from the Avenix team.',
+        senderId: currentUser.uid,
+        senderUsername: currentUserData.username,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        type: 'text',
+        category: 'announcement',
+        hashtags: []
+      });
+    } else {
+      channelId = snap.docs[0].id;
+      const channelData = snap.docs[0].data();
+      const members = channelData.members || [];
+
+      // Auto-join: add current user if not already a member
+      if (!members.includes(currentUser.uid)) {
+        await db.collection('groups').doc(channelId).update({
+          members: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('Avenix Tips channel error:', err);
+  }
 }
 
 /* ===== FORWARD MESSAGE ===== */
@@ -9523,5 +9553,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1816da62afd5c8d',t:'MTc4MzUzODIzOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1817d285fa11808',t:'MTc4MzUzODg3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
