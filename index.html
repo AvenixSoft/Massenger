@@ -1587,6 +1587,188 @@ html,body{
   
     /* CUSTOM SHAHAB MESSENGER UPDATES */
 
+    /* MODERN CAPSULE MOBILE NAV LAYOUT & CHAT SIZING */
+    @media(max-width: 768px) {
+      .mobile-nav {
+        display: none !important;
+      }
+      
+      .mobile-nav-container {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+        left: 14px;
+        right: 14px;
+        z-index: 250;
+        gap: 12px;
+        pointer-events: none;
+      }
+      
+      .mobile-nav-capsule {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        background: rgba(13, 13, 22, 0.88);
+        backdrop-filter: blur(28px) saturate(160%);
+        -webkit-backdrop-filter: blur(28px) saturate(160%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 28px;
+        height: 58px;
+        padding: 0 8px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+        pointer-events: auto;
+      }
+      
+      .mobile-nav-search-circle {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--primary);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        pointer-events: auto;
+      }
+      .mobile-nav-search-circle:hover {
+        transform: scale(1.05);
+      }
+      .mobile-nav-search-circle:active {
+        transform: scale(0.92);
+      }
+      .mobile-nav-search-circle.active {
+        background: var(--primary-dark) !important;
+        box-shadow: 0 0 16px rgba(37, 99, 235, 0.55);
+      }
+      
+      .mobile-nav-capsule .mobile-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        height: 100%;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        transition: all 0.22s ease;
+        border-radius: 18px;
+        padding: 4px 0;
+      }
+      .mobile-nav-capsule .mobile-nav-item.active {
+        color: var(--primary);
+      }
+      .mobile-nav-capsule .mobile-nav-item .nav-icon {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.22s ease;
+      }
+      .mobile-nav-capsule .mobile-nav-item.active .nav-icon {
+        background: rgba(37, 99, 235, 0.15);
+      }
+      .mobile-nav-capsule .mobile-nav-item .nav-label {
+        font-size: 9.5px;
+        font-weight: 600;
+      }
+
+      /* Adjust sidebar bottom raised to match floating bar top perfectly */
+      .sidebar {
+        bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,0.06);
+        margin: 10px 10px 0;
+        height: calc(100vh - 100px - env(safe-area-inset-bottom) - env(safe-area-inset-top)) !important;
+      }
+      
+      /* Make main chat rows, Saved Messages, and Avenix rows larger and highly standard */
+      .user-row {
+        padding: 16px 18px !important;
+        gap: 14px !important;
+      }
+      .user-row .avatar {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 17px !important;
+      }
+      .user-row-name {
+        font-size: 15.5px !important;
+        font-weight: 700 !important;
+      }
+      .user-row-sub {
+        font-size: 13px !important;
+        margin-top: 4px !important;
+      }
+      .user-row-time {
+        font-size: 12px !important;
+      }
+      .group-badge {
+        font-size: 11px !important;
+        padding: 3px 7px !important;
+      }
+      .saved-messages-row, .avenix-row {
+        padding: 16px 18px !important;
+      }
+      .saved-messages-row .avatar, .avenix-row .avatar {
+        width: 48px !important;
+        height: 48px !important;
+      }
+      
+      /* GORGEOUS FLOATING ROUNDED ACTIVE CHAT HEADER FOR MOBILE */
+      .chat-header {
+        margin: 12px 12px 0 !important;
+        border-radius: 16px !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4) !important;
+        background: rgba(13, 13, 22, 0.9) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        padding: 10px 14px !important;
+        position: absolute !important;
+        top: env(safe-area-inset-top) !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 100 !important;
+      }
+      
+      /* Adjust messages padding-top to fit under floating header */
+      .messages {
+        padding-top: calc(env(safe-area-inset-top) + 82px) !important;
+      }
+      
+      /* Block scrolls above floating header so they don't show behind margins */
+      .chat-active::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: calc(env(safe-area-inset-top) + 12px);
+        background: var(--bg);
+        z-index: 99;
+      }
+
+      /* Anchor message form tight to bottom without ugly gaps */
+      .message-form {
+        padding-bottom: calc(env(safe-area-inset-bottom) + 8px) !important;
+        background: var(--chat-header-bg) !important;
+      }
+    }
+
+
     /* MOBILE TRANSITION TOOLS AND CHATBOX ADJUSTMENTS */
     @media(max-width: 768px) {
       /* Hide scrollbar in chat textarea */
@@ -1961,24 +2143,28 @@ html,body{
   </aside>
 
   <!-- MOBILE BOTTOM NAV -->
-  <nav class="mobile-nav" id="mobile-nav">
-    <button class="mobile-nav-item active" id="mnav-chats" onclick="mobileNavSwitch('chats')">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-      <span class="nav-label">Chats</span>
+  <div class="mobile-nav-container" id="mobile-nav">
+    <!-- Left/Middle Capsule containing Chats, Profile, Settings -->
+    <nav class="mobile-nav-capsule">
+      <button class="mobile-nav-item active" id="mnav-chats" onclick="mobileNavSwitch('chats')">
+        <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <span class="nav-label">Chats</span>
+      </button>
+      <button class="mobile-nav-item" id="mnav-profile" onclick="mobileNavSwitch('profile')">
+        <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="nav-label">Profile</span>
+      </button>
+      <button class="mobile-nav-item" id="mnav-settings" onclick="mobileNavSwitch('settings')">
+        <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+    
+    <!-- Separate circle button for Search on the right side -->
+    <button class="mobile-nav-search-circle" id="mnav-search" onclick="mobileNavSwitch('search')" title="Search">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     </button>
-    <button class="mobile-nav-item" id="mnav-search" onclick="mobileNavSwitch('search')">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-      <span class="nav-label">Search</span>
-    </button>
-    <button class="mobile-nav-item" id="mnav-profile" onclick="mobileNavSwitch('profile')">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-      <span class="nav-label">Profile</span>
-    </button>
-    <button class="mobile-nav-item" id="mnav-settings" onclick="mobileNavSwitch('settings')">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-      <span class="nav-label">Settings</span>
-    </button>
-  </nav>
+  </div>
 
   <main class="chat-window">
     <div id="chat-empty" class="chat-empty">
@@ -3966,7 +4152,7 @@ logoutBtn.addEventListener('click', async () => {
   await auth.signOut();
 });
 
-backBtn.addEventListener('click', () => { sidebar.classList.remove('hide-mobile'); var nav = document.getElementById('mobile-nav'); if(nav) nav.style.display=''; document.querySelectorAll('.mobile-nav-item').forEach(el=>el.classList.remove('active')); var c=document.getElementById('mnav-chats'); if(c) c.classList.add('active'); });
+backBtn.addEventListener('click', () => { sidebar.classList.remove('hide-mobile'); var nav = document.getElementById('mobile-nav'); if(nav) nav.style.display=''; document.querySelectorAll('.mobile-nav-item, .mobile-nav-search-circle').forEach(el=>el.classList.remove('active')); var c=document.getElementById('mnav-chats'); if(c) c.classList.add('active'); });
 
 /* ===== AUTH STATE ===== */
 auth.onAuthStateChanged(async user => {
@@ -8624,7 +8810,9 @@ function closeModal() {
 
 /* ===== MOBILE NAV ===== */
 function mobileNavSwitch(tab) {
-  document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav-item, .mobile-nav-search-circle').forEach(el => el.classList.remove('active'));
+  // Remove active from search circle and capsule buttons
+  document.querySelectorAll('.mobile-nav-item, .mobile-nav-search-circle').forEach(el => el.classList.remove('active'));
   const activeBtn = document.getElementById('mnav-' + tab);
   if (activeBtn) activeBtn.classList.add('active');
   const sidebar = document.getElementById('sidebar');
@@ -8643,13 +8831,13 @@ function mobileNavSwitch(tab) {
     const profileBtn = document.getElementById('me-profile-btn');
     if (profileBtn) profileBtn.click();
     setTimeout(() => {
-      document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.mobile-nav-item, .mobile-nav-search-circle').forEach(el => el.classList.remove('active'));
       if (activeBtn) activeBtn.classList.add('active');
     }, 50);
   } else if (tab === 'settings') {
     showMobileSettings();
     setTimeout(() => {
-      document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.mobile-nav-item, .mobile-nav-search-circle').forEach(el => el.classList.remove('active'));
       const chatsBtn = document.getElementById('mnav-chats');
       if (chatsBtn) chatsBtn.classList.add('active');
     }, 200);
@@ -9916,5 +10104,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a18239ad1d194ff5',t:'MTc4MzU0NjU5NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a18253c56d82818a',t:'MTc4MzU0NzY2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
