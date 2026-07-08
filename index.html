@@ -1587,7 +1587,258 @@ html,body{
   
     /* CUSTOM SHAHAB MESSENGER UPDATES */
 
-    /* MODERN CAPSULE MOBILE NAV LAYOUT & CHAT SIZING */
+    /* STANDARD HIGHLY-POLISHED RESPONSIVE LAYOUT */
+    @media(max-width: 768px) {
+      .mobile-nav {
+        display: none !important;
+      }
+      
+      /* Full-Screen Sidebar Layout (Highly standard & space-efficient) */
+      .sidebar {
+        width: 100% !important;
+        min-width: 0 !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border: none !important;
+        height: 100% !important;
+        z-index: 20 !important;
+        background: var(--sidebar-bg) !important;
+      }
+      
+      /* Scroll Padding for List Containers to avoid overlap with Floating Bottom Nav */
+      .chats-list, #search-results, #archived-list {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important;
+        overflow-y: auto !important;
+        flex: 1 !important;
+      }
+
+      /* Standard Balanced Row Sizes (Perfect compact, space-efficient size) */
+      .user-row {
+        padding: 11px 13px !important;
+        gap: 12px !important;
+      }
+      .user-row .avatar {
+        width: 42px !important;
+        height: 42px !important;
+        font-size: 15px !important;
+      }
+      .user-row-name {
+        font-size: 14.5px !important;
+        font-weight: 600 !important;
+      }
+      .user-row-sub {
+        font-size: 12.5px !important;
+        margin-top: 2px !important;
+      }
+      .user-row-time {
+        font-size: 11.5px !important;
+      }
+      .group-badge {
+        font-size: 10px !important;
+        padding: 2px 5px !important;
+      }
+      .saved-messages-row, .avenix-row {
+        padding: 11px 13px !important;
+      }
+      .saved-messages-row .avatar, .avenix-row .avatar {
+        width: 42px !important;
+        height: 42px !important;
+      }
+      
+      /* Beautiful Floating Bottom Nav Capsule */
+      .mobile-nav-container {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+        left: 12px;
+        right: 12px;
+        z-index: 250;
+        gap: 10px;
+        pointer-events: none;
+      }
+      
+      .mobile-nav-capsule {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        background: rgba(13, 13, 22, 0.9);
+        backdrop-filter: blur(28px) saturate(160%);
+        -webkit-backdrop-filter: blur(28px) saturate(160%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        height: 52px;
+        padding: 0 6px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        pointer-events: auto;
+      }
+      
+      .mobile-nav-search-circle {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--primary);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        pointer-events: auto;
+      }
+      .mobile-nav-search-circle.active {
+        background: var(--primary-dark) !important;
+        box-shadow: 0 0 14px rgba(37, 99, 235, 0.55);
+      }
+      
+      .mobile-nav-capsule .mobile-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        height: 100%;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        transition: all 0.22s ease;
+        border-radius: 16px;
+        padding: 2px 0;
+      }
+      .mobile-nav-capsule .mobile-nav-item.active {
+        color: var(--primary);
+      }
+      .mobile-nav-capsule .mobile-nav-item .nav-icon {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.22s ease;
+      }
+      .mobile-nav-capsule .mobile-nav-item.active .nav-icon {
+        background: rgba(37, 99, 235, 0.15);
+      }
+      .mobile-nav-capsule .mobile-nav-item .nav-label {
+        font-size: 9px;
+        font-weight: 600;
+      }
+
+      /* Compact Floating Chat Header */
+      .chat-header {
+        margin: 10px 10px 0 !important;
+        border-radius: 14px !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+        background: rgba(13, 13, 22, 0.92) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        padding: 8px 12px !important;
+        position: absolute !important;
+        top: env(safe-area-inset-top) !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 100 !important;
+        height: 52px !important;
+      }
+      .messages {
+        padding-top: calc(env(safe-area-inset-top) + 74px) !important;
+      }
+      .chat-active::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: calc(env(safe-area-inset-top) + 10px);
+        background: var(--bg);
+        z-index: 99;
+      }
+      
+      /* Solid tight message form on bottom */
+      .message-form {
+        padding: 8px 12px !important;
+        padding-bottom: calc(env(safe-area-inset-bottom) + 8px) !important;
+        background: var(--chat-header-bg) !important;
+      }
+
+      /* Floating Action Button (FAB) for mobile group/channel creation */
+      .mobile-fab {
+        display: flex !important;
+        position: fixed;
+        bottom: calc(76px + env(safe-area-inset-bottom));
+        right: 14px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+        z-index: 180;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .mobile-fab:active {
+        transform: scale(0.9);
+      }
+      .mobile-fab-menu {
+        position: fixed;
+        bottom: calc(134px + env(safe-area-inset-bottom));
+        right: 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        z-index: 181;
+        animation: popIn 0.15s ease;
+      }
+      .mobile-fab-menu.hidden {
+        display: none !important;
+      }
+      .mobile-fab-item-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 8px;
+        text-align: right;
+        width: 100%;
+        white-space: nowrap;
+        transition: background 0.2s;
+      }
+      .mobile-fab-item-btn:hover {
+        background: var(--surface2);
+      }
+    }
+
+
+    /* REPLACED PREVIOUS MOBILE SIZING WITH HIGHLY-POLISHED STANDARDS */
     @media(max-width: 768px) {
       .mobile-nav {
         display: none !important;
@@ -2141,6 +2392,19 @@ html,body{
     <div class="chats-list-label">Chats</div>
     <div id="chats-list" class="chats-list"></div>
   </aside>
+
+    <!-- Floating Action Button for Mobile Group/Channel Creation -->
+  <button class="mobile-fab" id="mobile-fab" style="display: none;" onclick="toggleMobileFabMenu()" title="New Chat/Group">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+  
+  <!-- Mobile FAB Menu options (hidden by default) -->
+  <div class="mobile-fab-menu hidden" id="mobile-fab-menu">
+    <button class="mobile-fab-item-btn" onclick="triggerMobileNewGroup()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg> گروه جدید (New Group)</button>
+    <button class="mobile-fab-item-btn" onclick="triggerMobileNewChannel()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> کانال جدید (New Channel)</button>
+  </div>
 
   <!-- MOBILE BOTTOM NAV -->
   <div class="mobile-nav-container" id="mobile-nav">
@@ -8810,6 +9074,19 @@ function closeModal() {
 
 /* ===== MOBILE NAV ===== */
 function mobileNavSwitch(tab) {
+  // Hide mobile FAB menu on tab switch
+  const fabMenu = document.getElementById('mobile-fab-menu');
+  if (fabMenu) fabMenu.classList.add('hidden');
+  
+  // Show/Hide FAB button based on tab (only show in 'chats' tab on mobile)
+  const mobileFab = document.getElementById('mobile-fab');
+  if (mobileFab) {
+    if (tab === 'chats') {
+      mobileFab.style.setProperty('display', 'flex', 'important');
+    } else {
+      mobileFab.style.setProperty('display', 'none', 'important');
+    }
+  }
   document.querySelectorAll('.mobile-nav-item, .mobile-nav-search-circle').forEach(el => el.classList.remove('active'));
   // Remove active from search circle and capsule buttons
   document.querySelectorAll('.mobile-nav-item, .mobile-nav-search-circle').forEach(el => el.classList.remove('active'));
@@ -9058,6 +9335,34 @@ closeAllPopups = function() {
   if (origCloseAllPopups) origCloseAllPopups();
   updateMobileToolsVisibility();
 };
+
+
+// MOBILE FLOATING ACTION BUTTON LOGIC
+function toggleMobileFabMenu() {
+  const menu = document.getElementById('mobile-fab-menu');
+  if (menu) menu.classList.toggle('hidden');
+}
+function triggerMobileNewGroup() {
+  const menu = document.getElementById('mobile-fab-menu');
+  if (menu) menu.classList.add('hidden');
+  const btn = document.getElementById('new-group-btn');
+  if (btn) btn.click();
+}
+function triggerMobileNewChannel() {
+  const menu = document.getElementById('mobile-fab-menu');
+  if (menu) menu.classList.add('hidden');
+  const btn = document.getElementById('new-channel-btn');
+  if (btn) btn.click();
+}
+
+// Close FAB and profile menus when clicking outside
+document.addEventListener('click', (e) => {
+  const fab = document.getElementById('mobile-fab');
+  const menu = document.getElementById('mobile-fab-menu');
+  if (menu && fab && !fab.contains(e.target) && !menu.contains(e.target)) {
+    menu.classList.add('hidden');
+  }
+});
 
 // ==================== FEATURE 1: VOICE NOTES ====================
 const voiceBtn = document.getElementById('voice-btn');
@@ -10104,5 +10409,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a18253c56d82818a',t:'MTc4MzU0NzY2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a182607deef1cc60',t:'MTc4MzU0ODE4NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
