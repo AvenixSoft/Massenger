@@ -1584,7 +1584,117 @@ html,body{
       letter-spacing:1px;
       text-transform:uppercase;
     }
-  </style>
+  
+    /* CUSTOM SHAHAB MESSENGER UPDATES */
+    #gif-btn {
+      display: none !important;
+    }
+    .message-form textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--input-border);
+      background: var(--input-bg);
+      outline: none;
+      font-size: 15px;
+      color: var(--text-primary);
+      transition: all 0.2s;
+      resize: none;
+      height: 40px;
+      max-height: 120px;
+      line-height: 1.4;
+      overflow-y: auto;
+      font-family: inherit;
+      display: block;
+    }
+    .message-form textarea::placeholder { color: var(--text-muted); }
+    .message-form textarea:focus { border-color: var(--primary); background: var(--surface2); }
+    
+    .unified-picker {
+      position: absolute; bottom: 70px; right: 14px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 0;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6); z-index: 100;
+      width: 340px; height: 420px; display: flex; flex-direction: column;
+      animation: popIn 0.2s ease;
+      overflow: hidden;
+    }
+    .picker-header-tabs {
+      display: flex;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 4px;
+      gap: 4px;
+    }
+    .picker-header-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .picker-header-tab:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+    }
+    .picker-header-tab.active {
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .picker-tab-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .picker-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 12px;
+    }
+    .picker-section.hidden {
+      display: none !important;
+    }
+    #emoji-picker-section .emoji-picker-search {
+      width: 100%; padding: 8px 12px; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--surface2);
+      color: var(--text-primary); font-size: 13px; outline:none; margin-bottom: 10px;
+    }
+    #emoji-picker-section .emoji-picker-cats {
+      display: flex; gap: 4px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    #emoji-picker-section .emoji-cat-btn {
+      background: transparent; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px;
+      font-size: 15px; color: var(--text-muted); transition: all 0.2s;
+    }
+    #emoji-picker-section .emoji-cat-btn.active {
+      background: var(--surface2); color: var(--primary);
+    }
+    #emoji-picker-section .emoji-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+      overflow-y: auto; flex: 1; max-height: 280px;
+    }
+    .verified-tick {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      margin-left: 4px;
+      flex-shrink: 0;
+    }
+</style>
 
   <div class="ld-container">
     <!-- Logo -->
@@ -1750,8 +1860,12 @@ html,body{
 
     <div id="search-results" class="search-results"></div>
     <div id="folder-tabs" class="folder-tabs"></div>
-
-    <!-- PINNED SECTION: Avenix Tips + Saved Messages -->
+    <div id="archive-toggle-row" class="archive-toggle" onclick="toggleArchiveSection()" style="display:none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+      Archived
+      <span class="archive-badge" id="archive-badge">0</span>
+    </div>
+    <div id="archived-list" style="display:none;"></div>
     <div id="avenix-notif-row" class="user-row avenix-row" tabindex="0" style="cursor:pointer;">
       <div class="avatar-wrap">
         <div class="avatar avenix-avatar">
@@ -1774,14 +1888,6 @@ html,body{
         <div class="user-row-sub" id="saved-messages-preview">Your bookmarked messages</div>
       </div>
     </div>
-    <div id="archive-toggle-row" class="archive-toggle" onclick="toggleArchiveSection()" style="display:none;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
-      Archived
-      <span class="archive-badge" id="archive-badge">0</span>
-    </div>
-    <div id="archived-list" style="display:none;"></div>
-
-    <!-- CHATS LIST -->
     <div class="chats-list-label">Chats</div>
     <div id="chats-list" class="chats-list"></div>
   </aside>
@@ -1887,7 +1993,7 @@ html,body{
           </svg>
         </button>
         <div class="msg-input-wrap">
-          <input type="text" id="message-input" placeholder="Write a message…" autocomplete="off">
+          <textarea id="message-input" rows="1" placeholder="Write a message…" autocomplete="off"></textarea>
         </div>
                 <button type="button" class="gif-btn" id="gif-btn" title="GIF">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1913,18 +2019,43 @@ html,body{
             <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
         </button>
-        <!-- Emoji Picker (hidden by default) -->
-        <div id="emoji-picker" class="emoji-picker hidden"></div>
+        <!-- Unified Media Picker (Emoji & GIF) -->
+        <div id="unified-picker" class="unified-picker hidden">
+          <div class="picker-header-tabs">
+            <button type="button" class="picker-header-tab active" id="picker-tab-emoji" title="Emojis">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                <line x1="9" y1="9" x2="9.01" y2="9"/>
+                <line x1="15" y1="9" x2="15.01" y2="9"/>
+              </svg>
+              <span>Emoji</span>
+            </button>
+            <button type="button" class="picker-header-tab" id="picker-tab-gif" title="GIFs">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 12h4l2-4 3 6 2-5 3 8"/>
+              </svg>
+              <span>GIF</span>
+            </button>
+          </div>
+          <div class="picker-tab-content">
+            <!-- Emoji Picker Section -->
+            <div id="emoji-picker-section" class="picker-section">
+              <!-- Dynamically populated -->
+            </div>
+            <!-- GIF Picker Section -->
+            <div id="gif-picker-section" class="picker-section hidden">
+              <input type="text" class="gif-picker-search" id="gif-search-input" placeholder="Search GIFs…">
+              <div class="gif-picker-tabs" id="gif-tabs"></div>
+              <div class="gif-grid" id="gif-grid"></div>
+            </div>
+          </div>
+        </div>
+        
         <!-- Unified Message Tools Menu (hidden by default): file, poll, category, self-destruct -->
         <div id="attach-menu" class="attach-menu hidden"></div>
         <!-- Poll Creator (hidden by default) -->
         <div id="poll-creator-panel" class="poll-creator hidden"></div>
-        <!-- GIF Picker -->
-        <div id="gif-picker" class="gif-picker hidden">
-          <input type="text" class="gif-picker-search" id="gif-search-input" placeholder="Search GIFs…">
-          <div class="gif-picker-tabs" id="gif-tabs"></div>
-          <div class="gif-grid" id="gif-grid"></div>
-        </div>
         <!-- Schedule Message Picker -->
         <div id="schedule-picker" class="schedule-picker hidden"></div>
       </form>
@@ -2028,7 +2159,59 @@ const replyBarLabel   = document.getElementById('reply-bar-label');
 const replyBarText    = document.getElementById('reply-bar-text');
 const replyCancelBtn  = document.getElementById('reply-cancel-btn');
 const emojiBtn        = document.getElementById('emoji-btn');
-const emojiPicker     = document.getElementById('emoji-picker');
+const emojiPicker     = document.getElementById('emoji-picker-section');
+const unifiedPicker   = document.getElementById('unified-picker');
+
+const emojiIconSvg = `
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+    <line x1="9" y1="9" x2="9.01" y2="9"/>
+    <line x1="15" y1="9" x2="15.01" y2="9"/>
+  </svg>
+`;
+
+const gifIconSvg = `
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 12h4l2-4 3 6 2-5 3 8"/>
+  </svg>
+`;
+
+function getBlueTickSvg() {
+  return `<svg class="verified-tick" width="15" height="15" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-left: 4px; flex-shrink: 0;"><path d="M12 2.5c-.29 0-.57.11-.78.32l-1 1a1 1 0 0 1-.89.26l-1.4-.28a1.1 1.1 0 0 0-1.3.7l-.54 1.3a1 1 0 0 1-.63.63l-1.3.54a1.1 1.1 0 0 0-.7 1.3l.28 1.4a1 1 0 0 1-.26.89l-1 1a1.1 1.1 0 0 0 0 1.56l1 1a1 1 0 0 1 .26.89l-.28 1.4a1.1 1.1 0 0 0 .7 1.3l1.3.54a1 1 0 0 1 .63.63l.54 1.3a1.1 1.1 0 0 0 1.3.7l1.4-.28a1 1 0 0 1 .89.26l1 1a1.1 1.1 0 0 0 1.56 0l1-1a1 1 0 0 1 .89-.26l1.4.28a1.1 1.1 0 0 0 1.3-.7l.54-1.3a1 1 0 0 1 .63-.63l1.3-.54a1.1 1.1 0 0 0 .7-1.3l-.28-1.4a1 1 0 0 1 .26-.89l1-1a1.1 1.1 0 0 0 0-1.56l-1-1a1 1 0 0 1-.26-.89l.28-1.4a1.1 1.1 0 0 0-.7-1.3l-1.3-.54a1 1 0 0 1-.63-.63l-.54-1.3a1.1 1.1 0 0 0-1.3-.7l-1.4.28a1 1 0 0 1-.89-.26l-1-1a1.1 1.1 0 0 0-.78-.32z" fill="#0095f6"/><path d="M9.75 14.2L6.8 11.25a.75.75 0 1 0-1.06 1.06L9.22 15.8a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 0 0-1.06-1.06L10.28 13.7l-.53.5z" fill="#fff"/></svg>`;
+}
+
+function getGoldTickSvg() {
+  return `<svg class="verified-tick" width="15" height="15" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-left: 4px; flex-shrink: 0;"><path d="M12 2.5c-.29 0-.57.11-.78.32l-1 1a1 1 0 0 1-.89.26l-1.4-.28a1.1 1.1 0 0 0-1.3.7l-.54 1.3a1 1 0 0 1-.63.63l-1.3.54a1.1 1.1 0 0 0-.7 1.3l.28 1.4a1 1 0 0 1-.26.89l-1 1a1.1 1.1 0 0 0 0 1.56l1 1a1 1 0 0 1 .26.89l-.28 1.4a1.1 1.1 0 0 0 .7 1.3l1.3.54a1 1 0 0 1 .63.63l.54 1.3a1.1 1.1 0 0 0 1.3.7l1.4-.28a1 1 0 0 1 .89.26l1 1a1.1 1.1 0 0 0 1.56 0l1-1a1 1 0 0 1 .89-.26l1.4.28a1.1 1.1 0 0 0 1.3-.7l.54-1.3a1 1 0 0 1 .63-.63l1.3-.54a1.1 1.1 0 0 0 .7-1.3l-.28-1.4a1 1 0 0 1 .26-.89l1-1a1.1 1.1 0 0 0 0-1.56l-1-1a1 1 0 0 1-.26-.89l.28-1.4a1.1 1.1 0 0 0-.7-1.3l-1.3-.54a1 1 0 0 1-.63-.63l-.54-1.3a1.1 1.1 0 0 0-1.3-.7l-1.4.28a1 1 0 0 1-.89-.26l-1-1a1.1 1.1 0 0 0-.78-.32z" fill="#ffd700"/><path d="M9.75 14.2L6.8 11.25a.75.75 0 1 0-1.06 1.06L9.22 15.8a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 0 0-1.06-1.06L10.28 13.7l-.53.5z" fill="#fff"/></svg>`;
+}
+
+let currentPickerTab = 'emoji';
+function switchPickerTab(tab) {
+  currentPickerTab = tab;
+  const tabEmoji = document.getElementById('picker-tab-emoji');
+  const tabGif = document.getElementById('picker-tab-gif');
+  const secEmoji = document.getElementById('emoji-picker-section');
+  const secGif = document.getElementById('gif-picker-section');
+
+  if (tab === 'emoji') {
+    tabEmoji.classList.add('active');
+    tabGif.classList.remove('active');
+    secEmoji.classList.remove('hidden');
+    secGif.classList.add('hidden');
+    buildEmojiPicker();
+    emojiBtn.innerHTML = emojiIconSvg;
+    emojiBtn.title = "Emoji";
+  } else {
+    tabEmoji.classList.remove('active');
+    tabGif.classList.add('active');
+    secEmoji.classList.add('hidden');
+    secGif.classList.remove('hidden');
+    buildGifTabs();
+    searchGifs('', currentGifCategory);
+    emojiBtn.innerHTML = gifIconSvg;
+    emojiBtn.title = "GIF";
+  }
+}
 const attachBtn       = document.getElementById('attach-btn');
 const attachMenu      = document.getElementById('attach-menu');
 const pollPanel       = document.getElementById('poll-creator-panel');
@@ -3630,7 +3813,8 @@ function formatBytes(bytes) {
 }
 
 function closeAllPopups() {
-  emojiPicker.classList.add('hidden');
+  const unified = document.getElementById('unified-picker');
+  if (unified) unified.classList.add('hidden');
   attachMenu.classList.add('hidden');
   pollPanel.classList.add('hidden');
   emojiBtn.classList.remove('active');
@@ -3739,7 +3923,6 @@ auth.onAuthStateChanged(async user => {
     listenToAvenixNotifications();
     checkAvenixWelcome();
     avenixNotifyLogin();
-    ensureAvenixTipsChannel().catch(err => console.warn('Avenix Tips init error:', err));
     startDeviceWatcher();
     window.addEventListener('beforeunload', () => { updateUserOnlineStatus(false); try { avenixNotifyLogout(); } catch(_){} });
     handleInviteHash();
@@ -3803,7 +3986,7 @@ function setAvatarContent(el, username, photoURL) {
 }
 
 /* ===== BUILD USER ROW ===== */
-function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unreadCount, isPinned, isLocked, isVerified) {
+function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unreadCount, isPinned, isLocked) {
   const row = document.createElement('div');
   row.className = 'user-row' + (isPinned ? ' pinned-row' : '') + (isLocked ? ' locked-row' : '');
   row.setAttribute('tabindex', '0');
@@ -3830,12 +4013,15 @@ function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unread
   name.textContent = u.username || u.name;
   top.appendChild(name);
 
-  // Verified tick for Avenix Tips channel
-  if (isVerified) {
-    const tick = document.createElement('span');
-    tick.className = 'verified-tick';
-    tick.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    top.appendChild(tick);
+  // Appending Instagram ticks
+  if (isGroup && badgeLabel === 'Channel' && u.verified) {
+    const tickSpan = document.createElement('span');
+    tickSpan.innerHTML = getBlueTickSvg();
+    top.appendChild(tickSpan);
+  } else if (!isGroup && u.verifiedGold) {
+    const tickSpan = document.createElement('span');
+    tickSpan.innerHTML = getGoldTickSvg();
+    top.appendChild(tickSpan);
   }
 
   // Pin icon next to name
@@ -3943,7 +4129,7 @@ async function runSearch(term) {
       const label = g.isChannel ? 'Channel' : 'Group';
       const countText = g.isChannel ? `${(g.members||[]).length} subscribers` : `${(g.members||[]).length} members`;
       const subText = g.handle ? `@${g.handle} · ${countText}` : countText;
-      const row = buildUserRow({username: g.name, photoURL: g.photoURL}, subText, false, null, true, label, 0, false, false, !!g.isAvenixTips);
+      const row = buildUserRow({username: g.name, photoURL: g.photoURL, verified: g.verified, isChannel: g.isChannel}, subText, false, null, true, label);
       row.addEventListener('click', async () => {
         if (!isMember) {
           await db.collection('groups').doc(doc.id).update({ members: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
@@ -4051,7 +4237,7 @@ function listenToChatsList() {
         const subText = group.isChannel ? (group.lastMessage || `${(group.members||[]).length} subscribers`) : (group.lastMessage || '');
         const unread = (group.unreadCounts && group.unreadCounts[currentUser.uid]) || 0;
         const pinned = !!(group.pinnedBy && group.pinnedBy[currentUser.uid]);
-        row = buildUserRow({username: group.name, photoURL: group.photoURL}, subText, false, formatListTime(group.lastMessageAt), true, label, unread, pinned, isChatLocked(chatId), !!group.isAvenixTips);
+        row = buildUserRow({username: group.name, photoURL: group.photoURL, verified: group.verified, isChannel: group.isChannel}, subText, false, formatListTime(group.lastMessageAt), true, label, unread, pinned, isChatLocked(chatId));
         row.dataset.chatId = chatId;
         if (chatId === activeChatId) row.classList.add('active');
         addRowContextMenu(row, chatId, item.type === 'channel' ? 'group' : item.type, item);
@@ -4166,8 +4352,7 @@ function renderActiveFolderUI() {
       const subText = item.group.isChannel ? (item.group.lastMessage || `${(item.group.members||[]).length} subscribers`) : (item.group.lastMessage || '');
       const unread = (item.group.unreadCounts && item.group.unreadCounts[currentUser.uid]) || 0;
       const pinned = !!(item.group.pinnedBy && item.group.pinnedBy[currentUser.uid]);
-      const isAvenixTips = !!item.group.isAvenixTips;
-      row = buildUserRow({username: item.group.name, photoURL: item.group.photoURL}, subText, false, formatListTime(item.group.lastMessageAt), true, label, unread, pinned, isChatLocked(item.chatId), isAvenixTips);
+      row = buildUserRow({username: item.group.name, photoURL: item.group.photoURL}, subText, false, formatListTime(item.group.lastMessageAt), true, label, unread, pinned, isChatLocked(item.chatId));
       row.dataset.chatId = item.chatId;
       if (item.chatId === activeChatId) row.classList.add('active');
       addRowContextMenu(row, item.chatId, item.type === 'channel' ? 'group' : item.type, item);
@@ -4346,7 +4531,7 @@ async function openChatWith(partnerData) {
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
   setAvatarContent(chatAvatar, partnerData.username, partnerData.photoURL);
-  chatWithUsername.textContent = partnerData.username;
+  chatWithUsername.innerHTML = partnerData.username + (partnerData.verifiedGold ? ' ' + getGoldTickSvg() : '');
   chatWithStatus.textContent = formatStatusText(partnerData);
   chatWithStatus.className = 'chat-with-status';
   chatStatusDot.className = 'status-dot';
@@ -4401,11 +4586,7 @@ async function openGroupChat(groupId, groupData) {
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
   setAvatarContent(chatAvatar, g.name, g.photoURL);
-  if (g.isAvenixTips) {
-    chatWithUsername.innerHTML = escapeHtml(g.name) + ' <svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:inline;vertical-align:middle;"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  } else {
-    chatWithUsername.textContent = g.name;
-  }
+  chatWithUsername.innerHTML = g.name + (g.isChannel && g.verified ? ' ' + getBlueTickSvg() : '');
   chatWithStatus.className = 'chat-with-status';
   chatWithStatus.textContent = activeChatIsChannel ? `${(g.members||[]).length} subscribers` : `${(g.members||[]).length} members`;
   document.getElementById('chat-status-dot').style.display = 'none';
@@ -4694,13 +4875,13 @@ let lastSeenAvenixMsgId = null;
 // Notification icons
 function notifIcon(type) {
   const icons = {
-    login: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>',
-    logout: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
-    newdevice: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>',
-    security: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-    sessionend: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-    welcome: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-    password: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+    login: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>`,
+    logout: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+    newdevice: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>`,
+    security: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+    sessionend: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    welcome: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+    password: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
   };
   return icons[type] || icons.login;
 }
@@ -4742,12 +4923,15 @@ function listenToAvenixNotifications() {
           messagesEl.innerHTML = '';
           const empty = document.createElement('div');
           empty.style.cssText = 'margin:auto;text-align:center;color:var(--text-muted);font-size:13px;padding:40px;display:flex;flex-direction:column;align-items:center;gap:12px;';
-          empty.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>No notifications yet.<br>Important account activity will appear here.</span>';
+          empty.innerHTML = `
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>No notifications yet.<br>Important account activity will appear here.</span>`;
           messagesEl.appendChild(empty);
         }
         return;
       }
 
+      // Count unread
       const lastReadTs = getLastSeenAvenixTimestamp();
       let unread = 0;
       let latestMsg = null;
@@ -4766,6 +4950,7 @@ function listenToAvenixNotifications() {
         avenixUnreadBadge.classList.add('hidden');
       }
 
+      // Update preview
       if (latestMsg) {
         const previewText = latestMsg.body || latestMsg.title || 'Notification';
         avenixNotifPreview.textContent = previewText.slice(0, 60);
@@ -4778,6 +4963,7 @@ function listenToAvenixNotifications() {
         }
       }
 
+      // If we're in Avenix view, re-render messages
       if (isAvenixView) {
         renderAvenixMessagesFromSnapshot({ docs: snap.docs.slice().reverse(), empty: snap.empty });
       }
@@ -4826,6 +5012,7 @@ function openAvenixChatView() {
   chatEmpty.classList.add('hidden');
   chatActive.classList.remove('hidden');
 
+  // Avatar with verified tick in header
   const avWrap = chatAvatar;
   avWrap.innerHTML = '';
   avWrap.style.background = 'linear-gradient(135deg,#2563eb,#1d4ed8)';
@@ -4845,6 +5032,7 @@ function openAvenixChatView() {
   const lockBar0 = document.getElementById('channel-locked-bar');
   if (lockBar0) lockBar0.style.display = 'none';
 
+  // No message input
   messageForm.style.display = 'none';
   if (composeMetaBar) composeMetaBar.classList.add('hidden');
 
@@ -4857,11 +5045,14 @@ function openAvenixChatView() {
   searchResultsEl.innerHTML = '';
   closeChatSearch();
 
+  // Mark as read
   markAvenixRead();
 
+  // Render notifications
   messagesEl.innerHTML = '';
   currentChatMessages = [];
 
+  // Fetch and render
   db.collection('users').doc(currentUser.uid)
     .collection('avenixNotifications')
     .orderBy('createdAt', 'asc')
@@ -4881,7 +5072,9 @@ function renderAvenixMessagesFromSnapshot(snap) {
   if (!docs.length) {
     const empty = document.createElement('div');
     empty.style.cssText = 'margin:auto;text-align:center;color:var(--text-muted);font-size:13px;padding:40px;display:flex;flex-direction:column;align-items:center;gap:12px;';
-    empty.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>No notifications yet.<br>Important account activity will appear here.</span>';
+    empty.innerHTML = `
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>No notifications yet.<br>Important account activity will appear here.</span>`;
     messagesEl.appendChild(empty);
     return;
   }
@@ -4891,15 +5084,17 @@ function renderAvenixMessagesFromSnapshot(snap) {
     const msg = doc.data();
     const ts = msg.createdAt ? msg.createdAt.toDate() : new Date();
 
+    // Date separator
     const dateStr = ts.toLocaleDateString([], { year:'numeric', month:'short', day:'numeric' });
     if (dateStr !== lastDate) {
       lastDate = dateStr;
       const sep = document.createElement('div');
       sep.className = 'date-separator';
-      sep.innerHTML = '<span>' + dateStr + '</span>';
+      sep.innerHTML = `<span>${dateStr}</span>`;
       messagesEl.appendChild(sep);
     }
 
+    // Render notification bubble
     const row = document.createElement('div');
     row.className = 'message-row received';
 
@@ -4910,11 +5105,13 @@ function renderAvenixMessagesFromSnapshot(snap) {
     const bubble = document.createElement('div');
     bubble.className = 'bubble avenix-notif-msg ' + notifClass;
 
+    // Title
     const titleEl = document.createElement('div');
     titleEl.className = 'notif-title';
-    titleEl.innerHTML = notifIcon(msg.type) + ' ' + escapeHtml(msg.title || 'Notification');
+    titleEl.innerHTML = `${notifIcon(msg.type)} ${escapeHtml(msg.title || 'Notification')}`;
     bubble.appendChild(titleEl);
 
+    // Body
     if (msg.body) {
       const bodyEl = document.createElement('div');
       bodyEl.className = 'notif-body';
@@ -4922,6 +5119,7 @@ function renderAvenixMessagesFromSnapshot(snap) {
       bubble.appendChild(bodyEl);
     }
 
+    // Meta
     if (msg.meta) {
       const metaEl = document.createElement('div');
       metaEl.className = 'notif-meta';
@@ -4931,6 +5129,7 @@ function renderAvenixMessagesFromSnapshot(snap) {
 
     row.appendChild(bubble);
 
+    // Time
     const time = document.createElement('span');
     time.className = 'msg-time';
     time.textContent = formatTime(msg.createdAt);
@@ -4954,9 +5153,9 @@ async function avenixNotifyLogin() {
   const device = getCurrentDeviceSnapshot();
   await addAvenixNotification({
     title: 'New Login',
-    body: 'You logged in from ' + (device.name || 'a device'),
+    body: `You logged in from ${device.name || 'a device'}`,
     type: 'login',
-    meta: (device.kind || 'Device') + ' \u00b7 ' + (device.timezone || '') + ' \u00b7 ' + new Date().toLocaleString(),
+    meta: `${device.kind || 'Device'} · ${device.timezone || ''} · ${new Date().toLocaleString()}`,
     priority: 'normal'
   });
 }
@@ -4967,9 +5166,9 @@ function avenixNotifyLogout() {
   const device = getCurrentDeviceSnapshot();
   const notifData = {
     title: 'Session Ended',
-    body: 'Your session ended on ' + (device.name || 'a device'),
+    body: `Your session ended on ${device.name || 'a device'}`,
     type: 'sessionend',
-    meta: (device.kind || 'Device') + ' \u00b7 ' + new Date().toLocaleString(),
+    meta: `${device.kind || 'Device'} · ${new Date().toLocaleString()}`,
     priority: 'normal',
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     readBy: {}
@@ -4981,10 +5180,10 @@ function avenixNotifyLogout() {
 async function avenixNotifyNewDevice(deviceInfo) {
   if (!currentUser) return;
   await addAvenixNotification({
-    title: '\u26a0 New Device Login Detected',
-    body: 'A new device logged into your account: ' + (deviceInfo.name || 'Unknown device'),
+    title: '⚠ New Device Login Detected',
+    body: `A new device logged into your account: ${deviceInfo.name || 'Unknown device'}`,
     type: 'newdevice',
-    meta: (deviceInfo.kind || 'Device') + ' \u00b7 ' + (deviceInfo.browser || '') + ' \u00b7 ' + (deviceInfo.timezone || '') + ' \u00b7 ' + (deviceInfo.platform || ''),
+    meta: `${deviceInfo.kind || 'Device'} · ${deviceInfo.browser || ''} · ${deviceInfo.timezone || ''} · ${deviceInfo.platform || ''}`,
     priority: 'warning'
   });
 }
@@ -4994,7 +5193,7 @@ async function avenixNotifyWelcome() {
   if (!currentUser) return;
   await addAvenixNotification({
     title: 'Welcome to Avenix!',
-    body: 'This is your notification center. You\'ll receive important alerts about your account here \u2014 login activity, security updates, and more.',
+    body: 'This is your notification center. You\'ll receive important alerts about your account here — login activity, security updates, and more.',
     type: 'welcome',
     meta: 'Avenix Notification Service',
     priority: 'success'
@@ -5021,21 +5220,29 @@ let unsubDeviceWatcher = null;
 function startDeviceWatcher() {
   if (!currentUser || unsubDeviceWatcher) return;
   const myDeviceId = getCurrentDeviceId();
+
+  // Initialize known devices from current snapshot
   const currentDevices = (currentUserData && currentUserData.connectedDevices) || {};
   Object.keys(currentDevices).forEach(id => knownDeviceIds.add(id));
+
   unsubDeviceWatcher = db.collection('users').doc(currentUser.uid)
     .onSnapshot(snap => {
       if (!snap.exists) return;
       const data = snap.data();
       const devices = data.connectedDevices || {};
       const deviceIds = Object.keys(devices);
+
+      // Check for new devices that weren't known before
       deviceIds.forEach(id => {
         if (!knownDeviceIds.has(id) && id !== myDeviceId) {
+          // New device detected! (another session logged in)
           knownDeviceIds.add(id);
           const info = devices[id];
           avenixNotifyNewDevice(info || { name: 'Unknown device', kind: 'Device' });
         }
       });
+
+      // Update known devices (remove disconnected ones)
       knownDeviceIds = new Set(deviceIds);
     }, err => console.warn('Device watcher error:', err));
 }
@@ -5043,57 +5250,6 @@ function startDeviceWatcher() {
 function stopDeviceWatcher() {
   if (unsubDeviceWatcher) { unsubDeviceWatcher(); unsubDeviceWatcher = null; }
   knownDeviceIds.clear();
-}
-
-/* ===== AVENIX TIPS CHANNEL (Auto-join global channel) ===== */
-async function ensureAvenixTipsChannel() {
-  if (!currentUser) return;
-  try {
-    // Use a fixed document ID so we don't need a Firestore index
-    const channelRef = db.collection('groups').doc('avenixTipsOfficial');
-    const snap = await channelRef.get();
-
-    if (!snap.exists) {
-      // First user to login creates the channel
-      await channelRef.set({
-        name: 'Avenix Tips',
-        nameLower: 'avenix tips',
-        isChannel: true,
-        isAvenixTips: true,
-        members: [currentUser.uid],
-        admins: [currentUser.uid],
-        adminRoles: { [currentUser.uid]: 'owner' },
-        createdBy: currentUser.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastMessage: 'Welcome to Avenix Tips! Official tips and announcements.',
-        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-        photoURL: null,
-        inviteCode: generateInviteCode()
-      });
-
-      // Add welcome message
-      await channelRef.collection('messages').add({
-        text: 'Welcome to Avenix Tips! \ud83c\udf89\n\nThis is the official announcement channel. Here you\'ll receive tips, updates, and important information from the Avenix team.',
-        senderId: currentUser.uid,
-        senderUsername: currentUserData.username,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        type: 'text',
-        category: 'announcement',
-        hashtags: []
-      });
-    } else {
-      const channelData = snap.data();
-      const members = channelData.members || [];
-      // Auto-join: add current user if not already a member
-      if (!members.includes(currentUser.uid)) {
-        await channelRef.update({
-          members: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
-        });
-      }
-    }
-  } catch (err) {
-    console.warn('Avenix Tips channel error:', err);
-  }
 }
 
 /* ===== FORWARD MESSAGE ===== */
@@ -5555,7 +5711,9 @@ function renderMessage(msg, msgId, chatId, isGroup) {
   if (isGroup && !isChannel && !isSent && msg.senderUsername) {
     const senderName = document.createElement('div');
     senderName.className = 'group-sender-name';
-    senderName.textContent = msg.senderUsername;
+    const cachedUser = partnerCache[msg.senderId];
+    const isGold = msg.senderVerifiedGold || (cachedUser && cachedUser.verifiedGold);
+    senderName.innerHTML = msg.senderUsername + (isGold ? ' ' + getGoldTickSvg() : '');
     bubble.appendChild(senderName);
   }
 
@@ -6098,12 +6256,24 @@ function setTypingState(isTyping) {
   ref.update(updateData).catch(()=>{});
 }
 messageInput.addEventListener('input', () => {
+  // Auto-grow height of messageInput
+  messageInput.style.height = 'auto';
+  messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+
   if (!activeChatId || isSavedMessagesView) return;
   if (!isTypingFlag) { isTypingFlag = true; setTypingState(true); }
   clearTimeout(typingTimeout);
   typingTimeout = setTimeout(() => { isTypingFlag = false; setTypingState(false); }, 3000);
   if (!messageInput.value.trim() && isTypingFlag) {
     isTypingFlag = false; clearTimeout(typingTimeout); setTypingState(false);
+  }
+});
+
+// Submit on Enter key (Shift+Enter inserts a new line)
+messageInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    messageForm.requestSubmit();
   }
 });
 messageInput.addEventListener('blur', () => {
@@ -6113,13 +6283,6 @@ messageInput.addEventListener('blur', () => {
 messageForm.addEventListener('submit', async e => {
   e.preventDefault();
   const text = messageInput.value.trim();
-  // Handle Avenix Tips channel sending
-  if (isAvenixView && text) {
-    if (!canPostToAvenixTips()) { showToast('Only authorized admins can post'); return; }
-    messageInput.value = '';
-    await sendAvenixTipsMessage(text);
-    return;
-  }
   if (!text || !activeChatId) return;
   if (!activeChatIsGroup && isBlockedEitherWay(activeChatPartner)) { showToast('You cannot message this user'); return; }
   if (activeChatIsChannel && !canPostInActiveChat()) {
@@ -6127,6 +6290,7 @@ messageForm.addEventListener('submit', async e => {
     return;
   }
   messageInput.value = '';
+  messageInput.style.height = '40px';
   if (isTypingFlag) { isTypingFlag = false; clearTimeout(typingTimeout); setTypingState(false); }
 
   const col = activeChatIsGroup ? 'groups' : 'chats';
@@ -6134,6 +6298,7 @@ messageForm.addEventListener('submit', async e => {
     text,
     senderId: currentUser.uid,
     senderUsername: currentUserData.username,
+    senderVerifiedGold: !!(currentUserData && currentUserData.verifiedGold),
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     type: 'text',
     hashtags: extractHashtags(text),
@@ -6279,6 +6444,7 @@ function buildEmojiPicker() {
       btn.addEventListener('click', () => {
         messageInput.value += em;
         messageInput.focus();
+        messageInput.dispatchEvent(new Event('input'));
       });
       grid.appendChild(btn);
     });
@@ -6296,16 +6462,24 @@ function buildEmojiPicker() {
 
 emojiBtn.addEventListener('click', (e) => {
   e.stopPropagation();
-  const isOpen = !emojiPicker.classList.contains('hidden');
+  const isOpen = !unifiedPicker.classList.contains('hidden');
   closeAllPopups();
   if (!isOpen) {
-    buildEmojiPicker();
-    emojiPicker.classList.remove('hidden');
+    unifiedPicker.classList.remove('hidden');
     emojiBtn.classList.add('active');
+    switchPickerTab(currentPickerTab);
   }
 });
 
-emojiPicker.addEventListener('click', e => e.stopPropagation());
+unifiedPicker.addEventListener('click', e => e.stopPropagation());
+
+// Add event listeners for media picker tab buttons
+setTimeout(() => {
+  const tEmoji = document.getElementById('picker-tab-emoji');
+  const tGif = document.getElementById('picker-tab-gif');
+  if (tEmoji) tEmoji.addEventListener('click', () => switchPickerTab('emoji'));
+  if (tGif) tGif.addEventListener('click', () => switchPickerTab('gif'));
+}, 1000);
 document.addEventListener('click', () => closeAllPopups());
 
 /* ===== ATTACH MENU ===== */
@@ -6928,6 +7102,49 @@ async function showChannelSettings(channelId, channelData) {
     copyInviteLink(code, inviteBtn);
   });
   body.appendChild(inviteBtn);
+
+  // If the logged in user is the Messenger Owner, render blue tick control panel
+  if (currentUserData && currentUserData.isAppOwner) {
+    const ownerSec = document.createElement('div');
+    ownerSec.style.cssText = 'margin-top:20px;padding:14px;border:1px solid rgba(255,255,255,0.08);background:var(--surface2);border-radius:12px;margin-bottom:16px;';
+    ownerSec.innerHTML = `
+      <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Owner Controls (مدیریت تیک آبی)</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.4;">به عنوان صاحب پیام‌رسان، می‌توانید تیک آبی تأیید شده اینستاگرام را به این کانال اعطا یا حذف کنید.</p>
+    `;
+    const verifyToggleBtn = document.createElement('button');
+    verifyToggleBtn.type = 'button';
+    verifyToggleBtn.className = 'btn-full';
+    
+    function updateBtnState() {
+      const isVerified = !!channelData.verified;
+      verifyToggleBtn.textContent = isVerified ? 'حذف تیک آبی تأیید شده کانال' : 'اعطای تیک آبی تأیید شده کانال';
+      verifyToggleBtn.style.cssText = `width:100%;padding:10px;border-radius:8px;border:none;font-weight:600;font-size:13px;cursor:pointer; transition: all 0.2s; background:${isVerified ? 'rgba(239,68,68,0.12)' : 'rgba(0,149,246,0.15)'};color:${isVerified ? '#ef4444' : '#0095f6'};`;
+    }
+    updateBtnState();
+
+    verifyToggleBtn.addEventListener('click', async () => {
+      verifyToggleBtn.disabled = true;
+      verifyToggleBtn.textContent = 'در حال ذخیره‌سازی…';
+      try {
+        const nextState = !channelData.verified;
+        await db.collection('groups').doc(channelId).update({ verified: nextState });
+        channelData.verified = nextState;
+        showToast(nextState ? 'تیک آبی به کانال اعطا شد' : 'تیک آبی از کانال حذف شد');
+        
+        if (activeChatId === channelId) {
+          chatWithUsername.innerHTML = channelData.name + (nextState ? ' ' + getBlueTickSvg() : '');
+        }
+        updateBtnState();
+      } catch (err) {
+        showToast('خطا در بروزرسانی تیک کانال');
+      } finally {
+        verifyToggleBtn.disabled = false;
+      }
+    });
+
+    ownerSec.appendChild(verifyToggleBtn);
+    body.appendChild(ownerSec);
+  }
 
   if (canManageInfo) {
     const renameLabel = document.createElement('span');
@@ -7687,6 +7904,17 @@ function showMyProfile() {
   saveErr.style.cssText = 'min-height:16px;color:var(--error);font-size:12px;text-align:center;margin-top:10px;';
   fieldsWrap.appendChild(saveErr);
 
+  const ownerSection = document.createElement('div');
+  ownerSection.style.cssText = 'margin-top:20px;padding-top:16px;border-top:1px dashed var(--border);margin-bottom:15px;';
+  ownerSection.innerHTML = `
+    <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">System Admin (ویژه مدیریت کل)</div>
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--text-primary);font-size:13.5px;">
+      <input type="checkbox" id="app-owner-toggle" ${currentUserData.isAppOwner ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer;">
+      <span>فعال‌سازی حالت صاحب پیام‌رسان (Messenger Owner Mode)</span>
+    </label>
+  `;
+  fieldsWrap.appendChild(ownerSection);
+
   const saveProfileBtn = document.createElement('button');
   saveProfileBtn.className = 'btn-full btn-blue';
   saveProfileBtn.style.marginTop = '4px';
@@ -7705,7 +7933,8 @@ function showMyProfile() {
         bio: bioInput.value.trim().slice(0, 250),
         dob: dobVal || null,
         phone: phoneInput.value.trim(),
-        links
+        links,
+        isAppOwner: document.getElementById('app-owner-toggle') ? document.getElementById('app-owner-toggle').checked : false
       };
       await db.collection('users').doc(currentUser.uid).update(updates);
       Object.assign(currentUserData, updates);
@@ -7772,6 +8001,49 @@ function showPartnerProfile(userData) {
     refreshBlockBtn();
   });
   footer.appendChild(blockBtn);
+
+  // If logged in user is Messenger Owner, render golden tick control panel in footer/body
+  if (currentUserData && currentUserData.isAppOwner) {
+    const ownerSec = document.createElement('div');
+    ownerSec.style.cssText = 'margin-top:20px;padding:14px;border:1px solid rgba(255,255,255,0.08);background:var(--surface2);border-radius:12px;margin:16px 20px;';
+    ownerSec.innerHTML = `
+      <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;text-transform:uppercase;">Owner Controls (مدیریت تیک طلایی)</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.4;">به عنوان صاحب پیام‌رسان، می‌توانید تیک طلایی تأیید شده را به این کاربر اعطا یا حذف کنید.</p>
+    `;
+    const verifyToggleBtn = document.createElement('button');
+    verifyToggleBtn.type = 'button';
+    verifyToggleBtn.className = 'btn-full';
+    
+    function updateBtnState() {
+      const isVerified = !!userData.verifiedGold;
+      verifyToggleBtn.textContent = isVerified ? 'حذف تیک طلایی تأیید شده کاربر' : 'اعطای تیک طلایی تأیید شده کاربر';
+      verifyToggleBtn.style.cssText = `width:100%;padding:10px;border-radius:8px;border:none;font-weight:600;font-size:13px;cursor:pointer; transition: all 0.2s; background:${isVerified ? 'rgba(239,68,68,0.12)' : 'rgba(250,204,21,0.15)'};color:${isVerified ? '#ef4444' : '#eab308'};`;
+    }
+    updateBtnState();
+
+    verifyToggleBtn.addEventListener('click', async () => {
+      verifyToggleBtn.disabled = true;
+      verifyToggleBtn.textContent = 'در حال ذخیره‌سازی…';
+      try {
+        const nextState = !userData.verifiedGold;
+        await db.collection('users').doc(userData.uid).update({ verifiedGold: nextState });
+        userData.verifiedGold = nextState;
+        showToast(nextState ? 'تیک طلایی به کاربر اعطا شد' : 'تیک طلایی از کاربر حذف شد');
+        
+        if (activeChatId === userData.uid) {
+          chatWithUsername.innerHTML = userData.username + (nextState ? ' ' + getGoldTickSvg() : '');
+        }
+        updateBtnState();
+      } catch (err) {
+        showToast('خطا در بروزرسانی تیک کاربر');
+      } finally {
+        verifyToggleBtn.disabled = false;
+      }
+    });
+
+    ownerSec.appendChild(verifyToggleBtn);
+    body.appendChild(ownerSec);
+  }
   footer.appendChild(closeBtn);
 }
 
@@ -8483,6 +8755,7 @@ async function uploadAndSendVoice(audioBlob, duration) {
       voiceDuration: duration,
       senderId: currentUser.uid,
       senderUsername: currentUserData.username,
+      senderVerifiedGold: !!(currentUserData && currentUserData.verifiedGold),
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       category: activeMessageCategory
     };
@@ -8764,6 +9037,9 @@ renderMessage = function(msg, msgId, chatId, isGroup) {
 
     bubbleWrap.appendChild(actions);
     row.appendChild(bubbleWrap);
+    
+    // Append row to messages element so it renders on screen!
+    messagesEl.appendChild(row);
 
     // Reactions
     if (msg.reactions && Object.keys(msg.reactions).length > 0 && msgId) {
@@ -8790,7 +9066,7 @@ renderMessage = function(msg, msgId, chatId, isGroup) {
 
 // ==================== FEATURE 2: GIF PICKER ====================
 const gifBtn = document.getElementById('gif-btn');
-const gifPicker = document.getElementById('gif-picker');
+const gifPicker = document.getElementById('gif-picker-section');
 const gifSearchInput = document.getElementById('gif-search-input');
 const gifTabs = document.getElementById('gif-tabs');
 const gifGrid = document.getElementById('gif-grid');
@@ -8962,12 +9238,12 @@ gifSearchInput.addEventListener('input', () => {
 
 gifPicker.addEventListener('click', e => e.stopPropagation());
 
-// Update closeAllPopups to include gif picker
+// Update closeAllPopups to include unified picker
 const originalCloseAllPopups = closeAllPopups;
 closeAllPopups = function() {
   originalCloseAllPopups();
-  gifPicker.classList.add('hidden');
-  gifBtn.classList.remove('active');
+  const unified = document.getElementById('unified-picker');
+  if (unified) unified.classList.add('hidden');
   schedulePicker.classList.add('hidden');
 };
 
@@ -9018,6 +9294,9 @@ renderMessage = function(msg, msgId, chatId, isGroup) {
 
     bubbleWrap.appendChild(bubble);
     row.appendChild(bubbleWrap);
+    
+    // Append row to messages element so it renders on screen!
+    messagesEl.appendChild(row);
 
     // Reactions
     if (msg.reactions && Object.keys(msg.reactions).length > 0 && msgId) {
@@ -9134,6 +9413,7 @@ function buildSchedulePicker() {
       showToast('✅ Message scheduled for ' + scheduledTime.toLocaleString());
       schedulePicker.classList.add('hidden');
       messageInput.value = '';
+  messageInput.style.height = '40px';
     } catch (err) {
       showToast('Failed to schedule: ' + friendlyError(err));
     }
@@ -9398,5 +9678,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a181b7fadc6aef8d',t:'MTc4MzU0MTI4Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a18214c0c91633bf',t:'MTc4MzU0NTA4Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
