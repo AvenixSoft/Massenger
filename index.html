@@ -531,7 +531,7 @@ html,body{
 .avenix-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .verified-tick{
   display:inline-flex;align-items:center;vertical-align:middle;
-  margin-left:4px;flex-shrink:0;
+  margin-left:6px;margin-right:0;flex-shrink:0;
 }
 [data-theme="light"] .verified-tick circle{fill:#2563eb;}
 [data-theme="light"] .verified-tick path{stroke:#fff;}
@@ -1784,11 +1784,11 @@ html,body{
       display: inline-flex;
       align-items: center;
       vertical-align: middle;
-      margin-left: 5px;
-      margin-right: 2px;
+      margin-left: 6px;
+      margin-right: 0;
       flex-shrink: 0;
-      width: 15px !important;
-      height: 15px !important;
+      width: 22px !important;
+      height: 22px !important;
     }
 </style>
 </head>
@@ -2042,7 +2042,7 @@ html,body{
         </div>
       </div>
       <div class="user-row-body">
-        <div class="user-row-top"><span class="user-row-name">Avenix</span><svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="unread-badge hidden" id="avenix-unread-badge"></span></div>
+        <div class="user-row-top"><span class="user-row-name">Avenix</span><svg class="verified-tick" width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="unread-badge hidden" id="avenix-unread-badge"></span></div>
         <div class="user-row-sub" id="avenix-notif-preview">Notifications from Avenix</div>
       </div>
     </div>
@@ -2219,7 +2219,7 @@ html,body{
       </div>
       <div id="banned-banner" class="channel-locked-bar" style="display:none; background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; font-weight: 600;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-        <span>این چت یا کانال توسط مدیریت مسدود شده است.</span>
+        <span>This chat or channel has been banned by management.</span>
       </div>
     </div>
   </main>
@@ -2295,11 +2295,11 @@ const meAvatar        = document.getElementById('me-avatar');
 
 // VERIFIED TICKS SVGS AND HELPERS
 function getBlueTickSvg() {
-  return `<svg class="verified-tick" width="15" height="15" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-left: 4px; flex-shrink: 0;"><path d="M12 2.5c-.29 0-.57.11-.78.32l-1 1a1 1 0 0 1-.89.26l-1.4-.28a1.1 1.1 0 0 0-1.3.7l-.54 1.3a1 1 0 0 1-.63.63l-1.3.54a1.1 1.1 0 0 0-.7 1.3l.28 1.4a1 1 0 0 1-.26.89l-1 1a1.1 1.1 0 0 0 0 1.56l1 1a1 1 0 0 1 .26.89l-.28 1.4a1.1 1.1 0 0 0 .7 1.3l1.3.54a1 1 0 0 1 .63.63l.54 1.3a1.1 1.1 0 0 0 1.3.7l1.4-.28a1 1 0 0 1 .89.26l1 1a1.1 1.1 0 0 0 1.56 0l1-1a1 1 0 0 1 .89-.26l1.4.28a1.1 1.1 0 0 0 1.3-.7l.54-1.3a1 1 0 0 1 .63-.63l1.3-.54a1.1 1.1 0 0 0 .7-1.3l-.28-1.4a1 1 0 0 1 .26-.89l1-1a1.1 1.1 0 0 0 0-1.56l-1-1a1 1 0 0 1-.26-.89l.28-1.4a1.1 1.1 0 0 0-.7-1.3l-1.3-.54a1 1 0 0 1-.63-.63l-.54-1.3a1.1 1.1 0 0 0-1.3-.7l-1.4.28a1 1 0 0 1-.89-.26l-1-1a1.1 1.1 0 0 0-.78-.32z" fill="#0095f6"/><path d="M9.75 14.2L6.8 11.25a.75.75 0 1 0-1.06 1.06L9.22 15.8a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 0 0-1.06-1.06L10.28 13.7l-.53.5z" fill="#fff"/></svg>`;
+  return `<svg class="verified-tick" width="22" height="22" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-left: 6px; flex-shrink: 0;"><path d="M12 2.5c-.29 0-.57.11-.78.32l-1 1a1 1 0 0 1-.89.26l-1.4-.28a1.1 1.1 0 0 0-1.3.7l-.54 1.3a1 1 0 0 1-.63.63l-1.3.54a1.1 1.1 0 0 0-.7 1.3l.28 1.4a1 1 0 0 1-.26.89l-1 1a1.1 1.1 0 0 0 0 1.56l1 1a1 1 0 0 1 .26.89l-.28 1.4a1.1 1.1 0 0 0 .7 1.3l1.3.54a1 1 0 0 1 .63.63l.54 1.3a1.1 1.1 0 0 0 1.3.7l1.4-.28a1 1 0 0 1 .89.26l1 1a1.1 1.1 0 0 0 1.56 0l1-1a1 1 0 0 1 .89-.26l1.4.28a1.1 1.1 0 0 0 1.3-.7l.54-1.3a1 1 0 0 1 .63-.63l1.3-.54a1.1 1.1 0 0 0 .7-1.3l-.28-1.4a1 1 0 0 1 .26-.89l1-1a1.1 1.1 0 0 0 0-1.56l-1-1a1 1 0 0 1-.26-.89l.28-1.4a1.1 1.1 0 0 0-.7-1.3l-1.3-.54a1 1 0 0 1-.63-.63l-.54-1.3a1.1 1.1 0 0 0-1.3-.7l-1.4.28a1 1 0 0 1-.89-.26l-1-1a1.1 1.1 0 0 0-.78-.32z" fill="#0095f6"/><path d="M9.75 14.2L6.8 11.25a.75.75 0 1 0-1.06 1.06L9.22 15.8a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 0 0-1.06-1.06L10.28 13.7l-.53.5z" fill="#fff"/></svg>`;
 }
 
 function getGoldTickSvg() {
-  return `<svg class="verified-tick" width="15" height="15" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-left: 4px; flex-shrink: 0;"><path d="M12 2.5c-.29 0-.57.11-.78.32l-1 1a1 1 0 0 1-.89.26l-1.4-.28a1.1 1.1 0 0 0-1.3.7l-.54 1.3a1 1 0 0 1-.63.63l-1.3.54a1.1 1.1 0 0 0-.7 1.3l.28 1.4a1 1 0 0 1-.26.89l-1 1a1.1 1.1 0 0 0 0 1.56l1 1a1 1 0 0 1 .26.89l-.28 1.4a1.1 1.1 0 0 0 .7 1.3l1.3.54a1 1 0 0 1 .63.63l.54 1.3a1.1 1.1 0 0 0 1.3.7l1.4-.28a1 1 0 0 1 .89.26l1 1a1.1 1.1 0 0 0 1.56 0l1-1a1 1 0 0 1 .89-.26l1.4.28a1.1 1.1 0 0 0 1.3-.7l.54-1.3a1 1 0 0 1 .63-.63l1.3-.54a1.1 1.1 0 0 0 .7-1.3l-.28-1.4a1 1 0 0 1 .26-.89l1-1a1.1 1.1 0 0 0 0-1.56l-1-1a1 1 0 0 1-.26-.89l.28-1.4a1.1 1.1 0 0 0-.7-1.3l-1.3-.54a1 1 0 0 1-.63-.63l-.54-1.3a1.1 1.1 0 0 0-1.3-.7l-1.4.28a1 1 0 0 1-.89-.26l-1-1a1.1 1.1 0 0 0-.78-.32z" fill="#ffd700"/><path d="M9.75 14.2L6.8 11.25a.75.75 0 1 0-1.06 1.06L9.22 15.8a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 0 0-1.06-1.06L10.28 13.7l-.53.5z" fill="#fff"/></svg>`;
+  return `<svg class="verified-tick" width="22" height="22" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-left: 6px; flex-shrink: 0;"><path d="M12 2.5c-.29 0-.57.11-.78.32l-1 1a1 1 0 0 1-.89.26l-1.4-.28a1.1 1.1 0 0 0-1.3.7l-.54 1.3a1 1 0 0 1-.63.63l-1.3.54a1.1 1.1 0 0 0-.7 1.3l.28 1.4a1 1 0 0 1-.26.89l-1 1a1.1 1.1 0 0 0 0 1.56l1 1a1 1 0 0 1 .26.89l-.28 1.4a1.1 1.1 0 0 0 .7 1.3l1.3.54a1 1 0 0 1 .63.63l.54 1.3a1.1 1.1 0 0 0 1.3.7l1.4-.28a1 1 0 0 1 .89.26l1 1a1.1 1.1 0 0 0 1.56 0l1-1a1 1 0 0 1 .89-.26l1.4.28a1.1 1.1 0 0 0 1.3-.7l.54-1.3a1 1 0 0 1 .63-.63l1.3-.54a1.1 1.1 0 0 0 .7-1.3l-.28-1.4a1 1 0 0 1 .26-.89l1-1a1.1 1.1 0 0 0 0-1.56l-1-1a1 1 0 0 1-.26-.89l.28-1.4a1.1 1.1 0 0 0-.7-1.3l-1.3-.54a1 1 0 0 1-.63-.63l-.54-1.3a1.1 1.1 0 0 0-1.3-.7l-1.4.28a1 1 0 0 1-.89-.26l-1-1a1.1 1.1 0 0 0-.78-.32z" fill="#ffd700"/><path d="M9.75 14.2L6.8 11.25a.75.75 0 1 0-1.06 1.06L9.22 15.8a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 0 0-1.06-1.06L10.28 13.7l-.53.5z" fill="#fff"/></svg>`;
 }
 
 const meUsername      = document.getElementById('me-username');
@@ -4257,7 +4257,7 @@ function buildUserRow(u, subText, showDot, timeText, isGroup, badgeLabel, unread
   name.textContent = u.username || u.name;
   top.appendChild(name);
 
-  // Appending Instagram ticks
+  // Appending Instagram ticks (on the RIGHT side)
   if (isGroup && badgeLabel === 'Channel' && u.verified) {
     const tickSpan = document.createElement('span');
     tickSpan.innerHTML = getBlueTickSvg();
@@ -5294,7 +5294,7 @@ function openAvenixChatView() {
   avImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
   avWrap.appendChild(avImg);
 
-  chatWithUsername.innerHTML = 'Avenix <svg class="verified-tick" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  chatWithUsername.innerHTML = 'Avenix <svg class="verified-tick" width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#2563eb"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   chatWithStatus.className = 'chat-with-status';
   chatWithStatus.textContent = 'Notification Service';
   document.getElementById('chat-status-dot').style.display = 'none';
@@ -7590,7 +7590,7 @@ async function showChannelSettings(channelId, channelData) {
 
     verifyToggleBtn.addEventListener('click', async () => {
       verifyToggleBtn.disabled = true;
-      verifyToggleBtn.textContent = 'در حال ذخیره‌سازی…';
+      verifyToggleBtn.textContent = 'Saving…';
       try {
         const nextState = !channelData.verified;
         await db.collection('groups').doc(channelId).update({ verified: nextState });
@@ -7624,7 +7624,7 @@ async function showChannelSettings(channelId, channelData) {
 
     banToggleBtn.addEventListener('click', async () => {
       banToggleBtn.disabled = true;
-      banToggleBtn.textContent = 'در حال ذخیره‌سازی…';
+      banToggleBtn.textContent = 'Saving…';
       try {
         const nextState = !channelData.banned;
         await db.collection('groups').doc(channelId).update({ banned: nextState });
@@ -8404,26 +8404,29 @@ function showMyProfile() {
   saveErr.style.cssText = 'min-height:16px;color:var(--error);font-size:12px;text-align:center;margin-top:10px;';
   fieldsWrap.appendChild(saveErr);
 
-    // ===== SINGLE OWNER LOGIC - فقط یک نفر مالک =====
+    // ===== SINGLE OWNER LOGIC - Only visible to the actual owner =====
+  // Check if current user is the owner - only show this section to them
+  const shouldShowOwnerSection = currentUserData && currentUserData.isAppOwner;
+  if (shouldShowOwnerSection) {
   const ownerSection = document.createElement('div');
   ownerSection.style.cssText = 'margin-top:20px;padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--surface2);margin-bottom:15px;';
 
   const ownerTitle = document.createElement('div');
   ownerTitle.style.cssText = 'font-size:13px;font-weight:800;color:var(--primary);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:8px;';
-  ownerTitle.innerHTML = `${designIcon('lock',16)} <span>مالک پیام‌رسان (Single Owner)</span>`;
+  ownerTitle.innerHTML = `${designIcon('lock',16)} <span>Messenger Owner</span>`;
   ownerSection.appendChild(ownerTitle);
 
   const ownerStatusEl = document.createElement('div');
   ownerStatusEl.id = 'app-owner-status';
   ownerStatusEl.style.cssText = 'font-size:12.5px;color:var(--text-muted);line-height:1.5;margin-bottom:12px;padding:8px 10px;background:var(--surface);border-radius:10px;border:1px solid var(--input-border);';
-  ownerStatusEl.textContent = 'در حال بررسی مالک فعلی...';
+  ownerStatusEl.textContent = 'Checking current owner...';
   ownerSection.appendChild(ownerStatusEl);
 
   const ownerToggleLabel = document.createElement('label');
   ownerToggleLabel.style.cssText = 'display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--text-primary);font-size:13.5px;font-weight:600;';
   ownerToggleLabel.innerHTML = `
       <input type="checkbox" id="app-owner-toggle" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;">
-      <span>فعال‌سازی حالت صاحب پیام‌رسان</span>
+      <span>Enable Messenger Owner Mode</span>
   `;
   ownerSection.appendChild(ownerToggleLabel);
 
@@ -8442,35 +8445,35 @@ function showMyProfile() {
     try{
       const info = await getAppOwnerInfo();
       if(!info){
-        statusEl.innerHTML = '✅ <b style="color:var(--text-primary);">هنوز هیچ مالکی ثبت نشده است.</b><br><span style="font-size:11.5px;">شما می‌توانید اولین و تنها مالک پیام‌رسان شوید.</span>';
+        statusEl.innerHTML = '✅ <b style="color:var(--text-primary);">No owner has been set yet.</b><br><span style="font-size:11.5px;">You can become the first and only messenger owner.</span>';
         statusEl.style.borderColor = 'rgba(34,197,94,0.25)';
         statusEl.style.background = 'rgba(34,197,94,0.06)';
         toggle.checked = !!(currentUserData && currentUserData.isAppOwner);
         toggle.disabled = false;
         hintEl.style.display = 'none';
       } else if(info.uid === currentUser.uid){
-        statusEl.innerHTML = `👑 <b style="color:#22c55e;">شما صاحب فعلی پیام‌رسان هستید</b><br><span style="font-size:11.5px;">@${escapeHtml(info.username)} - فقط شما دسترسی کامل دارید.</span>`;
+        statusEl.innerHTML = `👑 <b style="color:#22c55e;">You are the current messenger owner</b><br><span style="font-size:11.5px;">@${escapeHtml(info.username)} - Only you have full access.</span>`;
         statusEl.style.borderColor = 'rgba(34,197,94,0.35)';
         statusEl.style.background = 'rgba(34,197,94,0.08)';
         toggle.checked = true;
         toggle.disabled = false;
         hintEl.style.display = 'block';
-        hintEl.innerHTML = 'اگر این گزینه را غیرفعال کنید، جایگاه مالک آزاد می‌شود و شخص دیگری می‌تواند آن را بگیرد.';
+        hintEl.innerHTML = 'If you disable this option, the owner slot will be freed and someone else can take it.';
         hintEl.style.color = 'var(--text-muted)';
       } else {
-        statusEl.innerHTML = `🔒 <b style="color:#f59e0b;">مالک تعیین شده است</b><br><span style="font-size:11.5px;">صاحب فعلی: <b style="color:var(--text-primary);">@${escapeHtml(info.username)}</b> (${escapeHtml(info.email || '')})</span><br><span style="font-size:11px;color:var(--text-muted);">فقط یک نفر در کل سیستم می‌تواند صاحب باشد.</span>`;
+        statusEl.innerHTML = `🔒 <b style="color:#f59e0b;">Owner is already set</b><br><span style="font-size:11.5px;">Current owner: <b style="color:var(--text-primary);">@${escapeHtml(info.username)}</b> (${escapeHtml(info.email || '')})</span><br><span style="font-size:11px;color:var(--text-muted);">Only one person can be the owner in the whole system.</span>`;
         statusEl.style.borderColor = 'rgba(245,158,11,0.35)';
         statusEl.style.background = 'rgba(245,158,11,0.08)';
         toggle.checked = false;
         toggle.disabled = true;
         hintEl.style.display = 'block';
         hintEl.style.color = '#f59e0b';
-        hintEl.innerHTML = `❌ شما نمی‌توانید مالک شوید چون <b>@${escapeHtml(info.username)}</b> قبلاً مالک است. فقط مالک فعلی می‌تواند این نقش را واگذار کند.`;
+        hintEl.innerHTML = `❌ You cannot become owner because <b>@${escapeHtml(info.username)}</b> is already the owner. Only the current owner can release this role.`;
         ownerToggleLabel.style.opacity = '0.6';
         ownerToggleLabel.style.cursor = 'not-allowed';
       }
     }catch(e){
-      statusEl.textContent = 'خطا در بررسی مالک: ' + (e.message || e);
+      statusEl.textContent = 'Error checking owner: ' + (e.message || e);
       toggle.disabled = false;
     }
 
@@ -8482,34 +8485,34 @@ function showMyProfile() {
           const existing = await getAppOwnerInfo(true);
           if(existing && existing.uid !== currentUser.uid){
             toggle.checked = false;
-            showToast(`مالک قبلاً تعیین شده: @${existing.username}. فقط یک نفر می‌تواند صاحب باشد.`);
-            statusEl.innerHTML = `🔒 مالک فعلی: @${escapeHtml(existing.username)}`;
+            showToast(`Owner already set: @${existing.username}. Only one person can be the owner.`);
+            statusEl.innerHTML = `🔒 Current owner: @${escapeHtml(existing.username)}`;
             return;
           }
           // Confirm
-          if(!confirm('آیا مطمئن هستید که می‌خواهید تنها مالک پیام‌رسان شوید؟ بعد از این، هیچ کس دیگری نمی‌تواند مالک شود مگر اینکه شما آن را آزاد کنید.')){
+          if(!confirm('Are you sure you want to become the sole messenger owner? After this, no one else can become the owner unless you release it.')){
             toggle.checked = false;
             return;
           }
-          statusEl.textContent = 'در حال ثبت مالکیت...';
+          statusEl.textContent = 'Registering ownership...';
           toggle.disabled = true;
           await claimAppOwnerRole();
-          statusEl.innerHTML = `👑 <b style="color:#22c55e;">شما اکنون صاحب پیام‌رسان هستید!</b>`;
+          statusEl.innerHTML = `👑 <b style="color:#22c55e;">You are now the messenger owner!</b>`;
           statusEl.style.borderColor = 'rgba(34,197,94,0.35)';
           statusEl.style.background = 'rgba(34,197,94,0.08)';
           hintEl.style.display = 'block';
           hintEl.style.color = 'var(--text-muted)';
-          hintEl.innerHTML = 'اگر این گزینه را غیرفعال کنید، جایگاه مالک آزاد می‌شود.';
-          showToast('✅ شما به عنوان تنها مالک ثبت شدید');
+          hintEl.innerHTML = 'If you disable this option, the owner slot will be freed.';
+          showToast('✅ You are now registered as the sole owner');
         }catch(err){
           toggle.checked = false;
           if(String(err.message).startsWith('OWNER_EXISTS:')){
             const uname = String(err.message).split(':')[1] || 'شخص دیگر';
-            showToast(`مالک قبلاً تعیین شده: @${uname}`);
-            statusEl.innerHTML = `🔒 مالک فعلی: @${escapeHtml(uname)} - فقط یک نفر می‌تواند صاحب باشد`;
+            showToast(`Owner already set: @${uname}`);
+            statusEl.innerHTML = `🔒 Current owner: @${escapeHtml(uname)} - Only one person can be the owner`;
           }else{
-            showToast('خطا در فعال‌سازی مالکیت: ' + (err.message || err));
-            statusEl.textContent = 'خطا: ' + (err.message || err);
+            showToast('Error activating ownership: ' + (err.message || err));
+            statusEl.textContent = 'Error: ' + (err.message || err);
           }
         }finally{
           const ownerInfo = await getAppOwnerInfo(true);
@@ -8520,24 +8523,24 @@ function showMyProfile() {
       } else {
         // Trying to release ownership
         if(currentUserData && currentUserData.isAppOwner){
-          if(!confirm('آیا مطمئن هستید که می‌خواهید مالکیت را آزاد کنید؟ بعد از این هر کاربری می‌تواند مالک شود.')){
+          if(!confirm('Are you sure you want to release ownership? After this, any user can become the owner.')){
             toggle.checked = true;
             return;
           }
           try{
-            statusEl.textContent = 'در حال آزادسازی مالکیت...';
+            statusEl.textContent = 'Releasing ownership...';
             toggle.disabled = true;
             await releaseAppOwnerRole();
-            statusEl.innerHTML = '✅ <b>مالکیت آزاد شد.</b><br>اکنون هیچ مالکی وجود ندارد.';
+            statusEl.innerHTML = '✅ <b>Ownership released.</b><br>There is no owner now.';
             statusEl.style.borderColor = 'rgba(34,197,94,0.25)';
             statusEl.style.background = 'rgba(34,197,94,0.06)';
             hintEl.style.display = 'none';
             ownerToggleLabel.style.opacity = '1';
             ownerToggleLabel.style.cursor = 'pointer';
-            showToast('مالکیت آزاد شد');
+            showToast('Ownership released');
           }catch(err){
             toggle.checked = true;
-            showToast('خطا در آزادسازی: ' + (err.message || err));
+            showToast('Error releasing ownership: ' + (err.message || err));
           }finally{
             toggle.disabled = false;
           }
@@ -8547,6 +8550,7 @@ function showMyProfile() {
       }
     });
   })();
+  } // End of owner-only section
   const saveProfileBtn = document.createElement('button');
   saveProfileBtn.className = 'btn-full btn-blue';
   saveProfileBtn.style.marginTop = '4px';
@@ -8571,9 +8575,9 @@ function showMyProfile() {
         // User is trying to become owner via save button (if they checked)
         const existing = await getAppOwnerInfo(true);
         if (existing && existing.uid !== currentUser.uid) {
-          saveErr.textContent = `مالک قبلاً تعیین شده: @${existing.username}. فقط یک نفر می‌تواند صاحب پیام‌رسان باشد.`;
+          saveErr.textContent = `Owner already set: @${existing.username}. Only one person can be the messenger owner.`;
           if(toggleEl) toggleEl.checked = false;
-          showToast(`مالک فعلی: @${existing.username}`);
+          showToast(`Current owner: @${existing.username}`);
           saveProfileBtn.disabled = false;
           saveProfileBtn.textContent = 'Save Profile Info';
           return;
@@ -8581,11 +8585,11 @@ function showMyProfile() {
         // Claim ownership first
         try{
           await claimAppOwnerRole();
-          showToast('✅ شما به عنوان تنها مالک ثبت شدید');
+          showToast('✅ You are now registered as the sole owner');
         }catch(e){
           if(String(e.message).startsWith('OWNER_EXISTS:')){
             const uname = String(e.message).split(':')[1];
-            saveErr.textContent = `مالک قبلاً تعیین شده: @${uname}`;
+            saveErr.textContent = `Owner already set: @${uname}`;
             if(toggleEl) toggleEl.checked = false;
             saveProfileBtn.disabled = false;
             saveProfileBtn.textContent = 'Save Profile Info';
@@ -8597,7 +8601,7 @@ function showMyProfile() {
         // User wants to release ownership
         try{
           await releaseAppOwnerRole();
-          showToast('مالکیت آزاد شد');
+          showToast('Ownership released');
         }catch(e){
           console.warn('release failed', e);
         }
@@ -8686,8 +8690,8 @@ function showPartnerProfile(userData) {
     const ownerSec = document.createElement('div');
     ownerSec.style.cssText = 'margin-top:20px;padding:14px;border:1px solid rgba(255,255,255,0.08);background:var(--surface2);border-radius:12px;margin:16px 20px;';
     ownerSec.innerHTML = `
-      <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;text-transform:uppercase;">Owner Controls (مدیریت کل سیستم)</div>
-      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.4;">به عنوان صاحب پیام‌رسان، می‌توانید تیک طلایی را به این کاربر اعطا یا حساب او را بن/مسدود کنید.</p>
+      <div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;text-transform:uppercase;">Owner Controls</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.4;">As the messenger owner, you can grant a gold verified tick to this user or ban/suspend their account.</p>
     `;
     const verifyToggleBtn = document.createElement('button');
     verifyToggleBtn.type = 'button';
@@ -8695,26 +8699,26 @@ function showPartnerProfile(userData) {
     
     function updateBtnState() {
       const isVerified = !!userData.verifiedGold;
-      verifyToggleBtn.textContent = isVerified ? 'حذف تیک طلایی تأیید شده' : 'اعطای تیک طلایی تأیید شده';
+      verifyToggleBtn.textContent = isVerified ? 'Remove Gold Verified Tick' : 'Grant Gold Verified Tick';
       verifyToggleBtn.style.cssText = `width:100%;padding:10px;border-radius:8px;border:none;font-weight:600;font-size:13px;cursor:pointer; transition: all 0.2s; background:${isVerified ? 'rgba(239,68,68,0.12)' : 'rgba(250,204,21,0.15)'};color:${isVerified ? '#ef4444' : '#eab308'};`;
     }
     updateBtnState();
 
     verifyToggleBtn.addEventListener('click', async () => {
       verifyToggleBtn.disabled = true;
-      verifyToggleBtn.textContent = 'در حال ذخیره‌سازی…';
+      verifyToggleBtn.textContent = 'Saving…';
       try {
         const nextState = !userData.verifiedGold;
         await db.collection('users').doc(userData.uid).update({ verifiedGold: nextState });
         userData.verifiedGold = nextState;
-        showToast(nextState ? 'تیک طلایی به کاربر اعطا شد' : 'تیک طلایی از کاربر حذف شد');
+        showToast(nextState ? 'Gold tick granted to user' : 'Gold tick removed from user');
         
         if (activeChatId === userData.uid) {
           chatWithUsername.innerHTML = userData.username + (nextState ? ' ' + getGoldTickSvg() : '');
         }
         updateBtnState();
       } catch (err) {
-        showToast('خطا در بروزرسانی تیک کاربر');
+        showToast('Error updating user tick');
       } finally {
         verifyToggleBtn.disabled = false;
       }
@@ -8729,26 +8733,26 @@ function showPartnerProfile(userData) {
     
     function updateBanBtnState() {
       const isBanned = !!userData.banned;
-      banToggleBtn.textContent = isBanned ? 'رفع مسدودیت کاربر (آن‌بن)' : 'مسدود کردن کاربر (بن)';
+      banToggleBtn.textContent = isBanned ? 'Unban User' : 'Ban User';
       banToggleBtn.style.cssText = `width:100%;padding:10px;border-radius:8px;border:none;font-weight:600;font-size:13px;cursor:pointer; transition: all 0.2s; background:${isBanned ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'};color:${isBanned ? '#22c55e' : '#ef4444'};margin-top:8px;`;
     }
     updateBanBtnState();
 
     banToggleBtn.addEventListener('click', async () => {
       banToggleBtn.disabled = true;
-      banToggleBtn.textContent = 'در حال ذخیره‌سازی…';
+      banToggleBtn.textContent = 'Saving…';
       try {
         const nextState = !userData.banned;
         await db.collection('users').doc(userData.uid).update({ banned: nextState });
         userData.banned = nextState;
-        showToast(nextState ? 'کاربر با موفقیت مسدود شد' : 'رفع مسدودیت کاربر انجام شد');
+        showToast(nextState ? 'User banned successfully' : 'User unbanned successfully');
         
         if (activeChatId === userData.uid) {
           openChatWith(userData);
         }
         updateBanBtnState();
       } catch (err) {
-        showToast('خطا در تغییر وضعیت مسدودیت کاربر');
+        showToast('Error changing user ban status');
       } finally {
         banToggleBtn.disabled = false;
       }
@@ -10758,5 +10762,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a182918ba949798e',t:'MTc4MzU1MDE5NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a188d5c52afe11cb',t:'MTc4MzYxNTkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1890f8aacaef7ea',t:'MTc4MzYxODI2OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a189531d1c400bc5',t:'MTc4MzYyMTAzNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1895eede9a3fffd',t:'MTc4MzYyMTUyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16ea2514a6b3bbd',t:'MTc4MzM0MTE2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16f5d293ea4cf5c',t:'MTc4MzM0ODgxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16fd257cbee25bc',t:'MTc4MzM1MzYxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a17202520f1a0ba5',t:'MTc4MzM3NjU1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1722830289f6368',t:'MTc4MzM3ODEwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a180da6f0f40dc9e',t:'MTc4MzUzMjIwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a182918ba949798e',t:'MTc4MzU1MDE5NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a188d5c52afe11cb',t:'MTc4MzYxNTkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1890f8aacaef7ea',t:'MTc4MzYxODI2OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a189531d1c400bc5',t:'MTc4MzYyMTAzNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1895eede9a3fffd',t:'MTc4MzYyMTUyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1899502cf38a6a3',t:'MTc4MzYyMzczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
