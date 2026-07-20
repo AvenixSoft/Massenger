@@ -585,7 +585,7 @@ html,body{
 .reply-bar-close:hover{color:var(--error);}
 
 /* ===== MESSAGES ===== */
-.messages{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:4px;scroll-behavior:smooth;}
+.messages{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth;}
 .date-separator{display:flex;align-items:center;justify-content:center;margin:12px 0 8px;}
 .date-separator span{
   background:rgba(37,99,235,0.1);color:var(--text-secondary);
@@ -597,7 +597,7 @@ html,body{
 @keyframes msgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 .message-row.sent{align-self:flex-end;align-items:flex-end;}
 .message-row.received{align-self:flex-start;align-items:flex-start;}
-.message-row.sent+.message-row.sent,.message-row.received+.message-row.received{margin-top:-2px;}
+.message-row.sent+.message-row.sent,.message-row.received+.message-row.received{margin-top:0;}
 
 /* Reply quote inside bubble */
 .reply-quote{
@@ -647,8 +647,8 @@ html,body{
 
 .bubble{
   padding:9px 13px;border-radius:16px;
-  font-size:14.5px;line-height:1.55;
-  word-wrap:break-word;word-break:break-word;max-width:100%;
+  font-size:14.5px;line-height:1.62;
+  word-wrap:break-word;word-break:break-word;max-width:100%;min-width:0;
 }
 .message-row.sent .bubble{background:var(--bubble-sent);color:var(--bubble-sent-text,#ddeeff);border-bottom-right-radius:4px;}
 .message-row.received .bubble{background:var(--bubble-received);color:var(--text-primary);border-bottom-left-radius:4px;}
@@ -745,9 +745,21 @@ html,body{
   box-shadow:0 0 0 2px var(--primary-light),0 0 18px rgba(37,99,235,0.25);
 }
 .msg-edit-input{
-  background:rgba(0,0,0,0.3);border:1.5px solid var(--primary);border-radius:12px;
-  padding:8px 13px;font-size:14.5px;color:inherit;outline:none;min-width:140px;font-family:inherit;
+  width:100%;min-height:76px;resize:vertical;
+  background:var(--surface2);border:1.5px solid var(--primary);border-radius:12px;
+  padding:10px 12px;font:inherit;line-height:1.5;color:var(--text-primary);outline:none;
+  box-shadow:0 0 0 3px rgba(37,99,235,.13);
 }
+.message-edit-box{min-width:220px;width:min(360px,72vw);display:flex;flex-direction:column;gap:8px;}
+.message-edit-label{display:flex;align-items:center;gap:6px;color:var(--primary-light);font-size:11px;font-weight:800;letter-spacing:.25px;}
+.message-edit-actions{display:flex;justify-content:flex-end;gap:7px;}
+.message-edit-btn{border:0;border-radius:9px;padding:7px 11px;cursor:pointer;font:700 12px inherit;transition:filter .15s,transform .15s;}
+.message-edit-btn:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.message-edit-btn.cancel{background:var(--surface2);color:var(--text-secondary);border:1px solid var(--border);}
+.message-edit-btn.save{background:var(--primary);color:#fff;box-shadow:0 3px 10px rgba(37,99,235,.3);}
+.message-edit-btn:disabled{opacity:.55;cursor:wait;transform:none;}
+.message-edit-hint{font-size:10.5px;color:var(--text-muted);margin-right:auto;align-self:center;}
+@media(max-width:480px){.message-edit-box{width:min(290px,76vw);}.msg-edit-input{min-height:68px;}}
 
 /* ===== EMOJI & GIF PICKER ===== */
 .emoji-picker{
@@ -912,7 +924,8 @@ html,body{
   background:var(--surface2);
   box-shadow:0 0 0 3px rgba(37,99,235,0.1);
 }
-.message-form input{
+.message-form input,
+.message-form textarea{
   flex:1;
   width:100%;
   padding:10px 10px;
@@ -922,6 +935,15 @@ html,body{
   font-size:16px;
   color:var(--text-primary);
   transition:all 0.2s;
+}
+/* The message field stays one line until content reaches its available width. */
+.message-form textarea{
+  height:42px;min-height:42px;max-height:128px;
+  resize:none;overflow-x:hidden;overflow-y:hidden;
+  font-family:inherit;line-height:1.45;
+  text-align:start;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;
+  appearance:none;
+  -webkit-appearance:none;
 }
 .msg-input-wrap .form-icon-btn,
 .msg-input-wrap .voice-record-btn {
@@ -954,8 +976,8 @@ html,body{
 [data-theme="light"] .msg-input-wrap .voice-record-btn:hover {
   background:rgba(0, 0, 0, 0.05)!important;
 }
-.message-form input::placeholder{color:var(--text-muted);}
-.message-form input:focus{background:transparent!important;}
+.message-form input::placeholder,.message-form textarea::placeholder{color:var(--text-muted);}
+.message-form input:focus,.message-form textarea:focus{background:transparent!important;}
 .btn-send{
   width:42px;height:42px;border-radius:50%;border:none;
   background:var(--primary);color:#fff;cursor:pointer;
@@ -1197,6 +1219,7 @@ html,body{
   /* Chat window also respect nav height */
   .chat-active{padding-bottom:0;}
   .message-form{padding-bottom:max(10px,env(safe-area-inset-bottom));}
+  .message-form textarea{max-height:108px;}
 
   /* Search box on mobile: sits lower, fully rounded, nicer look */
   .search-box{
@@ -1414,7 +1437,9 @@ html,body{
 .hashtag-link:hover{text-decoration:underline;text-underline-offset:2px;}
 .message-row.sent .hashtag-link{color:#93c5fd;}
 [data-theme="light"] .message-row.sent .hashtag-link{color:#2563eb;}
-.message-text{white-space:pre-wrap;}
+.message-text{display:block;min-width:0;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;line-height:inherit;text-align:start;unicode-bidi:plaintext;}
+.message-text[dir="rtl"]{text-align:right;}
+.message-text[dir="ltr"]{text-align:left;}
 .message-category-pill{
   display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;
   border:1px solid var(--primary);border-radius:999px;padding:2px 8px;margin:0 0 6px;
@@ -1866,7 +1891,7 @@ html,body{
 .article-editor p{margin:0 0 1em;}.article-editor h1,.article-editor h2,.article-editor h3{line-height:1.28;margin:1.1em 0 .42em;color:var(--text-primary);}.article-editor h1{font-size:1.85em}.article-editor h2{font-size:1.5em}.article-editor h3{font-size:1.22em}
 .article-editor ul,.article-editor ol{padding-inline-start:1.7em;margin:0 0 1em;}.article-editor blockquote{margin:1em 0;padding:8px 14px;border-inline-start:3px solid var(--primary);background:var(--blue-glow);border-radius:0 10px 10px 0;color:var(--text-secondary);}.article-editor pre{padding:13px 15px;background:#080b14;color:#c6d6f5;border-radius:11px;overflow:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;}.article-editor hr{border:0;border-top:1px solid var(--border);margin:1.8em 0;}.article-editor a{color:var(--primary-light);text-decoration:underline;text-underline-offset:3px;}.article-editor img{display:block;max-width:100%;height:auto;border-radius:12px;margin:16px auto;box-shadow:0 6px 20px rgba(0,0,0,.18);}.article-editor figure{margin:16px 0;}.article-editor table{width:100%;border-collapse:collapse;margin:18px 0;overflow:hidden;border-radius:10px;border-style:hidden;box-shadow:0 0 0 1px var(--border);}.article-editor th,.article-editor td{border:1px solid var(--border);padding:8px 10px;min-width:60px;vertical-align:top;}.article-editor th{background:var(--surface2);font-weight:700;}
 .article-composer-footer{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-top:1px solid var(--border);background:var(--chat-header-bg);flex-shrink:0;}.article-draft-status{font-size:11.5px;color:var(--text-muted);display:flex;gap:6px;align-items:center;}.article-draft-status .dot{width:6px;height:6px;border-radius:50%;background:#22c55e;}.article-footer-actions{display:flex;gap:8px;align-items:center;}.article-send-btn{border:0;border-radius:11px;background:var(--primary);color:#fff;padding:10px 16px;font:700 13px inherit;cursor:pointer;box-shadow:0 5px 15px rgba(37,99,235,.28);}.article-send-btn:hover{background:var(--primary-dark);}.article-send-btn:disabled{opacity:.6;cursor:wait;}.article-secondary-btn{border:1px solid var(--input-border);border-radius:10px;background:var(--surface2);color:var(--text-secondary);padding:9px 11px;font:700 12px inherit;cursor:pointer;}.article-secondary-btn.danger:hover{background:rgba(239,68,68,.13);color:#f87171;border-color:rgba(239,68,68,.25);}
-.article-message-card{min-width:min(430px,72vw);max-width:560px;overflow:hidden;border-radius:13px;border:1px solid rgba(96,165,250,.2);background:rgba(10,16,31,.26);cursor:pointer;transition:transform .16s ease,border-color .16s ease;}.article-message-card:hover{transform:translateY(-1px);border-color:var(--primary-light);}.article-message-cover{height:142px;background-position:center;background-size:cover;background-color:var(--surface2);}.article-message-top{display:flex;align-items:center;gap:7px;padding:12px 14px 4px;color:var(--primary-light);font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;}.article-message-title{padding:3px 14px 6px;font-size:17px;font-weight:800;line-height:1.3;color:var(--text-primary);}.article-message-excerpt{padding:0 14px 13px;color:var(--text-secondary);font-size:13px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}.article-message-read{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.08);padding:9px 14px;font-size:12px;font-weight:700;color:var(--primary-light);}.article-reader{width:min(850px,100%);height:min(90dvh,920px);display:flex;flex-direction:column;border-radius:22px;overflow:hidden;border:1px solid var(--border);background:var(--surface);box-shadow:0 28px 100px rgba(0,0,0,.62);animation:popIn .2s ease;}.article-reader-header{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text-secondary);}.article-reader-body{overflow-y:auto;padding:0 11%;font-size:16px;line-height:1.82;color:var(--text-primary);}.article-reader-cover{height:245px;margin:26px 0 24px;border-radius:17px;background-size:cover;background-position:center;background-color:var(--surface2);}.article-reader-title{font-size:clamp(28px,5vw,46px);line-height:1.15;letter-spacing:-1px;margin:28px 0 10px;}.article-reader-meta{font-size:12px;color:var(--text-muted);margin-bottom:26px;}.article-reader-content{padding-bottom:48px;}.article-reader-content p{margin:0 0 1em;}.article-reader-content h1,.article-reader-content h2,.article-reader-content h3{line-height:1.28;margin:1.1em 0 .42em}.article-reader-content h1{font-size:1.85em}.article-reader-content h2{font-size:1.5em}.article-reader-content h3{font-size:1.22em}.article-reader-content ul,.article-reader-content ol{padding-inline-start:1.7em;margin:0 0 1em}.article-reader-content blockquote{margin:1em 0;padding:8px 14px;border-inline-start:3px solid var(--primary);background:var(--blue-glow);border-radius:0 10px 10px 0;color:var(--text-secondary)}.article-reader-content pre{padding:13px 15px;background:#080b14;color:#c6d6f5;border-radius:11px;overflow:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}.article-reader-content hr{border:0;border-top:1px solid var(--border);margin:1.8em 0}.article-reader-content a{color:var(--primary-light);text-decoration:underline;text-underline-offset:3px}.article-reader-content img{display:block;max-width:100%;height:auto;border-radius:12px;margin:16px auto;box-shadow:0 6px 20px rgba(0,0,0,.18)}.article-reader-content table{width:100%;border-collapse:collapse;margin:18px 0;box-shadow:0 0 0 1px var(--border)}.article-reader-content th,.article-reader-content td{border:1px solid var(--border);padding:8px 10px;vertical-align:top}.article-reader-content th{background:var(--surface2);font-weight:700}
+.article-message-card{min-width:min(430px,72vw);max-width:560px;overflow:hidden;border-radius:13px;border:1px solid rgba(96,165,250,.2);background:rgba(10,16,31,.26);cursor:pointer;transition:transform .16s ease,border-color .16s ease;}.article-message-card:hover{transform:translateY(-1px);border-color:var(--primary-light);}.article-message-cover{height:142px;background-position:center;background-size:cover;background-color:var(--surface2);}.article-message-top{display:flex;align-items:center;gap:7px;padding:12px 14px 4px;color:var(--primary-light);font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;}.article-message-title{padding:3px 14px 6px;font-size:17px;font-weight:800;line-height:1.3;color:var(--text-primary);}.article-message-excerpt{padding:0 14px 13px;color:var(--text-secondary);font-size:13px;line-height:1.5;display:-webkit-box;line-clamp:3;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}.article-message-read{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.08);padding:9px 14px;font-size:12px;font-weight:700;color:var(--primary-light);}.article-reader{width:min(850px,100%);height:min(90dvh,920px);display:flex;flex-direction:column;border-radius:22px;overflow:hidden;border:1px solid var(--border);background:var(--surface);box-shadow:0 28px 100px rgba(0,0,0,.62);animation:popIn .2s ease;}.article-reader-header{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text-secondary);}.article-reader-body{overflow-y:auto;padding:0 11%;font-size:16px;line-height:1.82;color:var(--text-primary);}.article-reader-cover{height:245px;margin:26px 0 24px;border-radius:17px;background-size:cover;background-position:center;background-color:var(--surface2);}.article-reader-title{font-size:clamp(28px,5vw,46px);line-height:1.15;letter-spacing:-1px;margin:28px 0 10px;}.article-reader-meta{font-size:12px;color:var(--text-muted);margin-bottom:26px;}.article-reader-content{padding-bottom:48px;}.article-reader-content p{margin:0 0 1em;}.article-reader-content h1,.article-reader-content h2,.article-reader-content h3{line-height:1.28;margin:1.1em 0 .42em}.article-reader-content h1{font-size:1.85em}.article-reader-content h2{font-size:1.5em}.article-reader-content h3{font-size:1.22em}.article-reader-content ul,.article-reader-content ol{padding-inline-start:1.7em;margin:0 0 1em}.article-reader-content blockquote{margin:1em 0;padding:8px 14px;border-inline-start:3px solid var(--primary);background:var(--blue-glow);border-radius:0 10px 10px 0;color:var(--text-secondary)}.article-reader-content pre{padding:13px 15px;background:#080b14;color:#c6d6f5;border-radius:11px;overflow:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}.article-reader-content hr{border:0;border-top:1px solid var(--border);margin:1.8em 0}.article-reader-content a{color:var(--primary-light);text-decoration:underline;text-underline-offset:3px}.article-reader-content img{display:block;max-width:100%;height:auto;border-radius:12px;margin:16px auto;box-shadow:0 6px 20px rgba(0,0,0,.18)}.article-reader-content table{width:100%;border-collapse:collapse;margin:18px 0;box-shadow:0 0 0 1px var(--border)}.article-reader-content th,.article-reader-content td{border:1px solid var(--border);padding:8px 10px;vertical-align:top}.article-reader-content th{background:var(--surface2);font-weight:700}
 @media(max-width:680px){.article-composer-overlay,.article-reader-overlay{padding:0;align-items:stretch}.article-composer,.article-reader{height:100dvh;width:100%;border-radius:0;border:0}.article-composer-header{min-height:58px;padding:9px 10px 9px 14px}.article-composer-brand small{max-width:170px}.article-toolbar{gap:1px;padding:7px 8px;max-height:90px;overflow-y:auto}.article-tool-btn{min-width:29px;height:30px;padding:0 5px}.article-toolbar select{min-width:82px;font-size:11px}.article-tool-divider{margin:0 1px}.article-cover{height:135px;margin:14px 6% 0}.article-title-input,.article-editor{width:88%}.article-title-input{margin-top:18px;font-size:28px}.article-editor{min-height:260px;font-size:15.5px}.article-composer-footer{padding:8px 11px;min-height:58px}.article-draft-status{display:none}.article-footer-actions{gap:5px}.article-secondary-btn{padding:8px}.article-send-btn{padding:9px 12px}.article-message-card{min-width:0;width:min(76vw,450px)}.article-reader-body{padding:0 7%}.article-reader-cover{height:180px;margin-top:18px}.article-link-popover{left:8px;right:8px}.article-link-popover input{flex:1;width:auto}.article-emoji-popover{right:7px}}
 
 /* Article mobile refinement: compact, touch-friendly and safe-area aware */
@@ -2090,7 +2115,7 @@ html,body{
 <body>
 
 <!-- LOADING SCREEN -->
-<div id="loading-screen" class="auth-screen hidden" style="background:var(--bg);">
+<div id="loading-screen" class="auth-screen" style="background:var(--bg);" aria-live="polite" aria-label="Loading Avenix Messenger">
   <style>
     #loading-screen .ld-container{
       display:flex;flex-direction:column;align-items:center;gap:24px;
@@ -2183,7 +2208,7 @@ html,body{
 </div>
 
 <!-- PRE-LOGIN INSTALL GUIDE -->
-<div id="install-guide-screen" class="install-guide-screen" dir="ltr" lang="en">
+<div id="install-guide-screen" class="install-guide-screen hidden" dir="ltr" lang="en">
   <main class="guide-layout" aria-labelledby="install-guide-title">
     <section class="guide-welcome">
       <div class="guide-welcome-top">
@@ -2536,7 +2561,7 @@ html,body{
               <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
             </svg>
           </button>
-          <input type="text" id="message-input" placeholder="Write a message…" autocomplete="off">
+          <textarea id="message-input" rows="1" dir="auto" placeholder="Write a message…" autocomplete="off" autocapitalize="sentences" spellcheck="true" enterkeyhint="enter" aria-label="Message"></textarea>
           <button type="button" class="form-icon-btn" id="emoji-btn" title="Emoji">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/>
@@ -3203,6 +3228,7 @@ function extractHashtags(text = '') {
 }
 function appendMessageText(container, text = '') {
   const raw = String(text || '');
+  applyMessageTextDirection(container, raw);
   const re = new RegExp(HASHTAG_PATTERN.source, 'g');
   let last = 0, m;
   while ((m = re.exec(raw)) !== null) {
@@ -6928,47 +6954,80 @@ async function toggleReaction(msgId, chatId, isGroup, emoji) {
 
 /* ===== EDIT MESSAGE ===== */
 function startEditMessage(bubbleEl, msgId, chatId, isGroup, currentText) {
-  let settled = false;
-  // Remove children except group sender name and reply quote
-  const children = Array.from(bubbleEl.children);
-  const toKeep = children.filter(c => c.classList.contains('group-sender-name') || c.classList.contains('reply-quote'));
-  const textSpan = bubbleEl.querySelector('.message-text');
-  if (textSpan) textSpan.remove();
-
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.className = 'msg-edit-input';
-  input.value = currentText;
-  bubbleEl.appendChild(input);
-  input.focus();
-  input.setSelectionRange(currentText.length, currentText.length);
-
-  async function finish(save) {
-    if (settled) return;
-    settled = true;
-    if (save) {
-      const newText = input.value.trim();
-      if (newText && newText !== currentText) {
-        try {
-          const col = isGroup ? 'groups' : 'chats';
-          await db.collection(col).doc(chatId).collection('messages').doc(msgId)
-            .update({ text: newText, edited: true, hashtags: extractHashtags(newText) });
-          return;
-        } catch(err) { alert('Failed to edit: ' + friendlyError(err)); }
-      }
-    }
-    input.remove();
-    const span = document.createElement('span');
-    span.className = 'message-text';
-    appendMessageText(span, currentText);
-    bubbleEl.appendChild(span);
+  // Only plain text messages can be edited. This avoids corrupting attachment,
+  // GIF, poll and article bubbles.
+  if (!bubbleEl || !msgId || !chatId || typeof currentText !== 'string') {
+    showToast('Only text messages can be edited');
+    return;
   }
+  if (bubbleEl.querySelector('.message-edit-box')) return;
 
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
-    else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  const originalText = currentText;
+  const textSpan = bubbleEl.querySelector('.message-text');
+  if (textSpan) textSpan.style.display = 'none';
+
+  const editor = document.createElement('div');
+  editor.className = 'message-edit-box';
+  editor.innerHTML = `<div class="message-edit-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Editing message</div>`;
+
+  const input = document.createElement('textarea');
+  input.className = 'msg-edit-input';
+  input.value = originalText;
+  input.maxLength = 4000;
+  input.setAttribute('aria-label', 'Edit message');
+  editor.appendChild(input);
+
+  const actions = document.createElement('div');
+  actions.className = 'message-edit-actions';
+  const hint = document.createElement('span');
+  hint.className = 'message-edit-hint';
+  hint.textContent = 'Esc to cancel · Ctrl/⌘ Enter to save';
+  const cancel = document.createElement('button');
+  cancel.type = 'button'; cancel.className = 'message-edit-btn cancel'; cancel.textContent = 'Cancel';
+  const save = document.createElement('button');
+  save.type = 'button'; save.className = 'message-edit-btn save'; save.textContent = 'Save changes';
+  actions.append(hint, cancel, save); editor.appendChild(actions);
+  bubbleEl.appendChild(editor);
+
+  let finished = false;
+  const close = (restore = true) => {
+    if (finished) return;
+    finished = true;
+    editor.remove();
+    if (textSpan && restore) textSpan.style.display = '';
+  };
+  const saveEdit = async () => {
+    if (finished) return;
+    const newText = input.value.trim();
+    if (!newText) { showToast('Message cannot be empty'); input.focus(); return; }
+    if (newText === originalText) { close(); return; }
+    save.disabled = cancel.disabled = true;
+    save.textContent = 'Saving…';
+    try {
+      const col = isGroup ? 'groups' : 'chats';
+      await db.collection(col).doc(chatId).collection('messages').doc(msgId).update({
+        text: newText, edited: true, hashtags: extractHashtags(newText)
+      });
+      // Update immediately; the live Firestore listener will also reconcile it.
+      if (textSpan) {
+        textSpan.replaceChildren();
+        appendMessageText(textSpan, newText);
+      }
+      close();
+      showToast('Message updated');
+    } catch (err) {
+      save.disabled = cancel.disabled = false;
+      save.textContent = 'Save changes';
+      showToast('Could not update message: ' + friendlyError(err));
+    }
+  };
+  cancel.addEventListener('click', () => close());
+  save.addEventListener('click', saveEdit);
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); close(); }
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); saveEdit(); }
   });
-  input.addEventListener('blur', () => finish(true));
+  setTimeout(() => { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 0);
 }
 
 /* ===== DELETE MESSAGE ===== */
@@ -7021,7 +7080,33 @@ function setTypingState(isTyping) {
   }
   ref.update(updateData).catch(()=>{});
 }
+function messageTextDirection(text = '') {
+  // Use the first strong alphabetic character, so mixed messages begin in the
+  // natural direction of the language the person started typing in.
+  const value = String(text || '');
+  for (const character of value) {
+    if (/[\u0590-\u08FF\uFB1D-\uFDFD\uFE70-\uFEFC]/.test(character)) return 'rtl';
+    if (/[A-Za-z\u00C0-\u02AF]/.test(character)) return 'ltr';
+  }
+  return 'ltr';
+}
+function syncMessageComposer() {
+  if (!messageInput) return;
+  messageInput.dir = messageTextDirection(messageInput.value);
+  messageInput.style.height = 'auto';
+  const maxHeight = window.innerWidth <= 768 ? 108 : 128;
+  const naturalHeight = messageInput.scrollHeight;
+  messageInput.style.height = Math.min(Math.max(42, naturalHeight), maxHeight) + 'px';
+  messageInput.style.overflowY = naturalHeight > maxHeight ? 'auto' : 'hidden';
+}
+function applyMessageTextDirection(element, text = '') {
+  if (!element) return;
+  element.dir = messageTextDirection(text);
+}
+syncMessageComposer();
+
 messageInput.addEventListener('input', () => {
+  syncMessageComposer();
   if (!activeChatId || isSavedMessagesView) return;
   if (!isTypingFlag) { isTypingFlag = true; setTypingState(true); }
   clearTimeout(typingTimeout);
@@ -7032,6 +7117,15 @@ messageInput.addEventListener('input', () => {
 });
 messageInput.addEventListener('blur', () => {
   if (isTypingFlag) { isTypingFlag = false; clearTimeout(typingTimeout); setTypingState(false); }
+});
+messageInput.addEventListener('keydown', event => {
+  if (event.key !== 'Enter' || event.isComposing) return;
+  // Phone keyboards keep the Return key as a new line. On desktop, Shift+Enter
+  // creates the new line and plain Enter sends the message.
+  if (window.innerWidth <= 768 || event.shiftKey) return;
+  event.preventDefault();
+  if (messageForm.requestSubmit) messageForm.requestSubmit();
+  else messageForm.querySelector('.btn-send').click();
 });
 
 messageForm.addEventListener('submit', async e => {
@@ -7044,6 +7138,7 @@ messageForm.addEventListener('submit', async e => {
     return;
   }
   messageInput.value = '';
+  syncMessageComposer();
   if (isTypingFlag) { isTypingFlag = false; clearTimeout(typingTimeout); setTypingState(false); }
 
   const col = activeChatIsGroup ? 'groups' : 'chats';
@@ -7461,6 +7556,7 @@ function buildUnifiedPicker() {
           btn.textContent = em;
           btn.addEventListener('click', () => {
             messageInput.value += em;
+            messageInput.dispatchEvent(new Event('input', { bubbles:true }));
             messageInput.focus();
           });
           grid.appendChild(btn);
@@ -9582,10 +9678,12 @@ function buildPopupFullMenu(ctx) {
     }
   }
 
-  if (isSent && ctx.msgId && ctx.msg.type !== 'poll' && !isSavedView) {
+  if (isSent && ctx.msgId && !isSavedView) {
     if (typeof startEditMessage === 'function') {
       const bubble = ctx.row.querySelector('.bubble');
-      addItem({ icon: popupIcon('edit'), label: 'Edit', action: () => startEditMessage(bubble, ctx.msgId, ctx.chatId, ctx.isGroup, ctx.msg.text) });
+      if (ctx.msg.type === 'text' || typeof ctx.msg.text === 'string') {
+        addItem({ icon: popupIcon('edit'), label: 'Edit message', action: () => startEditMessage(bubble, ctx.msgId, ctx.chatId, ctx.isGroup, ctx.msg.text) });
+      }
     }
     addItem({ icon: popupIcon('delete'), label: 'Delete', danger: true, action: () => deleteMessage(ctx.msgId, ctx.chatId, ctx.isGroup) });
   }
@@ -11082,6 +11180,7 @@ function buildSchedulePicker() {
       showToast('✅ Message scheduled for ' + scheduledTime.toLocaleString());
       schedulePicker.classList.add('hidden');
       messageInput.value = '';
+      syncMessageComposer();
     } catch (err) {
       showToast('Failed to schedule: ' + friendlyError(err));
     }
@@ -12354,5 +12453,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e3d54d5b17c9bd',t:'MTc4NDU3MDA4OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
