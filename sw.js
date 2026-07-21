@@ -1,86 +1,105 @@
-/* Avenix Messenger service worker
-   Provides notification click handling and supports generic Web Push/FCM payloads.
-*/
-const CACHE_NAME = 'avenix-messenger-v1';
-const CORE_ASSETS = ['./', './index.html', './manifest.json', './2.png'];
+// Avenix Messenger Service Worker
+// Updated for better cache invalidation on GitHub Pages / deployments
 
-self.addEventListener('install', event => {
-  // Cache assets independently: a missing optional manifest/icon must not prevent
-  // index.html from becoming available offline.
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache =>
-      Promise.all(CORE_ASSETS.map(asset => cache.add(asset).catch(() => undefined)))
-    )
-  );
+const CACHE_NAME = 'avenix-cache-v20260721'; // ← CHANGE THIS VERSION ON EVERY DEPLOY (or use build date)
+const OFFLINE_URL = 'index.html';
+
+self.addEventListener('install', (event) => {
+  console.log('[SW] Install');
+  // Immediately activate new SW
   self.skipWaiting();
-});
-
-self.addEventListener('activate', event => {
+  
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
-      .then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
-  const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
-  event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-      if (response && response.status === 200 && response.type === 'basic') {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-      }
-      return response;
-    }).catch(() => event.request.mode === 'navigate' ? caches.match('./index.html') : cached))
-  );
-});
-
-function normalizedNotification(payload = {}) {
-  const notification = payload.notification || payload;
-  const data = payload.data || notification.data || {};
-  return {
-    title: notification.title || 'Avenix Messenger',
-    options: {
-      body: notification.body || data.body || 'You have a new message',
-      icon: notification.icon || data.icon || '2.png',
-      badge: notification.badge || data.badge || '2.png',
-      tag: notification.tag || data.tag || 'avenix-message',
-      renotify: true,
-      data: { ...data, url: data.url || './' }
-    }
-  };
-}
-
-// Allows the app to ask the worker to display a browser-level notification.
-self.addEventListener('message', event => {
-  if (!event.data || event.data.type !== 'AVENIX_SHOW_NOTIFICATION') return;
-  const note = normalizedNotification(event.data.payload || {});
-  event.waitUntil(self.registration.showNotification(note.title, note.options));
-});
-
-// Supports notifications sent later by a Web Push/FCM backend.
-self.addEventListener('push', event => {
-  let payload = {};
-  try { payload = event.data ? event.data.json() : {}; }
-  catch (_) { payload = { notification: { body: event.data ? event.data.text() : '' } }; }
-  const note = normalizedNotification(payload);
-  event.waitUntil(self.registration.showNotification(note.title, note.options));
-});
-
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) || './';
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
-      for (const client of clientList) {
-        if ('focus' in client) {
-          client.postMessage({ type: 'AVENIX_NOTIFICATION_CLICK', data: event.notification.data || {} });
-          return client.focus();
-        }
-      }
-      return clients.openWindow ? clients.openWindow(targetUrl) : undefined;
+    caches.open(CACHE_NAME).then((cache) => {
+      // Pre-cache the shell (optional)
+      return cache.addAll([
+        '/',
+        '/index.html',
+        // Add other static assets here if you have separate files
+      ]).catch(() => {});
     })
   );
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activate');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => {
+            console.log('[SW] Deleting old cache:', name);
+            return caches.delete(name);
+          })
+      );
+    }).then(() => {
+      // Take control of all clients immediately
+      return self.clients.claim();
+    })
+  );
+});
+
+// Fetch strategy: Network-first for HTML (always get latest), cache-first for everything else
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+
+  // For the main document (index.html) → always try network first (bust cache)
+  if (request.mode === 'navigate' || 
+      (request.destination === 'document' && url.pathname.endsWith('index.html') || url.pathname === '/')) {
+    
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Cache a copy of the fresh response
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, responseToCache));
+          return response;
+        })
+        .catch(() => {
+          // Offline fallback
+          return caches.match(request).then((cached) => cached || caches.match(OFFLINE_URL));
+        })
+    );
+    return;
+  }
+
+  // For all other assets (fonts, images, etc.) → cache-first with network fallback
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(request).then((networkResponse) => {
+        // Only cache successful responses
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseToCache);
+          });
+        }
+        return networkResponse;
+      }).catch(() => caches.match(request));
+    })
+  );
+});
+
+// Listen for messages from the page (e.g. "SKIP_WAITING")
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// Optional: Notify clients when a new SW is waiting
+self.addEventListener('install', () => {
+  self.clients.matchAll({ type: 'window' }).then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage({ type: 'SW_UPDATED' });
+    });
+  });
 });
