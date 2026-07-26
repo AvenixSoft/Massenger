@@ -34,6 +34,9 @@
   --gray:#1e1e2e;--white:#e8eaf0;
   --app-height:100vh;
   --msg-font-size:14.5px;
+  /* Floating mobile dock: pill height and the gap it keeps from the screen edge */
+  --mnav-h:58px;
+  --mnav-gap:12px;
 }
 [data-theme="light"]{
   --primary:#2563EB;--primary-dark:#1d4ed8;--primary-light:#3b82f6;
@@ -63,7 +66,13 @@
 [data-theme="light"] .input-group input:focus ~ label,
 [data-theme="light"] .input-group input:not(:placeholder-shown) ~ label{background:linear-gradient(to bottom,transparent 40%,rgba(255,255,255,0.95) 40%);}
 .bubble{font-size:var(--msg-font-size,14.5px)!important;}
+/* The wallpaper lives on a dedicated full-window layer (.chat-wallpaper) so it
+   spans edge to edge, including underneath the floating composer. */
 .messages{background-size:cover;background-position:center;background-repeat:no-repeat;}
+.chat-wallpaper{
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+}
 .messages.has-wallpaper .message-row.received .bubble{background:rgba(19,19,30,0.82);backdrop-filter:blur(2px);}
 .messages.has-wallpaper .message-row.sent .bubble{background:rgba(30,58,95,0.86);backdrop-filter:blur(2px);}
 [data-theme="light"] .messages.has-wallpaper .message-row.received .bubble{background:rgba(255,255,255,0.88);}
@@ -246,8 +255,11 @@ html,body{
   display:flex;flex-direction:column;flex-shrink:0;
   transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);
 }
+/* The top sidebar header is retired: the search row + hamburger drawer replaces it.
+   The markup is kept (hidden) so existing button wiring stays intact. */
 .sidebar-header{
-  display:flex;align-items:center;justify-content:space-between;
+  display:none!important;
+  align-items:center;justify-content:space-between;
   padding:12px 14px;background:var(--sidebar-header-bg);
   border-bottom:1px solid var(--border);flex-shrink:0;
 }
@@ -303,8 +315,248 @@ html,body{
 .search-box{
   padding:14px 16px;background:var(--sidebar-bg);
   border-bottom:1px solid transparent;flex-shrink:0;
+  display:flex;align-items:center;gap:9px;position:relative;z-index:36;
 }
+.search-box .search-wrap{flex:1;min-width:0;}
 .search-wrap{position:relative;}
+
+/* ===== SIDEBAR HAMBURGER (desktop, beside the search box) ===== */
+.sidebar-menu-btn{display:none;}
+@media(min-width:769px){
+  .sidebar-menu-btn{
+    display:flex;align-items:center;justify-content:center;
+    flex:0 0 40px;width:40px;height:40px;padding:0;
+    border:1.5px solid var(--border);border-radius:12px;
+    background:var(--surface);color:var(--text-secondary);cursor:pointer;
+    transition:background .18s ease,color .18s ease,border-color .18s ease,transform .12s ease;
+  }
+  .sidebar-menu-btn:hover,.sidebar-menu-btn:focus-visible{
+    background:var(--surface2);color:var(--primary);border-color:var(--primary);outline:none;
+  }
+  .sidebar-menu-btn:active{transform:scale(.94);}
+  .sidebar-menu-btn.open{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3);}
+  .sidebar-menu-btn svg{display:block;pointer-events:none;}
+}
+
+/* Drawer scrim */
+.sidebar-drawer-scrim{
+  position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+  opacity:0;transition:opacity .2s ease;
+}
+.sidebar-drawer-scrim.show{opacity:1;}
+.sidebar-drawer-scrim.hidden{display:none;}
+
+/* The sliding drawer panel */
+.sidebar-drawer{
+  position:fixed;top:0;left:0;bottom:0;z-index:151;
+  width:min(310px,86vw);
+  background:var(--sidebar-bg);
+  border-right:1px solid var(--border);
+  box-shadow:22px 0 60px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;
+  transform:translateX(-102%);
+  transition:transform .26s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+[data-theme="light"] .sidebar-drawer{box-shadow:22px 0 50px rgba(20,30,60,.16);}
+
+/* The mobile-only title bar is hidden on desktop (declared before the media
+   query so the mobile rule below wins). */
+.drawer-mobile-head{display:none;}
+
+/* ===== MOBILE: the drawer becomes a full-screen, easy-to-read settings page ===== */
+@media(max-width:768px){
+  .sidebar-drawer{
+    width:100%;max-width:none;border-right:0;
+    background:var(--chat-bg);
+    transform:translateY(100%);
+    transition:transform .28s cubic-bezier(.4,0,.2,1);
+  }
+  .sidebar-drawer.open{transform:translateY(0);}
+  /* A real page title bar with a close button */
+  .drawer-mobile-head{
+    display:flex!important;align-items:center;gap:12px;flex-shrink:0;
+    padding:calc(env(safe-area-inset-top) + 14px) 16px 14px;
+    border-bottom:1px solid var(--border);background:var(--chat-header-bg);
+  }
+  .drawer-mobile-head strong{font-size:19px;font-weight:750;letter-spacing:-.3px;flex:1;}
+  .drawer-mobile-close{
+    width:38px;height:38px;flex-shrink:0;border:0;border-radius:50%;
+    background:var(--surface2);color:var(--text-secondary);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    transition:background .16s ease,color .16s ease,transform .12s ease;
+  }
+  .drawer-mobile-close:active{transform:scale(.9);}
+  /* Roomier profile card */
+  .drawer-profile{padding:22px 18px;gap:15px;}
+  .drawer-profile .drawer-avatar{width:66px;height:66px;font-size:24px;}
+  .drawer-profile-name{font-size:19px;}
+  .drawer-profile-sub{font-size:13px;}
+  /* Bigger, more legible rows and touch targets */
+  .drawer-accounts{padding:12px 14px 14px;}
+  .drawer-account-row{padding:12px;gap:13px;}
+  .drawer-account-row .drawer-mini-avatar{width:42px;height:42px;font-size:15px;}
+  .drawer-account-copy strong{font-size:15px;}
+  .drawer-account-copy small{font-size:12.5px;}
+  .drawer-add-account{padding:14px;font-size:15px;gap:13px;}
+  .drawer-add-account .drawer-add-icon{width:42px;height:42px;}
+  .drawer-nav{padding:10px 14px calc(24px + env(safe-area-inset-bottom));}
+  .drawer-section-label{font-size:11.5px;padding:18px 8px 8px;letter-spacing:1.1px;}
+  .drawer-item{padding:13px 12px;gap:14px;font-size:15.5px;border-radius:14px;}
+  .drawer-item-icon{width:42px;height:42px;border-radius:13px;}
+  .drawer-item-icon svg{width:20px;height:20px;}
+  .drawer-item-label small{font-size:12.5px;}
+  .drawer-item-value{font-size:12.5px;}
+  .drawer-switch{width:50px;height:29px;border-radius:15px;}
+  .drawer-switch::after{width:21px;height:21px;}
+  .drawer-item.switch-on .drawer-switch::after{transform:translateX(21px);}
+  .drawer-footer{padding:16px 18px calc(20px + env(safe-area-inset-bottom));}
+  .drawer-footer b{font-size:13px;}
+  .drawer-footer span{font-size:12px;}
+  /* The full-screen page needs no dimmed backdrop behind it. */
+  .sidebar-drawer-scrim{background:rgba(0,0,0,.3);}
+}
+.sidebar-drawer.open{transform:translateX(0);}
+
+/* --- Section 1: profile card --- */
+.drawer-profile{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:calc(20px + env(safe-area-inset-top)) 16px 18px;
+  border:0;background:linear-gradient(150deg,var(--blue-glow),transparent 72%);
+  text-align:left;cursor:pointer;font-family:inherit;
+  transition:background .18s ease;
+}
+.drawer-profile:hover{background:linear-gradient(150deg,var(--blue-glow),var(--row-hover) 82%);}
+.drawer-profile .drawer-avatar{
+  width:54px;height:54px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary-light));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:19px;text-transform:uppercase;overflow:hidden;
+  border:2px solid rgba(255,255,255,.12);box-shadow:0 4px 12px rgba(0,0,0,.2);
+}
+.drawer-profile .drawer-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.drawer-profile-text{display:flex;flex-direction:column;min-width:0;gap:3px;}
+.drawer-profile-name{
+  font-size:15.5px;font-weight:750;color:var(--text-primary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.drawer-profile-sub{
+  font-size:11.5px;color:var(--online);display:flex;align-items:center;gap:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* --- Section 2: add account (visually separated) --- */
+.drawer-divider{height:1px;background:var(--border);margin:0;flex-shrink:0;}
+.drawer-accounts{padding:8px 10px 10px;flex-shrink:0;}
+.drawer-account-row{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:9px 10px;border:0;border-radius:12px;background:transparent;
+  color:var(--text-primary);cursor:pointer;font-family:inherit;text-align:left;
+  transition:background .15s ease;
+}
+.drawer-account-row:hover{background:var(--row-hover);}
+.drawer-account-row .drawer-mini-avatar{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary-light));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;text-transform:uppercase;overflow:hidden;
+}
+.drawer-account-row .drawer-mini-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.drawer-account-copy{display:flex;flex-direction:column;min-width:0;flex:1;}
+.drawer-account-copy strong{font-size:13px;font-weight:650;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.drawer-account-copy small{font-size:10.5px;color:var(--text-muted);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.drawer-account-current{
+  font-size:9.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  color:var(--primary);background:var(--blue-glow);padding:3px 7px;border-radius:6px;flex-shrink:0;
+}
+.drawer-account-remove{
+  border:0;background:transparent;color:var(--text-muted);cursor:pointer;
+  padding:5px;border-radius:8px;display:flex;flex-shrink:0;transition:color .15s ease,background .15s ease;
+}
+.drawer-account-remove:hover{color:var(--error);background:rgba(239,68,68,.12);}
+.drawer-add-account{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:10px;border:1.5px dashed var(--border);border-radius:12px;
+  background:transparent;color:var(--text-secondary);cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:650;text-align:left;
+  transition:border-color .16s ease,color .16s ease,background .16s ease;
+}
+.drawer-add-account:hover{border-color:var(--primary);color:var(--primary);background:var(--blue-glow);}
+.drawer-add-account .drawer-add-icon{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface2);color:var(--primary);
+}
+
+/* --- Scrollable nav section --- */
+.drawer-nav{flex:1;overflow-y:auto;padding:8px 10px 14px;}
+.drawer-section-label{
+  padding:12px 10px 6px;font-size:10px;font-weight:750;letter-spacing:1px;
+  text-transform:uppercase;color:var(--text-muted);opacity:.9;
+}
+.drawer-item{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:10px;border:0;border-radius:12px;background:transparent;
+  color:var(--text-primary);cursor:pointer;font-family:inherit;
+  font-size:13.5px;font-weight:600;text-align:left;
+  transition:background .15s ease,color .15s ease;
+}
+.drawer-item:hover,.drawer-item:focus-visible{background:var(--row-hover);outline:none;}
+.drawer-item:active{background:var(--surface2);}
+.drawer-item.danger{color:var(--error);}
+.drawer-item.danger:hover{background:rgba(239,68,68,.12);}
+.drawer-item-icon{
+  width:34px;height:34px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface2);color:var(--primary);
+}
+.drawer-item.danger .drawer-item-icon{background:rgba(239,68,68,.12);color:var(--error);}
+.drawer-item-label{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.drawer-item-label small{font-size:10.5px;font-weight:500;color:var(--text-muted);}
+.drawer-item-chevron{color:var(--text-muted);display:flex;flex-shrink:0;}
+.drawer-item-value{font-size:11px;font-weight:650;color:var(--text-muted);flex-shrink:0;}
+
+/* Theme toggle switch inside the drawer */
+.drawer-switch{
+  width:42px;height:24px;border-radius:12px;flex-shrink:0;position:relative;
+  background:var(--surface2);border:1.5px solid var(--border);transition:background .2s ease,border-color .2s ease;
+}
+.drawer-switch::after{
+  content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
+  background:var(--text-muted);transition:transform .2s ease,background .2s ease;
+}
+.drawer-item.switch-on .drawer-switch{background:var(--primary);border-color:var(--primary);}
+.drawer-item.switch-on .drawer-switch::after{transform:translateX(18px);background:#fff;}
+
+/* Drawer footer */
+.drawer-footer{
+  padding:12px 16px calc(14px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--border);flex-shrink:0;
+  display:flex;flex-direction:column;gap:2px;
+}
+.drawer-footer b{font-size:11.5px;font-weight:750;color:var(--text-secondary);}
+.drawer-footer span{font-size:10.5px;color:var(--text-muted);}
+
+/* Contacts modal list */
+.contacts-search-wrap{position:relative;margin-bottom:12px;}
+.contacts-search-wrap input{
+  width:100%;height:40px;padding:8px 14px 8px 38px;border-radius:12px;
+  border:1.5px solid var(--border);background:var(--surface2);
+  outline:none;font-size:14px;color:var(--text-primary);font-family:inherit;
+  transition:border-color .18s ease,box-shadow .18s ease;
+}
+.contacts-search-wrap input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.15);}
+.contacts-search-wrap .contacts-search-icon{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  color:var(--text-muted);pointer-events:none;display:flex;
+}
+.contacts-list{max-height:min(52vh,420px);overflow-y:auto;margin:0 -6px;padding:0 6px;}
+.contacts-group-label{
+  padding:10px 6px 5px;font-size:10px;font-weight:750;letter-spacing:.9px;
+  text-transform:uppercase;color:var(--text-muted);
+}
+.contacts-empty{padding:26px 10px;text-align:center;color:var(--text-muted);font-size:13px;line-height:1.6;}
 .search-icon{
   position:absolute;left:14px;top:50%;transform:translateY(-50%);
   color:var(--text-muted);pointer-events:none;display:flex;
@@ -329,6 +581,9 @@ html,body{
   opacity:0.85;
 }
 .chats-list,.search-results{overflow-y:auto;flex:1;}
+/* With no search running the results container must collapse completely,
+   otherwise flex:1 reserves a blank strip between the search box and the tabs. */
+.search-results:empty{flex:0 0 auto;height:0;min-height:0;padding:0;overflow:hidden;}
 .search-results{flex:none;max-height:50%;}
 
 /* ===== FOLDER TABS ===== */
@@ -455,12 +710,16 @@ html,body{
 .chat-empty p{font-size:15px;opacity:0.55;}
 .chat-active{display:flex;flex-direction:column;height:100%;position:relative;z-index:1;overflow:hidden;}
 
+/* The header floats as a detached rounded card on every screen size. */
 .chat-header{
   display:flex;align-items:center;gap:12px;
   padding:11px 16px;background:var(--chat-header-bg);
-  border-bottom:1px solid var(--border);flex-shrink:0;
-  box-shadow:0 1px 8px rgba(0,0,0,0.3);
+  border:1px solid var(--border);flex-shrink:0;
+  margin:10px 12px 0;border-radius:20px;
+  box-shadow:0 6px 22px rgba(0,0,0,0.32);
+  position:relative;z-index:2;
 }
+[data-theme="light"] .chat-header{box-shadow:0 6px 20px rgba(20,30,60,0.12);}
 .chat-header-info{flex:1;display:flex;flex-direction:column;min-width:0;cursor:pointer;}
 .chat-header-info:hover .chat-with-username{color:var(--primary);}
 .chat-with-username{font-weight:700;font-size:15px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color 0.2s;}
@@ -567,12 +826,22 @@ html,body{
 .saved-source-tag{font-size:11px;color:var(--text-muted);margin-bottom:2px;font-weight:600;}
 
 /* ===== REPLY BAR ===== */
+/* Reply bar matches the header: detached card with fully rounded corners.
+   The accent is an inset pill so it never fights the rounded border. */
 .reply-bar{
   display:flex;align-items:center;gap:10px;
-  padding:8px 14px;background:var(--chat-header-bg);
-  border-top:2px solid var(--primary);flex-shrink:0;
-  animation:slideUp 0.15s ease;
+  padding:9px 14px 9px 20px;background:var(--chat-header-bg);
+  border:1px solid var(--border);
+  flex-shrink:0;animation:slideUp 0.15s ease;
+  margin:8px 12px 0;border-radius:16px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.28);
+  position:relative;z-index:2;overflow:hidden;
 }
+.reply-bar::before{
+  content:'';position:absolute;left:8px;top:9px;bottom:9px;width:3px;
+  border-radius:3px;background:var(--primary);
+}
+[data-theme="light"] .reply-bar{box-shadow:0 6px 18px rgba(20,30,60,0.11);}
 @keyframes slideUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 .reply-bar-content{flex:1;min-width:0;}
 .reply-bar-label{font-size:11px;font-weight:700;color:var(--primary);margin-bottom:2px;}
@@ -902,10 +1171,14 @@ html,body{
 .btn-sm.ghost:hover{color:var(--text-primary);}
 
 /* ===== MESSAGE FORM ===== */
+/* ===== COMPOSER (Telegram-style floating bar, Avenix theme) =====
+   The form itself is a transparent overlay pinned to the bottom of the chat,
+   so the wallpaper/background shows through underneath it. The visible
+   "bar" is the rounded .msg-input-wrap pill plus the round send button. */
 .message-form{
-  display:flex;align-items:center;gap:8px;
-  padding:10px 12px;background:var(--chat-header-bg);
-  border-top:1px solid var(--border);flex-shrink:0;
+  display:flex;align-items:flex-end;gap:8px;
+  padding:8px 12px;background:transparent;
+  border-top:none;flex-shrink:0;
   padding-bottom:max(10px, env(safe-area-inset-bottom));
 }
 .msg-input-wrap{
@@ -913,17 +1186,46 @@ html,body{
   position:relative;
   display:flex;
   align-items:center;
-  background:var(--input-bg);
-  border:1.5px solid var(--input-border);
-  border-radius:22px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(22px) saturate(165%);
+  -webkit-backdrop-filter:blur(22px) saturate(165%);
+  border:1px solid var(--border);
+  border-radius:24px;
   padding:0 6px;
-  transition:all 0.2s ease;
+  box-shadow:0 6px 22px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.2);
+  transition:border-color 0.2s ease,box-shadow 0.2s ease;
+}
+[data-theme="light"] .msg-input-wrap{
+  box-shadow:0 6px 20px rgba(20,30,60,0.14),0 1px 3px rgba(20,30,60,0.08);
 }
 .msg-input-wrap:focus-within{
   border-color:var(--primary);
-  background:var(--surface2);
-  box-shadow:0 0 0 3px rgba(37,99,235,0.1);
+  box-shadow:0 6px 24px rgba(0,0,0,0.4),0 0 0 3px rgba(37,99,235,0.16);
 }
+[data-theme="light"] .msg-input-wrap:focus-within{
+  box-shadow:0 6px 22px rgba(20,30,60,0.16),0 0 0 3px rgba(37,99,235,0.14);
+}
+/* The standalone attach button becomes its own floating round chip. */
+.message-form > .form-icon-btn{
+  width:44px;height:44px;align-self:flex-end;
+  background:var(--glass-bg)!important;
+  backdrop-filter:blur(22px) saturate(165%);
+  -webkit-backdrop-filter:blur(22px) saturate(165%);
+  border:1px solid var(--border)!important;
+  color:var(--text-secondary);
+  box-shadow:0 6px 22px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.2);
+  transition:color .18s ease,border-color .18s ease,transform .12s ease;
+}
+[data-theme="light"] .message-form > .form-icon-btn{
+  box-shadow:0 6px 20px rgba(20,30,60,0.14),0 1px 3px rgba(20,30,60,0.08);
+}
+/* While recording the form holds only the panel, which stretches full width. */
+.message-form.is-recording{align-items:center;}
+.message-form > .form-icon-btn:hover{color:var(--primary);border-color:var(--primary)!important;}
+.message-form > .form-icon-btn:active{transform:scale(.92);}
+.message-form > .form-icon-btn.active{color:var(--primary);border-color:var(--primary)!important;}
+/* Keep the send button aligned with the pill as the textarea grows. */
+.message-form > .btn-send{align-self:flex-end;}
 .message-form input,
 .message-form textarea{
   flex:1;
@@ -1163,33 +1465,53 @@ html,body{
 /* ===== FOCUS ===== */
 :focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
 
-/* ===== MOBILE BOTTOM NAV ===== */
-.mobile-nav{display:none;}
+/* ===== MOBILE BOTTOM NAV (floating Telegram-style pill + profile circle) ===== */
+.mobile-nav-dock{display:none;}
 @media(max-width:768px){
-  /* Bottom glass nav bar */
-  .mobile-nav{
-    display:flex;align-items:center;justify-content:space-around;
-    position:fixed;bottom:0;left:0;right:0;
-    height:calc(62px + env(safe-area-inset-bottom));
-    padding-bottom:env(safe-area-inset-bottom);
-    background:rgba(13,13,22,0.78);
-    backdrop-filter:blur(28px) saturate(160%);
-    -webkit-backdrop-filter:blur(28px) saturate(160%);
-    border-top:1px solid rgba(255,255,255,0.07);
-    z-index:50;
-    box-shadow:0 -8px 32px rgba(0,0,0,0.45);
+  /* The dock floats above the bottom edge instead of being glued to it. */
+  .mobile-nav-dock{
+    display:flex;align-items:center;gap:10px;
+    position:fixed;left:0;right:0;
+    bottom:calc(var(--mnav-gap) + env(safe-area-inset-bottom));
+    padding:0 max(12px,env(safe-area-inset-left)) 0 max(12px,env(safe-area-inset-right));
+    z-index:50;pointer-events:none;
   }
+  .mobile-nav-dock > *{pointer-events:auto;}
+
+  /* Rounded glass pill holding the four tabs */
+  .mobile-nav-bar{
+    flex:1;min-width:0;
+    display:flex;align-items:center;justify-content:space-around;
+    height:var(--mnav-h);
+    padding:0 6px;
+    border-radius:calc(var(--mnav-h) / 2);
+    background:rgba(13,13,22,0.82);
+    backdrop-filter:blur(30px) saturate(170%);
+    -webkit-backdrop-filter:blur(30px) saturate(170%);
+    border:1px solid rgba(255,255,255,0.09);
+    box-shadow:0 10px 34px rgba(0,0,0,0.5),0 2px 8px rgba(0,0,0,0.3);
+  }
+  [data-theme="light"] .mobile-nav-bar{
+    background:rgba(255,255,255,0.9);
+    border-color:rgba(20,30,60,0.08);
+    box-shadow:0 10px 30px rgba(20,30,60,0.16),0 2px 6px rgba(20,30,60,0.08);
+  }
+
   .mobile-nav-item{
-    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:4px;padding:8px 0;cursor:pointer;
+    flex:1;min-width:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:3px;padding:6px 0;cursor:pointer;
     color:var(--text-muted);transition:color 0.2s ease;
-    background:transparent;border:none;position:relative;
+    background:transparent;border:none;position:relative;border-radius:18px;
   }
   .mobile-nav-item .nav-icon{
     width:26px;height:26px;display:flex;align-items:center;justify-content:center;
     border-radius:10px;transition:all 0.2s ease;
   }
-  .mobile-nav-item .nav-label{font-size:10px;font-weight:600;letter-spacing:0.2px;transition:color 0.2s;}
+  .mobile-nav-item .nav-label{
+    font-size:9.5px;font-weight:650;letter-spacing:0.1px;transition:color 0.2s;
+    max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
   .mobile-nav-item.active{color:var(--primary);}
   .mobile-nav-item.active .nav-icon{
     background:rgba(37,99,235,0.15);
@@ -1197,29 +1519,96 @@ html,body{
   }
   .mobile-nav-item:active .nav-icon{transform:scale(0.88);}
 
+  /* Separate circular button that shows only the profile photo */
+  .mobile-nav-avatar{
+    flex:0 0 var(--mnav-h);width:var(--mnav-h);height:var(--mnav-h);
+    padding:0;border-radius:50%;cursor:pointer;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(13,13,22,0.82);
+    backdrop-filter:blur(30px) saturate(170%);
+    -webkit-backdrop-filter:blur(30px) saturate(170%);
+    border:1px solid rgba(255,255,255,0.09);
+    box-shadow:0 10px 34px rgba(0,0,0,0.5),0 2px 8px rgba(0,0,0,0.3);
+    transition:transform 0.16s ease,border-color 0.2s ease,box-shadow 0.2s ease;
+  }
+  [data-theme="light"] .mobile-nav-avatar{
+    background:rgba(255,255,255,0.9);
+    border-color:rgba(20,30,60,0.08);
+    box-shadow:0 10px 30px rgba(20,30,60,0.16),0 2px 6px rgba(20,30,60,0.08);
+  }
+  .mobile-nav-avatar .mnav-avatar-img{
+    width:calc(var(--mnav-h) - 10px);height:calc(var(--mnav-h) - 10px);
+    border-radius:50%;overflow:hidden;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--primary-dark),var(--primary-light));
+    color:#fff;font-weight:700;font-size:16px;text-transform:uppercase;
+  }
+  .mobile-nav-avatar .mnav-avatar-img img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .mobile-nav-avatar:active{transform:scale(0.92);}
+  .mobile-nav-avatar.active{
+    border-color:var(--primary);
+    box-shadow:0 0 0 2px rgba(37,99,235,0.35),0 10px 30px rgba(0,0,0,0.45);
+  }
+
   /* Hide sidebar header on mobile, show only nav */
   .sidebar-header{display:none;}
   .sidebar-tabs{display:none;}
 
-  /* Adjust sidebar to not overlap nav */
+  /* Adjust sidebar to clear the floating dock (bar height + gap above and below) */
   .app{position:relative;}
   .sidebar{
     width:100%;min-width:0;position:absolute;
-    top:0;left:0;right:0;
-    bottom:calc(62px + env(safe-area-inset-bottom));
+    top:0;left:0;right:0;bottom:0;
     z-index:20;height:auto;
   }
+  /* The lists keep scrolling all the way down so the background runs under the
+     floating dock, while the trailing padding keeps the last row reachable. */
+  .sidebar .chats-list,
+  .sidebar .search-results:not(:empty),
+  .sidebar #archived-list{
+    padding-bottom:calc(var(--mnav-h) + (var(--mnav-gap) * 2) + env(safe-area-inset-bottom));
+  }
   .sidebar.hide-mobile{transform:translateX(-100%);}
+
+  /* On phones the sidebar and the chat occupy the same space. Previously only
+     the sidebar's opaque background hid the chat underneath — with the glass
+     theme that background is transparent, so both screens bled together.
+     The chat pane is now genuinely hidden until the sidebar slides away. */
+  .sidebar:not(.hide-mobile) ~ .chat-window{visibility:hidden;}
+  .sidebar:not(.hide-mobile) ~ .chat-window *{pointer-events:none;}
+  .sidebar.hide-mobile ~ .chat-window{visibility:visible;}
+
+  /* Chat rows on phones: a touch larger and more legible than the desktop list.
+     Applies to normal chats, Saved Messages and the Avenix notification row. */
+  .sidebar .user-row{padding:12px 13px;gap:13px;margin:3px 8px;border-radius:15px;}
+  .sidebar .user-row .avatar{width:52px;height:52px;font-size:17px;}
+  .sidebar .user-row-name{font-size:15.5px;font-weight:650;}
+  .sidebar .user-row-sub{font-size:13.5px;line-height:1.4;}
+  .sidebar .user-row-time{font-size:11.5px;}
+  .sidebar .user-row-top{margin-bottom:4px;}
+  .sidebar .status-dot{width:13px;height:13px;border:2.5px solid var(--sidebar-bg);}
+  .sidebar .unread-badge{min-width:21px;height:21px;font-size:11.5px;}
+  .sidebar .chats-list-label{font-size:11.5px;padding:14px 18px 7px;}
+
   .chat-window{width:100%;}
   .message-row{max-width:84%;}
   .back-btn{display:flex;}
   .messages{padding:10px 12px;}
   .emoji-picker{width:290px;right:8px;}
 
-  /* Chat window also respect nav height */
+  /* Chat takes the whole screen: the wallpaper layer spans the full window and
+     the composer floats over the message list, Telegram style, so bubbles
+     scroll underneath the frosted pill instead of stopping above a solid bar. */
   .chat-active{padding-bottom:0;}
-  .message-form{padding-bottom:max(10px,env(safe-area-inset-bottom));}
+  .message-form{
+    position:absolute;left:0;right:0;bottom:0;z-index:30;
+    padding:6px 8px;padding-bottom:max(8px,env(safe-area-inset-bottom));
+  }
   .message-form textarea{max-height:108px;}
+  /* Reserve the composer's height so the newest message is never hidden.
+     max() guards against a stale/zero --composer-h (it is measured while the
+     chat may still be hidden, where offsetHeight reports 0). */
+  .messages{padding-bottom:calc(max(var(--composer-h,60px), 60px) + 12px);}
 
   /* Search box on mobile: sits lower, fully rounded, nicer look */
   .search-box{
@@ -1240,14 +1629,14 @@ html,body{
   }
   .search-icon{left:14px;}
 
-  /* Chat header on mobile: sits lower, rounded like a floating card */
+  /* Chat header on mobile: sits below the notch, fully rounded floating card */
   .chat-header{
-    margin:env(safe-area-inset-top) 10px 0;
-    margin-top:calc(env(safe-area-inset-top) + 8px);
-    border-radius:18px;
-    border-bottom:none;
-    box-shadow:0 2px 12px rgba(0,0,0,0.22);
+    margin:calc(env(safe-area-inset-top) + 8px) 10px 0;
+    border-radius:22px;
+    padding:10px 14px;
   }
+  /* Reply and pinned bars stay detached cards on phones too. */
+  .reply-bar,.pinned-bar{margin:8px 10px 0;border-radius:18px;}
 
   /* Prevent in-chat search bar buttons from overflowing on small screens */
   .chat-search-bar {
@@ -1310,10 +1699,16 @@ html,body{
 /* ===== PINNED MESSAGE BAR ===== */
 .pinned-bar{
   display:flex;align-items:center;gap:10px;
-  padding:7px 14px;background:rgba(168,85,247,0.07);
-  border-top:2px solid rgba(168,85,247,0.35);
-  border-bottom:1px solid var(--border);flex-shrink:0;
-  cursor:pointer;transition:background 0.15s;
+  padding:8px 14px 8px 20px;background:rgba(168,85,247,0.07);
+  border:1px solid rgba(168,85,247,0.28);
+  flex-shrink:0;cursor:pointer;transition:background 0.15s;
+  margin:8px 12px 0;border-radius:16px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.26);
+  position:relative;z-index:2;overflow:hidden;
+}
+.pinned-bar::before{
+  content:'';position:absolute;left:8px;top:8px;bottom:8px;width:3px;
+  border-radius:3px;background:rgba(168,85,247,0.75);
 }
 .pinned-bar:hover{background:rgba(168,85,247,0.12);}
 .pinned-bar-icon{color:#c084fc;flex-shrink:0;display:flex;}
@@ -1604,22 +1999,69 @@ html,body{
   0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
   50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
 }
+/* ===== VOICE RECORDING PANEL =====
+   Replaces the whole composer row while recording so nothing overlaps.
+   It matches the floating frosted style of the Avenix composer. */
 .voice-recording-indicator {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 14px; background: rgba(239,68,68,0.08);
-  border-radius: 20px; font-size: 12px; font-weight: 600; color: #ef4444;
-  animation: fadeIn 0.2s ease; flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; min-width: 0;
+  padding: 8px 10px 8px 16px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(22px) saturate(165%);
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  border: 1px solid rgba(239,68,68,0.32);
+  border-radius: 26px;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.35), 0 0 0 3px rgba(239,68,68,0.10);
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  animation: fadeIn 0.18s ease;
 }
+[data-theme="light"] .voice-recording-indicator {
+  box-shadow: 0 6px 20px rgba(20,30,60,0.14), 0 0 0 3px rgba(239,68,68,0.09);
+}
+.voice-recording-indicator.hidden { display: none; }
 .voice-rec-dot {
-  width: 8px; height: 8px; border-radius: 50%; background: #ef4444;
-  animation: recBlink 0.6s infinite;
+  width: 10px; height: 10px; border-radius: 50%; background: #ef4444;
+  flex-shrink: 0; animation: recBlink 1s infinite;
+  box-shadow: 0 0 0 4px rgba(239,68,68,0.16);
 }
-@keyframes recBlink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
-.voice-rec-timer { font-variant-numeric: tabular-nums; }
+@keyframes recBlink { 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+.voice-rec-timer {
+  font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 700;
+  color: #ef4444; flex-shrink: 0; letter-spacing: .3px;
+}
+/* Animated level bars give the recording obvious visual life. */
+.voice-rec-wave { display: flex; align-items: center; gap: 3px; flex: 1; min-width: 0; height: 24px; overflow: hidden; }
+.voice-rec-wave span {
+  flex: 1; max-width: 4px; min-width: 2px; border-radius: 2px;
+  background: rgba(239,68,68,0.55); height: 30%;
+  animation: recWave 1.1s ease-in-out infinite;
+}
+@keyframes recWave { 0%,100%{height:26%;} 50%{height:92%;} }
+.voice-rec-hint {
+  font-size: 11px; color: var(--text-muted); font-weight: 500;
+  white-space: nowrap; flex-shrink: 0;
+}
+@media(max-width:420px){ .voice-rec-hint{ display:none; } }
+/* Round action buttons: cancel (discard) and stop (send). */
+.voice-rec-cancel, .voice-rec-stop {
+  width: 40px; height: 40px; flex-shrink: 0;
+  border: none; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .12s ease, background .18s ease, color .18s ease;
+  padding: 0;
+}
 .voice-rec-cancel {
-  background: transparent; border: none; cursor: pointer; color: #ef4444;
-  padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 13px;
+  background: rgba(239,68,68,0.14); color: #ef4444;
+  font-weight: 700; font-size: 13px;
 }
+.voice-rec-cancel:hover { background: rgba(239,68,68,0.24); }
+.voice-rec-stop {
+  background: var(--primary); color: #fff;
+  box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+}
+.voice-rec-stop:hover { background: var(--primary-dark); }
+.voice-rec-cancel:active, .voice-rec-stop:active { transform: scale(0.9); }
+.voice-rec-cancel svg, .voice-rec-stop svg { display: block; pointer-events: none; }
 .voice-bubble {
   display: flex; align-items: center; gap: 10px;
   padding: 6px 12px; min-width: 180px; cursor: pointer;
@@ -2064,7 +2506,7 @@ html,body{
 @media(max-width:460px){.owner-panel-hero{padding:16px;}.owner-panel-hero h3{font-size:18px;}.owner-action-grid{grid-template-columns:1fr;}.owner-action-card{min-height:90px;display:grid;grid-template-columns:36px 1fr;grid-template-rows:auto auto;column-gap:11px;row-gap:3px;align-items:center;}.owner-action-icon{grid-row:1 / span 2;}.owner-action-card strong{align-self:end;}.owner-action-card span:last-child{align-self:start;}.owner-danger-zone{padding:11px;align-items:flex-start;}.owner-result-row{flex-wrap:wrap;}.owner-result-actions{width:100%;padding-left:43px;}.owner-mini-btn{flex:1;}}
 
 /* ===== SETTINGS · CUSTOMIZE EXPERIENCE ===== */
-.customize-live-preview{position:relative;overflow:hidden;margin-bottom:20px;padding:15px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(135deg,var(--surface2),var(--surface));}.customize-live-preview:after{content:'';position:absolute;width:170px;height:170px;right:-70px;bottom:-96px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.2),transparent 66%);pointer-events:none;}.customize-preview-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px;}.customize-preview-title{font-size:12.5px;font-weight:800;color:var(--text-primary);}.customize-preview-subtitle{font-size:10.5px;color:var(--text-muted);margin-top:2px;}.customize-preview-mode{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(37,99,235,.22);border-radius:999px;background:var(--blue-glow);color:var(--primary-light);padding:5px 8px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;}.customize-preview-mode:before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;}.customize-chat-stage{position:relative;z-index:1;min-height:112px;padding:12px;border:1px solid var(--input-border);border-radius:13px;background:var(--chat-bg);background-image:radial-gradient(circle,rgba(37,99,235,.08) 1px,transparent 1px);background-size:16px 16px;}.customize-preview-person{display:flex;align-items:center;gap:7px;margin-bottom:9px;font-size:10.5px;color:var(--text-muted);}.customize-preview-avatar{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--primary-dark),var(--primary-light));}.customize-bubble{display:inline-block;max-width:80%;padding:7px 10px;border-radius:11px;font-size:11px;line-height:1.35;box-shadow:0 2px 6px rgba(0,0,0,.08);}.customize-bubble.incoming{background:var(--bubble-received);color:var(--text-primary);border-bottom-left-radius:3px;}.customize-bubble.outgoing{display:block;width:max-content;max-width:80%;margin:7px 0 0 auto;background:var(--bubble-sent);color:var(--bubble-sent-text,#ddeeff);border-bottom-right-radius:3px;}.customize-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:21px 0 9px;}.customize-section-head .settings-section-label{margin:0;}.customize-section-hint{font-size:10.5px;color:var(--text-muted);}.customize-theme-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;}.customize-theme-card{position:relative;min-height:115px;padding:10px;border:1px solid var(--input-border);border-radius:15px;background:var(--surface2);color:var(--text-primary);font:inherit;text-align:left;cursor:pointer;overflow:hidden;transition:all .17s ease;}.customize-theme-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.12);}.customize-theme-card.active{border-color:var(--primary);box-shadow:0 0 0 2px var(--blue-glow);}.customize-theme-card.active:after{content:'✓';position:absolute;right:8px;top:8px;width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--primary);color:#fff;font-size:11px;font-weight:900;box-shadow:0 3px 9px rgba(37,99,235,.34);}.customize-theme-swatch{height:58px;margin-bottom:9px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:#10101a;position:relative;overflow:hidden;}.customize-theme-swatch:before,.customize-theme-swatch:after{content:'';position:absolute;border-radius:8px;}.customize-theme-swatch:before{left:7px;right:24px;top:9px;height:12px;background:#1e3a5f;box-shadow:12px 20px 0 #1e3a5f;}.customize-theme-swatch:after{left:7px;right:12px;top:13px;height:4px;background:rgba(255,255,255,.5);box-shadow:12px 20px 0 rgba(255,255,255,.5);}.customize-theme-card.light .customize-theme-swatch{background:#eef1f7;border-color:rgba(0,0,0,.06);}.customize-theme-card.light .customize-theme-swatch:before{background:#dbeafe;box-shadow:12px 20px 0 #dbeafe;}.customize-theme-card.light .customize-theme-swatch:after{background:rgba(15,58,102,.5);box-shadow:12px 20px 0 rgba(15,58,102,.5);}.customize-theme-card.custom .customize-theme-swatch{background:linear-gradient(135deg,#172554,#4f46e5 45%,#a855f7);}.customize-theme-card.custom .customize-theme-swatch:before{background:rgba(255,255,255,.22);box-shadow:12px 20px 0 rgba(255,255,255,.32);}.customize-theme-card.custom .customize-theme-swatch:after{background:#fff;box-shadow:12px 20px 0 #fff;}.customize-theme-name{display:block;font-size:12px;font-weight:800;}.customize-theme-desc{display:block;margin-top:2px;font-size:10px;color:var(--text-muted);}.customize-typography-card{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1px solid var(--border);border-radius:15px;background:rgba(255,255,255,.025);}.customize-type-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--blue-glow);color:var(--primary-light);font:800 15px Georgia,serif;}.customize-type-copy{min-width:0;flex:1;}.customize-type-copy strong{display:block;font-size:12.5px;}.customize-type-copy span{display:block;margin-top:2px;font-size:10.5px;color:var(--text-muted);}.customize-size-control{display:flex;align-items:center;gap:8px;min-width:150px;}.customize-size-control input{width:100%;accent-color:var(--primary);}.customize-size-value{min-width:34px;text-align:right;font-size:11.5px;font-weight:800;color:var(--primary-light);}.customize-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px;}.customize-action-card{display:flex;align-items:flex-start;gap:10px;padding:13px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.025);color:var(--text-primary);font:inherit;text-align:left;cursor:pointer;transition:all .16s ease;}.customize-action-card:hover{border-color:rgba(37,99,235,.42);background:var(--blue-glow);transform:translateY(-1px);}.customize-action-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--blue-glow);color:var(--primary-light);}.customize-action-card:nth-child(2) .customize-action-icon{background:rgba(245,158,11,.13);color:#fbbf24;}.customize-action-copy{min-width:0;flex:1;}.customize-action-copy strong{display:block;font-size:12.5px;}.customize-action-copy span{display:block;margin-top:2px;font-size:10.5px;line-height:1.4;color:var(--text-muted);}.customize-reset-btn{margin-top:11px;width:100%;border:1px solid rgba(239,68,68,.2);border-radius:11px;background:rgba(239,68,68,.06);color:#f87171;padding:9px 11px;font:700 11.5px inherit;cursor:pointer;transition:background .16s ease;}.customize-reset-btn:hover{background:rgba(239,68,68,.13);}
+.customize-live-preview{position:relative;overflow:hidden;margin-bottom:20px;padding:15px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(135deg,var(--surface2),var(--surface));}.customize-live-preview:after{content:'';position:absolute;width:170px;height:170px;right:-70px;bottom:-96px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.2),transparent 66%);pointer-events:none;}.customize-preview-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px;}.customize-preview-title{font-size:12.5px;font-weight:800;color:var(--text-primary);}.customize-preview-subtitle{font-size:10.5px;color:var(--text-muted);margin-top:2px;}.customize-preview-mode{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(37,99,235,.22);border-radius:999px;background:var(--blue-glow);color:var(--primary-light);padding:5px 8px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;}.customize-preview-mode:before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;}.customize-chat-stage{position:relative;z-index:1;min-height:112px;padding:12px;border:1px solid var(--input-border);border-radius:13px;background:var(--chat-bg);background-image:radial-gradient(circle,rgba(37,99,235,.08) 1px,transparent 1px);background-size:16px 16px;}.customize-preview-person{display:flex;align-items:center;gap:7px;margin-bottom:9px;font-size:10.5px;color:var(--text-muted);}.customize-preview-avatar{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--primary-dark),var(--primary-light));}.customize-bubble{display:inline-block;max-width:80%;padding:7px 10px;border-radius:11px;font-size:11px;line-height:1.35;box-shadow:0 2px 6px rgba(0,0,0,.08);}.customize-bubble.incoming{background:var(--bubble-received);color:var(--text-primary);border-bottom-left-radius:3px;}.customize-bubble.outgoing{display:block;width:max-content;max-width:80%;margin:7px 0 0 auto;background:var(--bubble-sent);color:var(--bubble-sent-text,#ddeeff);border-bottom-right-radius:3px;}.customize-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:21px 0 9px;}.customize-section-head .settings-section-label{margin:0;}.customize-section-hint{font-size:10.5px;color:var(--text-muted);}.customize-theme-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;}.customize-theme-card{position:relative;min-height:115px;padding:10px;border:1px solid var(--input-border);border-radius:15px;background:var(--surface2);color:var(--text-primary);font:inherit;text-align:left;cursor:pointer;overflow:hidden;transition:all .17s ease;}.customize-theme-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.12);}.customize-theme-card.active{border-color:var(--primary);box-shadow:0 0 0 2px var(--blue-glow);}.customize-theme-card.active:after{content:'✓';position:absolute;right:8px;top:8px;width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--primary);color:#fff;font-size:11px;font-weight:900;box-shadow:0 3px 9px rgba(37,99,235,.34);}.customize-theme-swatch{display:block;height:58px;margin-bottom:9px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:#10101a;position:relative;overflow:hidden;}.customize-theme-swatch:before,.customize-theme-swatch:after{content:'';position:absolute;border-radius:8px;}.customize-theme-swatch:before{left:7px;right:24px;top:9px;height:12px;background:#1e3a5f;box-shadow:12px 20px 0 #1e3a5f;}.customize-theme-swatch:after{left:7px;right:12px;top:13px;height:4px;background:rgba(255,255,255,.5);box-shadow:12px 20px 0 rgba(255,255,255,.5);}.customize-theme-card.light .customize-theme-swatch{background:#eef1f7;border-color:rgba(0,0,0,.06);}.customize-theme-card.light .customize-theme-swatch:before{background:#dbeafe;box-shadow:12px 20px 0 #dbeafe;}.customize-theme-card.light .customize-theme-swatch:after{background:rgba(15,58,102,.5);box-shadow:12px 20px 0 rgba(15,58,102,.5);}.customize-theme-card.custom .customize-theme-swatch{background:linear-gradient(135deg,#172554,#4f46e5 45%,#a855f7);}.customize-theme-card.custom .customize-theme-swatch:before{background:rgba(255,255,255,.22);box-shadow:12px 20px 0 rgba(255,255,255,.32);}.customize-theme-card.custom .customize-theme-swatch:after{background:#fff;box-shadow:12px 20px 0 #fff;}.customize-theme-name{display:block;font-size:12px;font-weight:800;}.customize-theme-desc{display:block;margin-top:2px;font-size:10px;color:var(--text-muted);}.customize-typography-card{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1px solid var(--border);border-radius:15px;background:rgba(255,255,255,.025);}.customize-type-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--blue-glow);color:var(--primary-light);font:800 15px Georgia,serif;}.customize-type-copy{min-width:0;flex:1;}.customize-type-copy strong{display:block;font-size:12.5px;}.customize-type-copy span{display:block;margin-top:2px;font-size:10.5px;color:var(--text-muted);}.customize-size-control{display:flex;align-items:center;gap:8px;min-width:150px;}.customize-size-control input{width:100%;accent-color:var(--primary);}.customize-size-value{min-width:34px;text-align:right;font-size:11.5px;font-weight:800;color:var(--primary-light);}.customize-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px;}.customize-action-card{display:flex;align-items:flex-start;gap:10px;padding:13px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.025);color:var(--text-primary);font:inherit;text-align:left;cursor:pointer;transition:all .16s ease;}.customize-action-card:hover{border-color:rgba(37,99,235,.42);background:var(--blue-glow);transform:translateY(-1px);}.customize-action-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--blue-glow);color:var(--primary-light);}.customize-action-card:nth-child(2) .customize-action-icon{background:rgba(245,158,11,.13);color:#fbbf24;}.customize-action-copy{min-width:0;flex:1;}.customize-action-copy strong{display:block;font-size:12.5px;}.customize-action-copy span{display:block;margin-top:2px;font-size:10.5px;line-height:1.4;color:var(--text-muted);}.customize-reset-btn{margin-top:11px;width:100%;border:1px solid rgba(239,68,68,.2);border-radius:11px;background:rgba(239,68,68,.06);color:#f87171;padding:9px 11px;font:700 11.5px inherit;cursor:pointer;transition:background .16s ease;}.customize-reset-btn:hover{background:rgba(239,68,68,.13);}
 @media(max-width:540px){.customize-live-preview{padding:13px;margin-bottom:17px;}.customize-chat-stage{min-height:100px;}.customize-theme-grid{gap:7px;}.customize-theme-card{min-height:103px;padding:8px;}.customize-theme-swatch{height:49px;margin-bottom:7px;}.customize-theme-name{font-size:11px;}.customize-theme-desc{font-size:9.5px;}.customize-typography-card{align-items:flex-start;padding:11px;}.customize-size-control{flex:1;min-width:0;align-self:center;}.customize-action-grid{grid-template-columns:1fr;gap:7px;}.customize-action-card{padding:11px;}.customize-preview-mode{font-size:9px;}.customize-preview-subtitle{display:none;}}
 @media(max-width:360px){.customize-theme-card{min-height:94px;}.customize-theme-swatch{height:42px;}.customize-theme-desc{display:none;}.customize-typography-card{flex-wrap:wrap;}.customize-size-control{width:100%;padding-left:47px;}.customize-live-preview{padding:11px;}}
 
@@ -2110,9 +2552,388 @@ html,body{
 [data-theme="light"] .guide-tutorial{background:rgba(240,242,248,.45);}
 [data-theme="light"] .guide-language-switch,[data-theme="light"] .guide-device-tabs{border-color:rgba(0,0,0,.07);background:rgba(240,242,248,.7);}
 [data-theme="light"] .guide-step{border-color:var(--border);}
+
+/* ==================================================================
+   GLASS THEME — pure black backdrop with frosted translucent panels
+   (Telegram-style). Driven by --glass-* variables written from JS, so
+   the user can tune blur, opacity, tint and corner radius live.
+   ================================================================== */
+[data-theme="glass"]{
+  /* --- Tunables (JS overwrites these inline from the settings panel) --- */
+  --glass-tint:255,255,255;
+  --glass-accent-rgb:37,99,235;
+  --glass-alpha:0.06;         /* panels / cards            */
+  --glass-alpha-soft:0.036;   /* controls nested in panels */
+  --glass-alpha-strong:0.12;  /* chips, bubbles            */
+  --glass-alpha-modal:0.18;   /* dialogs need extra body   */
+  --glass-blur:22px;
+  --glass-saturate:150%;
+  --glass-radius:18px;
+  --glass-scrim:0.45;
+  --glass-border:rgba(255,255,255,0.12);
+  --glass-accent:#2563EB;
+
+  /* --- Palette remap ------------------------------------------------
+     Rather than chasing individual selectors, the shared palette tokens
+     themselves become translucent. Every existing rule that paints with
+     var(--surface), var(--chat-bg), … turns to glass automatically. */
+  --bg:transparent;
+  --sidebar-bg:transparent;
+  --chat-bg:transparent;
+  --sidebar-header-bg:rgba(var(--glass-tint),var(--glass-alpha));
+  --chat-header-bg:rgba(var(--glass-tint),var(--glass-alpha));
+  --surface:rgba(var(--glass-tint),var(--glass-alpha));
+  --surface2:rgba(var(--glass-tint),var(--glass-alpha-soft));
+  --input-bg:rgba(var(--glass-tint),var(--glass-alpha-soft));
+  --gray:rgba(var(--glass-tint),var(--glass-alpha-soft));
+  --glass-bg:rgba(var(--glass-tint),var(--glass-alpha-strong));
+  --border:var(--glass-border);
+  --input-border:var(--glass-border);
+  --scrollbar:rgba(var(--glass-tint),0.20);
+  --row-hover:rgba(var(--glass-tint),var(--glass-alpha));
+  --row-active:rgba(var(--glass-accent-rgb),0.22);
+  --bubble-received:rgba(var(--glass-tint),var(--glass-alpha-strong));
+  --bubble-sent:rgba(var(--glass-accent-rgb),0.30);
+  --bubble-sent-text:#eef4ff;
+  --blue-glow:rgba(var(--glass-accent-rgb),0.18);
+
+  /* Text is lifted for contrast against a live photo backdrop. */
+  --text-primary:#f4f7fc;
+  --text-secondary:#c6cede;
+  --text-muted:#909aae;
+  --white:#f4f7fc;
+}
+/* The photo/gradient behind every frosted surface. */
+.glass-backdrop{
+  position:fixed;inset:0;z-index:-2;pointer-events:none;display:none;
+  background:#000;
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+}
+[data-theme="glass"] .glass-backdrop{display:block;}
+/* A soft vignette keeps text readable over bright wallpapers. */
+[data-theme="glass"] .glass-backdrop::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,var(--glass-scrim,0.45)),rgba(0,0,0,calc(var(--glass-scrim,0.45) + 0.12)));
+}
+/* The root itself carries the black; body must be transparent so the
+   backdrop layer (z-index:-2) is not painted over by the body background. */
+html[data-theme="glass"]{background:#000;}
+html[data-theme="glass"] body{background:transparent;}
+
+/* --- Structural containers stay fully transparent ------------------ */
+[data-theme="glass"] .app,
+[data-theme="glass"] .sidebar,
+[data-theme="glass"] .chat-window,
+[data-theme="glass"] .search-box,
+[data-theme="glass"] .folder-tabs,
+[data-theme="glass"] .sidebar-tabs,
+[data-theme="glass"] .chats-list,
+[data-theme="glass"] .search-results,
+[data-theme="glass"] .messages,
+[data-theme="glass"] .message-form,
+[data-theme="glass"] .settings-hub-main,
+[data-theme="glass"] .settings-hub-content,
+[data-theme="glass"] .article-editor-scroll,
+[data-theme="glass"] .auth-screen,
+[data-theme="glass"] .install-guide-screen{background:transparent!important;}
+[data-theme="glass"] .chat-window::before{display:none;}
+/* Containers must not clip children, or the blur is cut off. */
+[data-theme="glass"] .folder-tabs,
+[data-theme="glass"] .sidebar-tabs{border-color:var(--glass-border);}
+
+/* --- Tier 1: floating panels (strongest blur) ---------------------- */
+[data-theme="glass"] .chat-header,
+[data-theme="glass"] .reply-bar,
+[data-theme="glass"] .pinned-bar,
+[data-theme="glass"] .chat-search-bar,
+[data-theme="glass"] .msg-input-wrap,
+[data-theme="glass"] .message-form > .form-icon-btn,
+[data-theme="glass"] .mobile-nav-bar,
+[data-theme="glass"] .mobile-nav-avatar,
+[data-theme="glass"] .mobile-create-btn,
+[data-theme="glass"] .sidebar-menu-btn,
+[data-theme="glass"] .search-wrap input,
+[data-theme="glass"] .voice-recording-indicator,
+[data-theme="glass"] .compose-meta-bar,
+[data-theme="glass"] .channel-locked-bar{
+  background:rgba(var(--glass-tint),var(--glass-alpha));
+  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border:1px solid var(--glass-border);
+}
+
+/* --- Tier 2: overlays and dialogs (denser so text stays legible) --- */
+[data-theme="glass"] .modal,
+[data-theme="glass"] .settings-hub,
+[data-theme="glass"] .sidebar-drawer,
+[data-theme="glass"] .emoji-picker,
+[data-theme="glass"] .attach-menu,
+[data-theme="glass"] .gif-picker,
+[data-theme="glass"] .poll-creator,
+[data-theme="glass"] .schedule-picker,
+[data-theme="glass"] .chat-context-menu,
+[data-theme="glass"] .mobile-create-menu,
+[data-theme="glass"] .msg-action-popup,
+[data-theme="glass"] .article-composer,
+[data-theme="glass"] .article-reader,
+[data-theme="glass"] .article-popover,
+[data-theme="glass"] .media-gallery,
+[data-theme="glass"] .auth-card{
+  background:rgba(var(--glass-tint),var(--glass-alpha-modal))!important;
+  backdrop-filter:blur(calc(var(--glass-blur) + 14px)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter:blur(calc(var(--glass-blur) + 14px)) saturate(var(--glass-saturate));
+  border:1px solid var(--glass-border)!important;
+}
+/* Dialog chrome inherits the parent frost instead of stacking its own. */
+[data-theme="glass"] .settings-hub-header,
+[data-theme="glass"] .settings-hub-sidebar,
+[data-theme="glass"] .settings-hub-nav,
+[data-theme="glass"] .article-composer-header,
+[data-theme="glass"] .article-toolbar,
+[data-theme="glass"] .article-composer-footer,
+[data-theme="glass"] .drawer-mobile-head,
+[data-theme="glass"] .modal-header,
+[data-theme="glass"] .modal-footer{
+  background:transparent!important;backdrop-filter:none;-webkit-backdrop-filter:none;
+  border-color:var(--glass-border);
+}
+[data-theme="glass"] .chat-header,
+[data-theme="glass"] .modal,
+[data-theme="glass"] .settings-hub{border-radius:var(--glass-radius)!important;}
+/* Backdrop scrims must not double-darken the frosted dialog. */
+[data-theme="glass"] .modal-overlay,
+[data-theme="glass"] .settings-overlay{background:rgba(0,0,0,0.45);}
+
+/* --- Tier 3: inline controls (light frost, no heavy blur) ---------- */
+[data-theme="glass"] .modal-input,
+[data-theme="glass"] .profile-field-textarea,
+[data-theme="glass"] .security-textarea,
+[data-theme="glass"] .security-select,
+[data-theme="glass"] .passcode-input,
+[data-theme="glass"] .owner-search-input,
+[data-theme="glass"] .emoji-picker-search,
+[data-theme="glass"] .gif-picker-search,
+[data-theme="glass"] .contacts-search-wrap input,
+[data-theme="glass"] .chat-search-bar input,
+[data-theme="glass"] .poll-creator input,
+[data-theme="glass"] .schedule-date-input,
+[data-theme="glass"] .schedule-time-input,
+[data-theme="glass"] .article-link-popover input,
+[data-theme="glass"] .article-toolbar select,
+[data-theme="glass"] .msg-edit-input,
+[data-theme="glass"] .glass-settings,
+[data-theme="glass"] .settings-inline-row,
+[data-theme="glass"] .settings-tile,
+[data-theme="glass"] .settings-action-btn,
+[data-theme="glass"] .customize-theme-card,
+[data-theme="glass"] .customize-typography-card,
+[data-theme="glass"] .customize-action-card,
+[data-theme="glass"] .customize-live-preview,
+[data-theme="glass"] .device-row,
+[data-theme="glass"] .security-panel,
+[data-theme="glass"] .security-action-btn,
+[data-theme="glass"] .device-action-btn,
+[data-theme="glass"] .owner-result-row,
+[data-theme="glass"] .owner-mini-btn,
+[data-theme="glass"] .category-picker-row,
+[data-theme="glass"] .destruct-picker-row,
+[data-theme="glass"] .admin-role-option,
+[data-theme="glass"] .role-manage-btn,
+[data-theme="glass"] .drawer-item-icon,
+[data-theme="glass"] .drawer-mobile-close,
+[data-theme="glass"] .drawer-add-account .drawer-add-icon,
+[data-theme="glass"] .drawer-switch,
+[data-theme="glass"] .glass-preset,
+[data-theme="glass"] .glass-bg-btn,
+[data-theme="glass"] .folder-tab,
+[data-theme="glass"] .media-gallery-item,
+[data-theme="glass"] .gif-item,
+[data-theme="glass"] .picker-main-tabs,
+[data-theme="glass"] .media-gallery-tabs{
+  background:rgba(var(--glass-tint),var(--glass-alpha-soft))!important;
+  border-color:var(--glass-border);
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+[data-theme="glass"] .customize-chat-stage{
+  background:rgba(0,0,0,0.22)!important;border-color:var(--glass-border);
+}
+
+/* --- Selected / active states must win over the Tier-3 frost -------- */
+[data-theme="glass"] .drawer-item.switch-on .drawer-switch,
+[data-theme="glass"] .gif-tab.active,
+[data-theme="glass"] .picker-main-tab.active,
+[data-theme="glass"] .folder-tab.active{
+  background:var(--glass-accent)!important;
+  border-color:var(--glass-accent)!important;
+  color:#fff;
+}
+[data-theme="glass"] .settings-hub-nav button.active,
+[data-theme="glass"] .settings-action-btn:hover,
+[data-theme="glass"] .customize-action-card:hover,
+[data-theme="glass"] .category-picker-row.active,
+[data-theme="glass"] .admin-role-option.active,
+[data-theme="glass"] .emoji-cat-btn.active,
+[data-theme="glass"] .settings-tile:hover,
+[data-theme="glass"] .customize-theme-card.active,
+[data-theme="glass"] .settings-theme-choice.active{
+  background:rgba(var(--glass-accent-rgb),0.22)!important;
+  border-color:rgba(var(--glass-accent-rgb),0.55)!important;
+}
+[data-theme="glass"] .destruct-picker-row.active{
+  background:rgba(245,158,11,0.18)!important;border-color:#f59e0b!important;
+}
+/* Danger controls keep their red identity. */
+[data-theme="glass"] .settings-action-btn.danger,
+[data-theme="glass"] .customize-reset-btn,
+[data-theme="glass"] .btn-danger{
+  background:rgba(239,68,68,0.16)!important;
+  border-color:rgba(239,68,68,0.42)!important;color:#fca5a5;
+}
+/* Focus rings stay visible on frosted inputs. */
+[data-theme="glass"] .modal-input:focus,
+[data-theme="glass"] .search-wrap input:focus,
+[data-theme="glass"] .contacts-search-wrap input:focus,
+[data-theme="glass"] .owner-search-input:focus,
+[data-theme="glass"] .emoji-picker-search:focus,
+[data-theme="glass"] .gif-picker-search:focus{
+  border-color:rgba(var(--glass-accent-rgb),0.75)!important;
+  box-shadow:0 0 0 3px rgba(var(--glass-accent-rgb),0.20);
+}
+[data-theme="glass"] .msg-input-wrap:focus-within{
+  border-color:rgba(var(--glass-accent-rgb),0.75);
+  box-shadow:0 6px 24px rgba(0,0,0,0.4),0 0 0 3px rgba(var(--glass-accent-rgb),0.20);
+}
+
+/* --- Message bubbles ------------------------------------------------ */
+[data-theme="glass"] .bubble{
+  backdrop-filter:blur(calc(var(--glass-blur) * 0.55)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter:blur(calc(var(--glass-blur) * 0.55)) saturate(var(--glass-saturate));
+  border:1px solid var(--glass-border);
+  box-shadow:0 2px 10px rgba(0,0,0,0.18);
+}
+[data-theme="glass"] .message-row.received .bubble,
+[data-theme="glass"] .messages.has-wallpaper .message-row.received .bubble{
+  background:rgba(var(--glass-tint),var(--glass-alpha-strong))!important;
+}
+[data-theme="glass"] .message-row.sent .bubble,
+[data-theme="glass"] .messages.has-wallpaper .message-row.sent .bubble{
+  background:rgba(var(--glass-accent-rgb),0.30)!important;
+  border-color:rgba(var(--glass-accent-rgb),0.42);
+  color:var(--bubble-sent-text);
+}
+[data-theme="glass"] .message-row.sent .msg-time{color:rgba(255,255,255,0.72);}
+
+/* --- Rows, chips and accents --------------------------------------- */
+[data-theme="glass"] .user-row:hover{background:rgba(var(--glass-tint),var(--glass-alpha));}
+[data-theme="glass"] .user-row.active{background:rgba(var(--glass-accent-rgb),0.22);}
+[data-theme="glass"] .drawer-item:hover,
+[data-theme="glass"] .drawer-account-row:hover{background:rgba(var(--glass-tint),var(--glass-alpha));}
+[data-theme="glass"] .mobile-nav-item.active .nav-icon{background:rgba(var(--glass-accent-rgb),0.24);}
+[data-theme="glass"] .date-separator span,
+[data-theme="glass"] .group-badge,
+[data-theme="glass"] .settings-meta-chip{
+  background:rgba(var(--glass-tint),var(--glass-alpha-strong))!important;
+  border:1px solid var(--glass-border);
+}
+/* Solid accents keep their punch — never frost these. */
+[data-theme="glass"] .btn-send,
+[data-theme="glass"] .btn-primary,
+[data-theme="glass"] .unread-badge,
+[data-theme="glass"] .voice-rec-stop,
+[data-theme="glass"] .avatar,
+[data-theme="glass"] .settings-hub-mark,
+[data-theme="glass"] .article-composer-brand-icon,
+[data-theme="glass"] .status-dot,
+[data-theme="glass"] .drawer-profile .drawer-avatar,
+[data-theme="glass"] .mnav-avatar-img{
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+[data-theme="glass"] .btn-send,
+[data-theme="glass"] .unread-badge,
+[data-theme="glass"] .voice-rec-stop{background:var(--glass-accent)!important;}
+[data-theme="glass"] .status-dot{border-color:rgba(0,0,0,0.55);}
+[data-theme="glass"] .drawer-profile{
+  background:linear-gradient(150deg,rgba(var(--glass-accent-rgb),0.20),transparent 72%)!important;
+}
+/* Scrollbars and dividers on glass. */
+[data-theme="glass"] ::-webkit-scrollbar-thumb{background:rgba(var(--glass-tint),0.20);}
+[data-theme="glass"] ::-webkit-scrollbar-thumb:hover{background:rgba(var(--glass-tint),0.32);}
+
+/* Nested blur layers cost a lot on phones; keep only the top tier there. */
+@media(max-width:768px){
+  [data-theme="glass"] .bubble{
+    backdrop-filter:none;-webkit-backdrop-filter:none;
+  }
+  [data-theme="glass"] .message-row.received .bubble{background:rgba(var(--glass-tint),0.16)!important;}
+  [data-theme="glass"] .message-row.sent .bubble{background:rgba(var(--glass-accent-rgb),0.42)!important;}
+}
+
+/* Devices without backdrop-filter get a readable opaque fallback. */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  [data-theme="glass"]{
+    --surface:rgba(24,24,30,0.94);
+    --surface2:rgba(32,32,40,0.94);
+    --chat-header-bg:rgba(24,24,30,0.94);
+    --sidebar-header-bg:rgba(24,24,30,0.94);
+    --input-bg:rgba(32,32,40,0.94);
+  }
+  [data-theme="glass"] .chat-header,
+  [data-theme="glass"] .msg-input-wrap,
+  [data-theme="glass"] .mobile-nav-bar,
+  [data-theme="glass"] .mobile-nav-avatar,
+  [data-theme="glass"] .modal,
+  [data-theme="glass"] .settings-hub,
+  [data-theme="glass"] .sidebar-drawer,
+  [data-theme="glass"] .message-row.received .bubble{background:rgba(24,24,30,0.94)!important;}
+  [data-theme="glass"] .message-row.sent .bubble{background:rgba(var(--glass-accent-rgb),0.85)!important;}
+}
+
+/* Glass swatch in the theme picker: frosted bars over pure black. */
+.customize-theme-card.glass .customize-theme-swatch{
+  background:#000;border-color:rgba(255,255,255,.14);
+}
+.customize-theme-card.glass .customize-theme-swatch:before{
+  background:rgba(255,255,255,.16);box-shadow:12px 20px 0 rgba(37,99,235,.45);
+  backdrop-filter:blur(4px);
+}
+.customize-theme-card.glass .customize-theme-swatch:after{
+  background:rgba(255,255,255,.7);box-shadow:12px 20px 0 rgba(255,255,255,.85);
+}
+/* Four themes fit two-up so each card keeps a readable size. */
+.customize-theme-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+@media(min-width:900px){.customize-theme-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
+
+/* --- Glass settings panel (inside Customize) ---------------------- */
+.glass-settings{margin-top:10px;padding:15px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.025);}
+.glass-settings-row{display:flex;align-items:center;gap:12px;padding:9px 0;}
+.glass-settings-row + .glass-settings-row{border-top:1px solid var(--border);}
+.glass-settings-row > .glass-row-copy{flex:1;min-width:0;}
+.glass-row-copy strong{display:block;font-size:12.5px;color:var(--text-primary);}
+.glass-row-copy span{display:block;margin-top:2px;font-size:10.5px;color:var(--text-muted);line-height:1.4;}
+.glass-settings-row input[type="range"]{flex:0 0 132px;accent-color:var(--primary);}
+.glass-settings-row input[type="color"]{width:38px;height:30px;border:1px solid var(--input-border);border-radius:8px;background:transparent;padding:2px;cursor:pointer;flex-shrink:0;}
+.glass-value{min-width:44px;text-align:right;font-size:11.5px;font-weight:800;color:var(--primary-light);flex-shrink:0;}
+/* Rows whose control is a wrapping button group stack instead of squeezing
+   the description into a narrow column. */
+.glass-settings-row.is-stacked{flex-direction:column;align-items:stretch;gap:9px;}
+.glass-settings-row.is-stacked > .glass-row-copy{flex:none;}
+.glass-preset-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;}
+.glass-preset{padding:7px 11px;border:1px solid var(--input-border);border-radius:999px;background:var(--surface2);color:var(--text-secondary);font:700 11px inherit;cursor:pointer;transition:all .16s ease;}
+.glass-preset:hover{border-color:var(--primary);color:var(--text-primary);background:var(--blue-glow);}
+.glass-bg-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.glass-bg-btn{padding:8px 11px;border:1px solid var(--input-border);border-radius:10px;background:var(--surface);color:var(--text-secondary);font:700 11.5px inherit;cursor:pointer;transition:all .16s ease;}
+.glass-bg-btn:hover{border-color:var(--primary);color:var(--text-primary);background:var(--blue-glow);}
+@media(max-width:540px){
+  .glass-settings-row{flex-wrap:wrap;}
+  .glass-settings-row input[type="range"]{flex:1 1 100%;order:3;}
+  .glass-value{order:2;}
+}
 </style>
 </head>
 <body>
+
+<!-- Glass theme backdrop: the black/photo layer every frosted panel blurs -->
+<div id="glass-backdrop" class="glass-backdrop"></div>
 
 <!-- LOADING SCREEN -->
 <div id="loading-screen" class="auth-screen" style="background:var(--bg);" aria-live="polite" aria-label="Loading Avenix Messenger">
@@ -2390,6 +3211,10 @@ html,body{
     </div>
 
     <div class="search-box">
+      <!-- Desktop hamburger: opens the main app drawer (profile, accounts, settings…) -->
+      <button type="button" id="sidebar-menu-btn" class="sidebar-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar-drawer" title="Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div class="search-wrap">
         <span class="search-icon">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -2448,27 +3273,74 @@ html,body{
     <div id="chats-list" class="chats-list"></div>
   </aside>
 
+  <!-- MAIN DRAWER (opened by the hamburger beside the search box) -->
+  <div id="sidebar-drawer-scrim" class="sidebar-drawer-scrim hidden"></div>
+  <aside id="sidebar-drawer" class="sidebar-drawer" role="dialog" aria-modal="true" aria-label="Main menu" aria-hidden="true">
+
+    <!-- Mobile-only title bar: turns the drawer into a readable full page -->
+    <div class="drawer-mobile-head">
+      <strong>Settings</strong>
+      <button type="button" class="drawer-mobile-close" id="drawer-mobile-close" aria-label="Close settings">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- 1) Profile: name + photo -->
+    <button type="button" class="drawer-profile" id="drawer-profile-btn">
+      <span class="drawer-avatar" id="drawer-avatar"></span>
+      <span class="drawer-profile-text">
+        <span class="drawer-profile-name" id="drawer-profile-name">Your profile</span>
+        <span class="drawer-profile-sub">
+          <svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#22c55e"/></svg>
+          <span id="drawer-profile-status">Online</span>
+        </span>
+      </span>
+    </button>
+
+    <div class="drawer-divider"></div>
+
+    <!-- 2) Accounts: separate block -->
+    <div class="drawer-accounts" id="drawer-accounts"></div>
+
+    <div class="drawer-divider"></div>
+
+    <!-- 3) My profile, contacts, settings, and more -->
+    <div class="drawer-nav" id="drawer-nav"></div>
+
+    <div class="drawer-footer">
+      <b>Avenix Messenger</b>
+      <span id="drawer-version-line">Beta v1.0</span>
+    </div>
+  </aside>
+
   <!-- MOBILE BOTTOM NAV -->
-  <nav class="mobile-nav" id="mobile-nav">
-    <button class="mobile-nav-item active" id="mnav-chats" onclick="mobileNavSwitch('chats')">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-      <span class="nav-label">Chats</span>
+  <div class="mobile-nav-dock" id="mobile-nav">
+    <nav class="mobile-nav-bar" aria-label="Main navigation">
+      <button class="mobile-nav-item active" id="mnav-chats" onclick="mobileNavSwitch('chats')">
+        <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <span class="nav-label">Chats</span>
+      </button>
+      <button class="mobile-nav-item" id="mnav-contacts" onclick="mobileNavSwitch('contacts')">
+        <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <span class="nav-label">Contacts</span>
+      </button>
+      <button class="mobile-nav-item" id="mnav-settings" onclick="mobileNavSwitch('settings')">
+        <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+        <span class="nav-label">Settings</span>
+      </button>
+      <button class="mobile-nav-item" id="mnav-search" onclick="mobileNavSwitch('search')">
+        <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <span class="nav-label">Search</span>
+      </button>
+    </nav>
+    <button class="mobile-nav-avatar" id="mnav-profile" onclick="mobileNavSwitch('profile')" aria-label="Open my profile" title="My profile">
+      <span class="mnav-avatar-img" id="mnav-avatar-img"></span>
     </button>
-    <button class="mobile-nav-item" id="mnav-search" onclick="mobileNavSwitch('search')">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-      <span class="nav-label">Search</span>
-    </button>
-    <button class="mobile-nav-item" id="mnav-profile" onclick="mobileNavSwitch('profile')">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-      <span class="nav-label">Profile</span>
-    </button>
-    <button class="mobile-nav-item" id="mnav-settings" onclick="mobileNavSwitch('settings')">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-      <span class="nav-label">Settings</span>
-    </button>
-  </nav>
+  </div>
 
   <main class="chat-window">
+    <!-- Full-window wallpaper layer: spans the whole chat, under the composer -->
+    <div id="chat-wallpaper" class="chat-wallpaper"></div>
     <div id="chat-empty" class="chat-empty">
       <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -4773,6 +5645,12 @@ function showApp() {
 }
 
 function showAuth(options = {}) {
+  // Account switching / "Add account" sends the user straight to the sign-in
+  // form: the install guide has already been seen in this session.
+  if (window.__avenixSkipInstallGuideOnce) {
+    window.__avenixSkipInstallGuideOnce = false;
+    options = Object.assign({}, options, { skipInstallGuide: true });
+  }
   // Always show the install guide before the login screen. The current session
   // uses skipInstallGuide only after the visitor explicitly presses Continue.
   if (!options.skipInstallGuide) {
@@ -4785,6 +5663,7 @@ function showAuth(options = {}) {
   appIsUnlocked = false;
   appEl.classList.add('hidden');
   authScreen.classList.remove('hidden');
+  try { closeSidebarDrawer(); } catch (_) {}
   chatsListEl.innerHTML = '';
   searchResultsEl.innerHTML = '';
   messagesEl.innerHTML = '';
@@ -4795,6 +5674,8 @@ function showAuth(options = {}) {
 function renderMe() {
   meUsername.textContent = currentUserData.username;
   setAvatarContent(meAvatar, currentUserData.username, currentUserData.photoURL);
+  // Keep the drawer profile card, saved-account list and dock avatar in sync.
+  try { rememberCurrentAccount(); renderDrawerProfile(); renderMobileNavAvatar(); } catch (_) {}
 }
 
 function safeHttpUrl(value) {
@@ -6287,14 +7168,125 @@ function applyCustomThemeVariables(theme) {
   root.style.setProperty('--gray', t.surface2);
   root.style.setProperty('--white', t.textPrimary);
 }
+/* ==================== GLASS THEME ====================
+   A Telegram-style frosted look: pure black (or a chosen image) behind
+   translucent blurred panels. Every knob below is user adjustable. */
+const GLASS_DEFAULTS = {
+  blur: 22,          // px of backdrop blur
+  opacity: 6,        // % tint opacity of each panel
+  saturate: 150,     // % colour saturation behind the glass
+  radius: 18,        // px corner radius of glass cards
+  scrim: 45,         // % darkening over the backdrop image
+  accent: '#2563EB', // accent used by sent bubbles and buttons
+  tint: '#FFFFFF',   // colour mixed into the frost
+  background: ''     // '' = pure black, otherwise a data/http image URL
+};
+const GLASS_PRESETS = {
+  midnight: { blur:22, opacity:6,  saturate:150, radius:18, scrim:45, accent:'#2563EB', tint:'#FFFFFF' },
+  frost:    { blur:34, opacity:12, saturate:180, radius:22, scrim:35, accent:'#38bdf8', tint:'#E8F4FF' },
+  obsidian: { blur:14, opacity:4,  saturate:120, radius:12, scrim:60, accent:'#a855f7', tint:'#FFFFFF' },
+  aurora:   { blur:28, opacity:9,  saturate:200, radius:24, scrim:40, accent:'#22c55e', tint:'#DFFFF0' }
+};
+function getGlassSettings() {
+  try {
+    return { ...GLASS_DEFAULTS, ...(JSON.parse(localStorage.getItem('appGlassTheme') || '{}') || {}) };
+  } catch (_) { return { ...GLASS_DEFAULTS }; }
+}
+function saveGlassSettings(next) {
+  const merged = { ...GLASS_DEFAULTS, ...next };
+  try { localStorage.setItem('appGlassTheme', JSON.stringify(merged)); } catch (_) {}
+  return merged;
+}
+/* Writes the --glass-* custom properties and paints the backdrop layer. */
+function applyGlassSettings(settings) {
+  const g = settings || getGlassSettings();
+  const root = document.documentElement;
+  const tintRgb = hexToRgbParts(g.tint) || '255,255,255';
+  const accentRgb = hexToRgbParts(g.accent) || '37,99,235';
+  const alpha = Math.max(0, Math.min(100, Number(g.opacity) || 0)) / 100;
+
+  root.style.setProperty('--glass-tint', tintRgb);
+  root.style.setProperty('--glass-alpha', alpha.toFixed(3));
+  // Derived tiers keep nested controls readable at any tint level.
+  root.style.setProperty('--glass-alpha-soft', (alpha * 0.6).toFixed(3));
+  root.style.setProperty('--glass-alpha-strong', Math.min(alpha + 0.06, 1).toFixed(3));
+  root.style.setProperty('--glass-alpha-modal', Math.min(alpha + 0.12, 1).toFixed(3));
+  root.style.setProperty('--glass-blur', (Number(g.blur) || 0) + 'px');
+  root.style.setProperty('--glass-saturate', (Number(g.saturate) || 100) + '%');
+  root.style.setProperty('--glass-radius', (Number(g.radius) || 0) + 'px');
+  root.style.setProperty('--glass-scrim', ((Number(g.scrim) || 0) / 100).toFixed(2));
+  root.style.setProperty('--glass-accent', g.accent);
+  root.style.setProperty('--glass-accent-rgb', accentRgb);
+  // Borders scale with the tint but are capped so high opacity never
+  // produces harsh white outlines around every panel.
+  root.style.setProperty('--glass-border', `rgba(${tintRgb},${Math.min(alpha * 1.1 + 0.08, 0.3).toFixed(3)})`);
+
+  // Contrast guard: a bright tint at high opacity turns panels pale, so the
+  // text switches to a dark palette to stay readable.
+  const [tr, tg, tb] = tintRgb.split(',').map(Number);
+  const tintLuma = (0.299 * tr + 0.587 * tg + 0.114 * tb) / 255;
+  const panelIsPale = tintLuma > 0.65 && alpha > 0.26;
+  root.style.setProperty('--text-primary', panelIsPale ? '#12141c' : '#f4f7fc');
+  root.style.setProperty('--text-secondary', panelIsPale ? '#394052' : '#c6cede');
+  root.style.setProperty('--text-muted', panelIsPale ? '#5d6577' : '#909aae');
+  root.style.setProperty('--white', panelIsPale ? '#12141c' : '#f4f7fc');
+
+  // The accent also drives the app's primary colour while glass is active.
+  if (getTheme() === 'glass') {
+    root.style.setProperty('--primary', g.accent);
+    root.style.setProperty('--primary-dark', adjustHex(g.accent, -26));
+    root.style.setProperty('--primary-light', adjustHex(g.accent, 42));
+    root.style.setProperty('--accent', g.accent);
+    root.style.setProperty('--blue-glow', hexToRgba(g.accent, 0.18));
+  }
+
+  const layer = document.getElementById('glass-backdrop');
+  if (layer) {
+    const url = g.background ? safeImageSource(g.background) : '';
+    layer.style.backgroundImage = url ? `url("${url}")` : '';
+  }
+}
+/* Accepts https URLs and inline data images only. */
+function safeImageSource(value) {
+  const raw = String(value || '');
+  if (/^data:image\//i.test(raw)) return raw;
+  return safeHttpUrl(raw);
+}
+function hexToRgbParts(hex) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex || '').trim());
+  if (!m) return null;
+  return `${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}`;
+}
+const GLASS_THEME_VARIABLES = [
+  '--glass-tint','--glass-alpha','--glass-alpha-soft','--glass-alpha-strong','--glass-alpha-modal',
+  '--glass-blur','--glass-saturate','--glass-radius','--glass-scrim','--glass-accent',
+  '--glass-accent-rgb','--glass-border',
+  // The accent override and contrast guard also write these shared tokens;
+  // they must be removed or they would leak into dark/light mode.
+  '--primary','--primary-dark','--primary-light','--accent','--blue-glow',
+  '--text-primary','--text-secondary','--text-muted','--white'
+];
+function clearGlassVariables() {
+  GLASS_THEME_VARIABLES.forEach(v => document.documentElement.style.removeProperty(v));
+  const layer = document.getElementById('glass-backdrop');
+  if (layer) layer.style.backgroundImage = '';
+}
+
 function applyTheme(theme) {
-  const selected = ['dark','light','custom'].includes(theme) ? theme : 'dark';
+  const selected = ['dark','light','custom','glass'].includes(theme) ? theme : 'dark';
   localStorage.setItem('appTheme', selected);
   if (selected === 'custom') {
+    clearGlassVariables();
     document.documentElement.setAttribute('data-theme', 'custom');
     applyCustomThemeVariables(getCustomTheme());
+  } else if (selected === 'glass') {
+    // Glass builds on the dark palette, then layers frosted surfaces on top.
+    clearCustomThemeVariables();
+    document.documentElement.setAttribute('data-theme', 'glass');
+    applyGlassSettings(getGlassSettings());
   } else {
     clearCustomThemeVariables();
+    clearGlassVariables();
     document.documentElement.setAttribute('data-theme', selected === 'light' ? 'light' : 'dark');
   }
 }
@@ -6310,10 +7302,15 @@ function applyWallpaper() {
   const customWp = activeChatId ? localStorage.getItem('appWallpaper_' + activeChatId) : null;
   const globalWp = localStorage.getItem('appWallpaper');
   const wp = customWp || globalWp;
+  // The image is painted on the full-window layer so it also shows underneath
+  // the floating composer; .messages keeps the class for bubble contrast rules.
+  const layer = document.getElementById('chat-wallpaper');
   if (wp) {
-    messagesEl.style.backgroundImage = `url("${wp}")`;
+    if (layer) layer.style.backgroundImage = `url("${wp}")`;
+    messagesEl.style.backgroundImage = '';
     messagesEl.classList.add('has-wallpaper');
   } else {
+    if (layer) layer.style.backgroundImage = '';
     messagesEl.style.backgroundImage = '';
     messagesEl.classList.remove('has-wallpaper');
   }
@@ -7098,6 +8095,38 @@ function syncMessageComposer() {
   const naturalHeight = messageInput.scrollHeight;
   messageInput.style.height = Math.min(Math.max(42, naturalHeight), maxHeight) + 'px';
   messageInput.style.overflowY = naturalHeight > maxHeight ? 'auto' : 'hidden';
+  syncComposerHeight();
+}
+
+/* On phones the composer floats over the message list, so its real height is
+   published as --composer-h and used as bottom padding for .messages. */
+function syncComposerHeight() {
+  if (!messageForm) return;
+  const hiddenByStyle = messageForm.style.display === 'none' || messageForm.classList.contains('hidden');
+  // offsetHeight is 0 while the chat pane is still hidden, which would leave
+  // the last bubble trapped under the composer. Keep the previous good value
+  // (or the CSS fallback) instead of publishing a bogus 0.
+  const measured = messageForm.offsetHeight;
+  if (hiddenByStyle) {
+    document.documentElement.style.setProperty('--composer-h', '0px');
+    return;
+  }
+  if (measured <= 0) return;
+  // Growing the composer increases the list's bottom padding, which would push
+  // the newest message out of sight unless the view was already scrolled up.
+  const wasAtBottom = messagesEl
+    ? (messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight) < 80
+    : false;
+  document.documentElement.style.setProperty('--composer-h', measured + 'px');
+  if (wasAtBottom && messagesEl) {
+    requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
+  }
+}
+window.addEventListener('resize', syncComposerHeight);
+/* The composer grows with the text and shrinks after sending, so watch it
+   directly rather than relying on every call site remembering to re-measure. */
+if (typeof ResizeObserver !== 'undefined' && messageForm) {
+  new ResizeObserver(() => syncComposerHeight()).observe(messageForm);
 }
 function applyMessageTextDirection(element, text = '') {
   if (!element) return;
@@ -10341,8 +11370,14 @@ function closeModal() {
 
 
 /* ===== MOBILE NAV ===== */
+/* Clears the highlight on every dock control, including the round avatar
+   button, which is not a .mobile-nav-item. */
+function clearMobileNavActive() {
+  document.querySelectorAll('.mobile-nav-item, .mobile-nav-avatar').forEach(el => el.classList.remove('active'));
+}
+
 function mobileNavSwitch(tab) {
-  document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+  clearMobileNavActive();
   const activeBtn = document.getElementById('mnav-' + tab);
   if (activeBtn) activeBtn.classList.add('active');
   const sidebar = document.getElementById('sidebar');
@@ -10357,21 +11392,40 @@ function mobileNavSwitch(tab) {
         if (s) { s.focus(); s.select(); }
       }, 100);
     }
+  } else if (tab === 'contacts') {
+    // Contacts reuses the same picker the desktop drawer opens.
+    showContactsModal();
+    setTimeout(() => {
+      clearMobileNavActive();
+      if (activeBtn) activeBtn.classList.add('active');
+    }, 50);
   } else if (tab === 'profile') {
     const profileBtn = document.getElementById('me-profile-btn');
     if (profileBtn) profileBtn.click();
     setTimeout(() => {
-      document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+      clearMobileNavActive();
       if (activeBtn) activeBtn.classList.add('active');
     }, 50);
   } else if (tab === 'settings') {
-    // Settings opens as a full responsive hub and remains selected while open.
+    // Settings opens the same drawer menu used on desktop.
     showMobileSettings();
+    setTimeout(() => {
+      clearMobileNavActive();
+      if (activeBtn) activeBtn.classList.add('active');
+    }, 50);
   }
 }
 
 function showMobileSettings() {
-  showSettingsHub({ mobile: true });
+  openSidebarDrawer();
+}
+
+/* Keeps the round dock button showing the current profile photo. */
+function renderMobileNavAvatar() {
+  const el = document.getElementById('mnav-avatar-img');
+  if (!el) return;
+  const name = (currentUserData && currentUserData.username) || '?';
+  setAvatarContent(el, name, currentUserData && currentUserData.photoURL);
 }
 
 /* ===== AUTH: online status ===== */
@@ -10425,41 +11479,12 @@ async function updateUserOnlineStatus(isOnline) {
   });
 })();
 
-/* ===== PWA: register service worker with proper update handling ===== */
+/* ===== PWA: register real service worker for offline caching & faster loads ===== */
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const registration = await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' });
-
-      // Check for updates on every page load
-      registration.update();
-
-      // When a new SW is waiting, tell it to take over immediately
-      if (registration.waiting) {
-        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-      }
-
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New version ready — auto-reload to get latest code
-              console.log('[SW] New version available — reloading...');
-              window.location.reload();
-            }
-          });
-        }
-      });
-
-      // If the controlling SW changes, reload once
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        window.location.reload();
-      });
-
-    } catch (err) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
       console.warn('Service worker registration failed:', err);
-    }
+    });
   });
 }
 
@@ -10472,19 +11497,50 @@ let mediaRecorder = null;
 let audioChunks = [];
 let recordingStartTime = 0;
 let recordingTimerInterval = null;
+// Press-state for the mic button (declared here so stopRecording can reset them).
+let voicePressTimer = null;
+let isVoiceRecording = false;
+let voiceHoldStartedAt = 0;
+let voiceLatched = false;
 let currentAudioEl = null;
 let currentAudioPlaybackRate = 1;
 
-// Create voice recording indicator (hidden by default)
+// Recording panel: appended to the form and shown INSTEAD of the normal
+// controls, so the timer can never overlap the input pill or the send button.
 const voiceRecIndicator = document.createElement('div');
 voiceRecIndicator.className = 'voice-recording-indicator hidden';
-voiceRecIndicator.innerHTML = '<span class="voice-rec-dot"></span><span class="voice-rec-timer" id="voice-rec-timer">00:00</span><button class="voice-rec-cancel" id="voice-rec-cancel">✕</button>';
-document.querySelector('.msg-input-wrap').insertAdjacentElement('afterend', voiceRecIndicator);
+voiceRecIndicator.innerHTML =
+  '<span class="voice-rec-dot"></span>' +
+  '<span class="voice-rec-timer" id="voice-rec-timer">00:00</span>' +
+  '<span class="voice-rec-wave" aria-hidden="true">' +
+    Array.from({ length: 14 }, (_, i) => `<span style="animation-delay:${(i * 0.08).toFixed(2)}s"></span>`).join('') +
+  '</span>' +
+  '<span class="voice-rec-hint">Tap ✓ to send</span>' +
+  '<button type="button" class="voice-rec-cancel" id="voice-rec-cancel" title="Discard recording" aria-label="Discard recording">' +
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+  '</button>' +
+  '<button type="button" class="voice-rec-stop" id="voice-rec-stop" title="Stop and send" aria-label="Stop and send">' +
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+  '</button>';
+messageForm.appendChild(voiceRecIndicator);
 
 const voiceRecTimer = document.getElementById('voice-rec-timer');
 const voiceRecCancel = document.getElementById('voice-rec-cancel');
+const voiceRecStop = document.getElementById('voice-rec-stop');
 
-voiceRecCancel.addEventListener('click', cancelRecording);
+voiceRecCancel.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); cancelRecording(); });
+voiceRecStop.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); finishRecording(); });
+
+/* Toggles the composer between "normal" and "recording" presentation. */
+function setComposerRecordingUI(recording) {
+  if (!messageForm) return;
+  messageForm.classList.toggle('is-recording', recording);
+  voiceRecIndicator.classList.toggle('hidden', !recording);
+  // Hide the regular controls so the panel owns the full row.
+  messageForm.querySelectorAll(':scope > .msg-input-wrap, :scope > .form-icon-btn, :scope > .btn-send, :scope > .gif-btn')
+    .forEach(el => { el.style.display = recording ? 'none' : ''; });
+  syncComposerHeight();
+}
 
 async function startRecording() {
   if (!activeChatId) return;
@@ -10518,7 +11574,7 @@ async function startRecording() {
     mediaRecorder.start();
     recordingStartTime = Date.now();
     voiceBtn.classList.add('recording');
-    voiceRecIndicator.classList.remove('hidden');
+    setComposerRecordingUI(true);
     messageInput.placeholder = 'Recording voice…';
 
     // Start timer
@@ -10550,7 +11606,9 @@ function stopRecording(send = true) {
   }
 
   voiceBtn.classList.remove('recording');
-  voiceRecIndicator.classList.add('hidden');
+  setComposerRecordingUI(false);
+  voiceLatched = false;
+  isVoiceRecording = false;
   messageInput.placeholder = 'Write a message…';
 
   if (send && mediaRecorder.state === 'recording') {
@@ -10568,8 +11626,20 @@ function stopRecording(send = true) {
 }
 
 function cancelRecording() {
+  isVoiceRecording = false;
+  clearTimeout(voicePressTimer);
   stopRecording(false);
   showToast('Recording cancelled');
+}
+
+/* Explicit stop from the panel's ✓ button: ends the take and sends it. */
+function finishRecording() {
+  isVoiceRecording = false;
+  clearTimeout(voicePressTimer);
+  stopRecording(true);
+}
+function isCurrentlyRecording() {
+  return !!(mediaRecorder && mediaRecorder.state === 'recording');
 }
 
 async function uploadAndSendVoice(audioBlob, duration) {
@@ -10619,58 +11689,74 @@ async function uploadAndSendVoice(audioBlob, duration) {
   }
 }
 
-// Voice button: long press to record, click to start/stop
-let voicePressTimer = null;
-let isVoiceRecording = false;
+// Voice button: hold to record (release sends), or tap to latch recording on
+// so the user can put the phone down and press the panel's ✓ / ✕ to finish.
+const VOICE_HOLD_DELAY = 220;   // press longer than this = hold-to-talk
+const VOICE_TAP_MAX = 500;      // release sooner than this = latch (hands-free)
 
-voiceBtn.addEventListener('mousedown', (e) => {
-  e.preventDefault();
+function beginVoicePress(e) {
+  if (e) e.preventDefault();
+  // A second tap while latched acts as "stop and send".
+  if (voiceLatched && isCurrentlyRecording()) { finishRecording(); return; }
+  if (isVoiceRecording || isCurrentlyRecording()) return;
+  voiceHoldStartedAt = Date.now();
+  voiceLatched = false;
+  clearTimeout(voicePressTimer);
   voicePressTimer = setTimeout(() => {
     isVoiceRecording = true;
     startRecording();
-  }, 200);
-});
+  }, VOICE_HOLD_DELAY);
+}
 
-voiceBtn.addEventListener('mouseup', () => {
+function endVoicePress(e, opts) {
+  if (e && e.cancelable) e.preventDefault();
+  const cancel = !!(opts && opts.cancel);
   clearTimeout(voicePressTimer);
-  if (isVoiceRecording) {
-    stopRecording(true);
-    isVoiceRecording = false;
-  }
-});
+  const heldFor = voiceHoldStartedAt ? Date.now() - voiceHoldStartedAt : 0;
+  voiceHoldStartedAt = 0;
 
-voiceBtn.addEventListener('mouseleave', () => {
-  clearTimeout(voicePressTimer);
-  if (isVoiceRecording) {
-    stopRecording(true);
-    isVoiceRecording = false;
-  }
-});
+  if (!isVoiceRecording) return;          // released before recording started
+  if (voiceLatched) return;               // hands-free mode owns the session
 
-// Touch events for mobile
-voiceBtn.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  voicePressTimer = setTimeout(() => {
-    isVoiceRecording = true;
-    startRecording();
-  }, 200);
-});
+  if (cancel) { isVoiceRecording = false; stopRecording(false); return; }
 
-voiceBtn.addEventListener('touchend', (e) => {
-  e.preventDefault();
-  clearTimeout(voicePressTimer);
-  if (isVoiceRecording) {
-    stopRecording(true);
-    isVoiceRecording = false;
+  // Quick tap: keep recording and let the panel buttons finish it.
+  if (heldFor < VOICE_TAP_MAX) {
+    voiceLatched = true;
+    showToast('Recording… tap ✓ to send');
+    return;
   }
-});
+  // Real hold: releasing sends the take.
+  isVoiceRecording = false;
+  stopRecording(true);
+}
 
-voiceBtn.addEventListener('touchcancel', () => {
-  clearTimeout(voicePressTimer);
-  if (isVoiceRecording) {
-    stopRecording(false);
-    isVoiceRecording = false;
-  }
+/* Pointer events cover mouse, touch and pen with one code path, which stops
+   the old duplicate mouse+touch handlers from starting two recordings. */
+if (window.PointerEvent) {
+  voiceBtn.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    try { voiceBtn.setPointerCapture(e.pointerId); } catch (_) {}
+    beginVoicePress(e);
+  });
+  voiceBtn.addEventListener('pointerup', e => {
+    try { voiceBtn.releasePointerCapture(e.pointerId); } catch (_) {}
+    endVoicePress(e);
+  });
+  voiceBtn.addEventListener('pointercancel', e => endVoicePress(e, { cancel: true }));
+} else {
+  voiceBtn.addEventListener('mousedown', beginVoicePress);
+  voiceBtn.addEventListener('mouseup', e => endVoicePress(e));
+  voiceBtn.addEventListener('mouseleave', e => { if (!voiceLatched) endVoicePress(e); });
+  voiceBtn.addEventListener('touchstart', beginVoicePress, { passive: false });
+  voiceBtn.addEventListener('touchend', e => endVoicePress(e), { passive: false });
+  voiceBtn.addEventListener('touchcancel', e => endVoicePress(e, { cancel: true }));
+}
+voiceBtn.addEventListener('contextmenu', e => e.preventDefault());
+
+// Escape always discards an in-progress recording.
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && isCurrentlyRecording()) { e.preventDefault(); cancelRecording(); }
 });
 
 // Render voice message bubble (called from renderMessage)
@@ -12085,6 +13171,151 @@ function showOwnerChannelModerationModal() {
   setTimeout(() => input.focus(), 40);
 }
 
+/* ==================== GLASS THEME CONTROLS ====================
+   Rendered inside Customize while the glass theme is selected. Every
+   control writes to localStorage and repaints the UI immediately. */
+function renderGlassSettings(content) {
+  const head = document.createElement('div');
+  head.className = 'customize-section-head';
+  const label = document.createElement('div');
+  label.className = 'settings-section-label';
+  label.textContent = 'Glass settings';
+  const hint = document.createElement('span');
+  hint.className = 'customize-section-hint';
+  hint.textContent = 'Applies live';
+  head.append(label, hint);
+  content.appendChild(head);
+
+  const panel = document.createElement('div');
+  panel.className = 'glass-settings';
+  content.appendChild(panel);
+
+  const update = patch => {
+    const next = saveGlassSettings({ ...getGlassSettings(), ...patch });
+    applyGlassSettings(next);
+    return next;
+  };
+
+  function row(title, detail) {
+    const el = document.createElement('div');
+    el.className = 'glass-settings-row';
+    const copy = document.createElement('div');
+    copy.className = 'glass-row-copy';
+    const strong = document.createElement('strong'); strong.textContent = title;
+    const span = document.createElement('span'); span.textContent = detail;
+    copy.append(strong, span);
+    el.appendChild(copy);
+    panel.appendChild(el);
+    return el;
+  }
+
+  // --- Sliders -----------------------------------------------------
+  function slider(title, detail, key, min, max, unit) {
+    const el = row(title, detail);
+    const input = document.createElement('input');
+    input.type = 'range'; input.min = String(min); input.max = String(max); input.step = '1';
+    input.value = String(getGlassSettings()[key]);
+    input.setAttribute('aria-label', title);
+    const value = document.createElement('span');
+    value.className = 'glass-value';
+    value.textContent = input.value + unit;
+    input.addEventListener('input', () => {
+      value.textContent = input.value + unit;
+      update({ [key]: Number(input.value) });
+    });
+    el.append(input, value);
+    return input;
+  }
+  const blurInput     = slider('Blur',        'How strongly panels frost the backdrop.', 'blur', 0, 60, 'px');
+  const opacityInput  = slider('Panel tint',  'Opacity of the frosted surfaces.',        'opacity', 0, 40, '%');
+  const saturateInput = slider('Saturation',  'Colour intensity seen through the glass.','saturate', 50, 220, '%');
+  const radiusInput   = slider('Corner radius','Roundness of the glass cards.',          'radius', 0, 34, 'px');
+  const scrimInput    = slider('Backdrop dim','Darkening applied over the background.',  'scrim', 0, 85, '%');
+
+  // --- Colours -----------------------------------------------------
+  function colour(title, detail, key) {
+    const el = row(title, detail);
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.value = getGlassSettings()[key];
+    input.setAttribute('aria-label', title);
+    input.addEventListener('input', () => update({ [key]: input.value }));
+    el.appendChild(input);
+    return input;
+  }
+  const accentInput = colour('Accent colour', 'Used by sent bubbles, buttons and highlights.', 'accent');
+  const tintInput   = colour('Frost tint',    'Colour mixed into every glass panel.',          'tint');
+
+  // --- Backdrop image ----------------------------------------------
+  const bgRow = row('Background', 'Pure black by default, or use your own image.');
+  bgRow.classList.add('is-stacked');
+  const bgActions = document.createElement('div');
+  bgActions.className = 'glass-bg-actions';
+
+  const pickBtn = document.createElement('button');
+  pickBtn.type = 'button'; pickBtn.className = 'glass-bg-btn'; pickBtn.textContent = 'Choose image';
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.style.display = 'none';
+  pickBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    // Downscale before storing so localStorage stays well within quota.
+    resizeImageToDataURL(file, 1600, dataUrl => {
+      try {
+        update({ background: dataUrl });
+        showToast('Glass background updated');
+      } catch (_) {
+        showToast('That image is too large to save');
+      }
+      fileInput.value = '';
+    });
+  });
+
+  const blackBtn = document.createElement('button');
+  blackBtn.type = 'button'; blackBtn.className = 'glass-bg-btn'; blackBtn.textContent = 'Pure black';
+  blackBtn.addEventListener('click', () => { update({ background: '' }); showToast('Background set to black'); });
+
+  bgActions.append(pickBtn, blackBtn, fileInput);
+  bgRow.appendChild(bgActions);
+
+  // --- Presets ------------------------------------------------------
+  const presetRow = row('Presets', 'Jump to a tuned look, then fine-tune above.');
+  presetRow.classList.add('is-stacked');
+  const presets = document.createElement('div');
+  presets.className = 'glass-preset-row';
+  Object.entries(GLASS_PRESETS).forEach(([id, values]) => {
+    const chip = document.createElement('button');
+    chip.type = 'button'; chip.className = 'glass-preset';
+    chip.textContent = id.charAt(0).toUpperCase() + id.slice(1);
+    chip.addEventListener('click', () => {
+      const next = update(values);
+      blurInput.value = next.blur;         blurInput.dispatchEvent(new Event('input'));
+      opacityInput.value = next.opacity;   opacityInput.dispatchEvent(new Event('input'));
+      saturateInput.value = next.saturate; saturateInput.dispatchEvent(new Event('input'));
+      radiusInput.value = next.radius;     radiusInput.dispatchEvent(new Event('input'));
+      scrimInput.value = next.scrim;       scrimInput.dispatchEvent(new Event('input'));
+      accentInput.value = next.accent;
+      tintInput.value = next.tint;
+      showToast(chip.textContent + ' preset applied');
+    });
+    presets.appendChild(chip);
+  });
+  presetRow.appendChild(presets);
+
+  const reset = document.createElement('button');
+  reset.type = 'button';
+  reset.className = 'customize-reset-btn';
+  reset.textContent = 'Reset glass settings';
+  reset.addEventListener('click', () => {
+    saveGlassSettings({ ...GLASS_DEFAULTS });
+    applyGlassSettings(GLASS_DEFAULTS);
+    showToast('Glass settings reset');
+    showSettingsHub({ initialView: 'customize' });
+  });
+  panel.appendChild(reset);
+}
+
 function showSettingsHub(options = {}) {
   closeModal();
   const overlay = document.createElement('div');
@@ -12149,6 +13380,7 @@ function showSettingsHub(options = {}) {
     const themeOptions = [
       { id:'dark', name:'Dark', desc:'Focused and low-light' },
       { id:'light', name:'Light', desc:'Clean and bright' },
+      { id:'glass', name:'Glass', desc:'Frosted panels on black' },
       { id:'custom', name:'Custom', desc:'Your color palette' }
     ];
     themeOptions.forEach(option => {
@@ -12163,6 +13395,9 @@ function showSettingsHub(options = {}) {
       themes.appendChild(card);
     });
     content.appendChild(themes);
+
+    // The glass tuning panel only appears while the glass theme is active.
+    if (activeTheme === 'glass') renderGlassSettings(content);
 
     const typographyHead = document.createElement('div'); typographyHead.className = 'customize-section-head';
     const typographyLabel = document.createElement('div'); typographyLabel.className = 'settings-section-label'; typographyLabel.textContent = 'Typography';
@@ -12304,6 +13539,530 @@ function showSettingsHub(options = {}) {
   hub.querySelector('#settings-hub-close').addEventListener('click',settingsHubClose);
   overlay.addEventListener('click',event=>{ if(event.target===overlay) settingsHubClose(); });
   activate(options.initialView || 'customize');
+}
+
+
+// ==================== SIDEBAR DRAWER (hamburger beside the search box) ====================
+// Replaces the old sidebar top header. Section 1 = profile, section 2 = accounts,
+// then My profile / Contacts / Settings and a "More" group (theme, version, bug report…).
+
+const AVENIX_SAVED_ACCOUNTS_KEY = 'avenixSavedAccounts';
+
+function drawerIcon(name, size = 17) {
+  const a = `width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
+  const icons = {
+    user: `<svg ${a}><circle cx="12" cy="7" r="4"/><path d="M4 22a8 8 0 0 1 16 0"/></svg>`,
+    contacts: `<svg ${a}><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+    settings: `<svg ${a}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15.1 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.15.48.23.98.23 1.5s-.08 1.02-.23 1.5z"/></svg>`,
+    group: `<svg ${a}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+    channel: `<svg ${a}><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4z"/></svg>`,
+    bookmark: `<svg ${a}><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`,
+    moon: `<svg ${a}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>`,
+    info: `<svg ${a}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>`,
+    bug: `<svg ${a}><path d="M8 6a4 4 0 0 1 8 0v2H8z"/><path d="M6 12a6 6 0 0 0 12 0v-1a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3z"/><path d="M2 12h4M18 12h4M4 6l2.5 2M20 6l-2.5 2M4 18l2.5-2M20 18l-2.5-2"/></svg>`,
+    shield: `<svg ${a}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>`,
+    devices: `<svg ${a}><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>`,
+    logout: `<svg ${a}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+    plus: `<svg ${a} stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+    trash: `<svg ${a}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>`,
+    chevron: `<svg ${a} stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>`
+  };
+  return icons[name] || icons.info;
+}
+
+/* ---- Saved accounts on this device (for quick switching) ---- */
+function getSavedAccounts() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(AVENIX_SAVED_ACCOUNTS_KEY) || '[]');
+    return Array.isArray(raw) ? raw.filter(a => a && a.uid && a.email) : [];
+  } catch (_) { return []; }
+}
+function setSavedAccounts(list) {
+  try { localStorage.setItem(AVENIX_SAVED_ACCOUNTS_KEY, JSON.stringify(list.slice(0, 8))); } catch (_) {}
+}
+function rememberCurrentAccount() {
+  if (!currentUser || !currentUserData) return;
+  const entry = {
+    uid: currentUser.uid,
+    email: currentUser.email || currentUserData.email || '',
+    username: currentUserData.username || (currentUser.email || '').split('@')[0],
+    photoURL: currentUserData.photoURL || null,
+    lastUsed: Date.now()
+  };
+  const rest = getSavedAccounts().filter(a => a.uid !== entry.uid);
+  setSavedAccounts([entry, ...rest]);
+}
+function forgetSavedAccount(uid) {
+  setSavedAccounts(getSavedAccounts().filter(a => a.uid !== uid));
+  renderDrawerAccounts();
+}
+
+/* Signs out and returns to the login form, pre-filling the chosen email. */
+async function switchToSavedAccount(account) {
+  closeSidebarDrawer();
+  window.__avenixSkipInstallGuideOnce = true;
+  window.__avenixPrefillEmail = (account && account.email) || '';
+  try {
+    if (currentUser) await db.collection('users').doc(currentUser.uid).update({
+      online: false,
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (_) {}
+  try { await auth.signOut(); } catch (_) {}
+  applyPendingLoginPrefill();
+  showToast(account && account.username ? `Sign in as ${account.username}` : 'Sign in to continue');
+}
+async function startAddAccountFlow() {
+  closeSidebarDrawer();
+  rememberCurrentAccount();
+  window.__avenixSkipInstallGuideOnce = true;
+  window.__avenixPrefillEmail = '';
+  try {
+    if (currentUser) await db.collection('users').doc(currentUser.uid).update({
+      online: false,
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (_) {}
+  try { await auth.signOut(); } catch (_) {}
+  applyPendingLoginPrefill();
+  showToast('Sign in with another account');
+}
+function applyPendingLoginPrefill() {
+  setTimeout(() => {
+    const emailInput = document.getElementById('login-email');
+    const passInput = document.getElementById('login-password');
+    if (emailInput) {
+      emailInput.value = window.__avenixPrefillEmail || '';
+      if (window.__avenixPrefillEmail && passInput) passInput.focus(); else emailInput.focus();
+    }
+    window.__avenixPrefillEmail = '';
+  }, 260);
+}
+
+function renderDrawerAccounts() {
+  const host = document.getElementById('drawer-accounts');
+  if (!host) return;
+  host.replaceChildren();
+
+  const others = getSavedAccounts().filter(a => !currentUser || a.uid !== currentUser.uid);
+  others.slice(0, 4).forEach(account => {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'drawer-account-row';
+    const av = document.createElement('span');
+    av.className = 'drawer-mini-avatar';
+    setAvatarContent(av, account.username, account.photoURL);
+    const copy = document.createElement('span');
+    copy.className = 'drawer-account-copy';
+    const strong = document.createElement('strong'); strong.textContent = account.username || account.email;
+    const small = document.createElement('small'); small.textContent = account.email || 'Tap to switch';
+    copy.append(strong, small);
+    const remove = document.createElement('span');
+    remove.className = 'drawer-account-remove';
+    remove.setAttribute('role', 'button');
+    remove.title = 'Remove from this device';
+    remove.innerHTML = drawerIcon('trash', 15);
+    remove.addEventListener('click', e => { e.stopPropagation(); forgetSavedAccount(account.uid); });
+    row.append(av, copy, remove);
+    row.addEventListener('click', () => switchToSavedAccount(account));
+    host.appendChild(row);
+  });
+
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'drawer-add-account';
+  add.innerHTML = `<span class="drawer-add-icon">${drawerIcon('plus', 18)}</span><span>Add account</span>`;
+  add.addEventListener('click', startAddAccountFlow);
+  host.appendChild(add);
+}
+
+/* ---- Drawer nav rows ---- */
+function drawerNavRow(icon, title, subtitle, onClick, extra) {
+  const row = document.createElement('button');
+  row.type = 'button';
+  row.className = 'drawer-item' + (extra && extra.danger ? ' danger' : '');
+  const ico = document.createElement('span');
+  ico.className = 'drawer-item-icon';
+  ico.innerHTML = drawerIcon(icon);
+  const label = document.createElement('span');
+  label.className = 'drawer-item-label';
+  const strong = document.createElement('span'); strong.textContent = title; label.appendChild(strong);
+  if (subtitle) { const small = document.createElement('small'); small.textContent = subtitle; label.appendChild(small); }
+  row.append(ico, label);
+  if (extra && extra.toggle) {
+    const sw = document.createElement('span'); sw.className = 'drawer-switch'; row.appendChild(sw);
+    if (extra.on) row.classList.add('switch-on');
+  } else if (extra && extra.value) {
+    const val = document.createElement('span'); val.className = 'drawer-item-value'; val.textContent = extra.value; row.appendChild(val);
+  } else {
+    const chev = document.createElement('span'); chev.className = 'drawer-item-chevron'; chev.innerHTML = drawerIcon('chevron', 14); row.appendChild(chev);
+  }
+  row.addEventListener('click', onClick);
+  return row;
+}
+function drawerSectionLabel(text) {
+  const el = document.createElement('div');
+  el.className = 'drawer-section-label';
+  el.textContent = text;
+  return el;
+}
+function drawerRun(callback) {
+  closeSidebarDrawer();
+  setTimeout(callback, 180);
+}
+
+function renderDrawerNav() {
+  const nav = document.getElementById('drawer-nav');
+  if (!nav) return;
+  nav.replaceChildren();
+
+  // --- Primary group ---
+  nav.appendChild(drawerNavRow('user', 'My profile', 'Photo, username and bio', () => drawerRun(showMyProfile)));
+  nav.appendChild(drawerNavRow('contacts', 'Contacts', 'People you chat with', () => drawerRun(showContactsModal)));
+  nav.appendChild(drawerNavRow('group', 'New group', 'Start a group conversation', () => drawerRun(() => { const b = document.getElementById('new-group-btn'); if (b) b.click(); })));
+  nav.appendChild(drawerNavRow('channel', 'New channel', 'Publish updates to members', () => drawerRun(() => { const b = document.getElementById('new-channel-btn'); if (b) b.click(); })));
+  nav.appendChild(drawerNavRow('bookmark', 'Saved messages', 'Your bookmarked messages', () => drawerRun(() => { const r = document.getElementById('saved-messages-row'); if (r) r.click(); })));
+  nav.appendChild(drawerNavRow('settings', 'Settings', 'Appearance, privacy and more', () => drawerRun(() => showSettingsHub())));
+
+  // --- More group ---
+  nav.appendChild(drawerSectionLabel('More'));
+
+  const isLight = getTheme() === 'light';
+  const themeRow = drawerNavRow(
+    'moon',
+    drawerThemeLabel(getTheme()),
+    'Tap to switch the app theme',
+    () => toggleDrawerTheme(),
+    { toggle: true, on: !isLight }
+  );
+  themeRow.id = 'drawer-theme-row';
+  nav.appendChild(themeRow);
+
+  nav.appendChild(drawerNavRow('devices', 'Connected devices', 'Review and sign out sessions', () => drawerRun(showConnectedDevices)));
+  nav.appendChild(drawerNavRow('shield', 'Report suspicious login', 'Flag a sign-in you do not recognise', () => drawerRun(() => showReportSuspiciousLoginModal())));
+  nav.appendChild(drawerNavRow('bug', 'Report a bug', 'Send feedback to the Avenix team', () => drawerRun(showReportBugModal)));
+  nav.appendChild(drawerNavRow('info', 'Messenger version', AVENIX_BUILD_LABEL, () => drawerRun(() => showSettingsHub({ initialView: 'about' })), { value: AVENIX_MESSENGER_VERSION }));
+  nav.appendChild(drawerNavRow('logout', 'Sign out', null, () => {
+    closeSidebarDrawer();
+    rememberCurrentAccount();
+    setTimeout(() => { const b = document.getElementById('logout-btn'); if (b) b.click(); }, 180);
+  }, { danger: true }));
+}
+
+function toggleDrawerTheme() {
+  // Glass and custom are dark-based looks, so the switch flips them to light
+  // and back to whichever dark-style theme the user last had.
+  const current = getTheme();
+  let next;
+  if (current === 'light') {
+    next = localStorage.getItem('appPreLightTheme') || 'dark';
+  } else {
+    localStorage.setItem('appPreLightTheme', current);
+    next = 'light';
+  }
+  applyTheme(next);
+  const row = document.getElementById('drawer-theme-row');
+  if (row) {
+    row.classList.toggle('switch-on', next !== 'light');
+    const strong = row.querySelector('.drawer-item-label span');
+    if (strong) strong.textContent = drawerThemeLabel(next);
+  }
+  showToast(next === 'light' ? 'Light mode enabled' : drawerThemeLabel(next) + ' enabled');
+}
+function drawerThemeLabel(theme) {
+  if (theme === 'light') return 'Light mode';
+  if (theme === 'glass') return 'Glass mode';
+  if (theme === 'custom') return 'Custom theme';
+  return 'Dark mode';
+}
+
+function renderDrawerProfile() {
+  const name = document.getElementById('drawer-profile-name');
+  const avatar = document.getElementById('drawer-avatar');
+  const status = document.getElementById('drawer-profile-status');
+  const version = document.getElementById('drawer-version-line');
+  const displayName = (currentUserData && currentUserData.username) || 'Your profile';
+  if (name) name.textContent = displayName;
+  if (avatar) setAvatarContent(avatar, displayName, currentUserData && currentUserData.photoURL);
+  if (status) status.textContent = (currentUser && currentUser.email) ? currentUser.email : 'Online';
+  if (version) version.textContent = `${AVENIX_MESSENGER_VERSION} · ${AVENIX_BUILD_LABEL}`;
+}
+
+/* ---- Open / close ---- */
+function openSidebarDrawer() {
+  const drawer = document.getElementById('sidebar-drawer');
+  const scrim = document.getElementById('sidebar-drawer-scrim');
+  const button = document.getElementById('sidebar-menu-btn');
+  if (!drawer || !scrim) return;
+  rememberCurrentAccount();
+  renderDrawerProfile();
+  renderDrawerAccounts();
+  renderDrawerNav();
+  scrim.classList.remove('hidden');
+  requestAnimationFrame(() => { scrim.classList.add('show'); drawer.classList.add('open'); });
+  drawer.setAttribute('aria-hidden', 'false');
+  if (button) { button.classList.add('open'); button.setAttribute('aria-expanded', 'true'); }
+}
+function closeSidebarDrawer() {
+  const drawer = document.getElementById('sidebar-drawer');
+  const scrim = document.getElementById('sidebar-drawer-scrim');
+  const button = document.getElementById('sidebar-menu-btn');
+  if (!drawer || !scrim) return;
+  drawer.classList.remove('open');
+  scrim.classList.remove('show');
+  drawer.setAttribute('aria-hidden', 'true');
+  if (button) { button.classList.remove('open'); button.setAttribute('aria-expanded', 'false'); }
+  setTimeout(() => { if (!drawer.classList.contains('open')) scrim.classList.add('hidden'); }, 220);
+  // On phones the drawer is the Settings tab, so restore the Chats highlight.
+  if (window.innerWidth <= 768) {
+    try {
+      clearMobileNavActive();
+      const chats = document.getElementById('mnav-chats');
+      if (chats) chats.classList.add('active');
+    } catch (_) {}
+  }
+}
+function isSidebarDrawerOpen() {
+  const drawer = document.getElementById('sidebar-drawer');
+  return !!(drawer && drawer.classList.contains('open'));
+}
+
+function initSidebarDrawer() {
+  const button = document.getElementById('sidebar-menu-btn');
+  const scrim = document.getElementById('sidebar-drawer-scrim');
+  if (!button || button.dataset.ready === '1') return;
+  button.dataset.ready = '1';
+  button.addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    if (isSidebarDrawerOpen()) closeSidebarDrawer(); else openSidebarDrawer();
+  });
+  if (scrim) scrim.addEventListener('click', closeSidebarDrawer);
+  const profileBtn = document.getElementById('drawer-profile-btn');
+  if (profileBtn) profileBtn.addEventListener('click', () => drawerRun(showMyProfile));
+  const mobileClose = document.getElementById('drawer-mobile-close');
+  if (mobileClose) mobileClose.addEventListener('click', closeSidebarDrawer);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && isSidebarDrawerOpen()) closeSidebarDrawer(); });
+}
+initSidebarDrawer();
+
+
+// ==================== CONTACTS ====================
+// Builds a contact list from the people you already have private chats with,
+// plus a live user search so a brand new conversation can be started here too.
+function showContactsModal() {
+  const modal = createModal('Contacts');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'contacts-search-wrap';
+  searchWrap.innerHTML = `<span class="contacts-search-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>`;
+  const input = document.createElement('input');
+  input.type = 'search';
+  input.placeholder = 'Search contacts or find new people…';
+  input.autocomplete = 'off';
+  searchWrap.appendChild(input);
+  body.appendChild(searchWrap);
+
+  const list = document.createElement('div');
+  list.className = 'contacts-list';
+  body.appendChild(list);
+
+  // Everyone you already have a 1:1 chat with.
+  function knownContacts() {
+    const seen = new Map();
+    (latestChatItems || []).forEach(item => {
+      if (item.type !== 'private' || !item.partner || !item.partner.uid) return;
+      if (!seen.has(item.partner.uid)) seen.set(item.partner.uid, item.partner);
+    });
+    Object.keys(partnerCache || {}).forEach(uid => {
+      if (!seen.has(uid) && partnerCache[uid]) seen.set(uid, partnerCache[uid]);
+    });
+    return Array.from(seen.values())
+      .filter(u => u && u.uid && (!currentUser || u.uid !== currentUser.uid))
+      .sort((a, b) => String(a.username || '').localeCompare(String(b.username || '')));
+  }
+
+  function addLabel(text) {
+    const el = document.createElement('div');
+    el.className = 'contacts-group-label';
+    el.textContent = text;
+    list.appendChild(el);
+  }
+  function addContactRow(user, subText) {
+    const row = buildUserRow(user, subText || user.email || '', true);
+    row.addEventListener('click', () => { closeModal(); openChatWith(user); });
+    list.appendChild(row);
+  }
+  function empty(text) {
+    const el = document.createElement('div');
+    el.className = 'contacts-empty';
+    el.innerHTML = text;
+    list.appendChild(el);
+  }
+
+  function renderLocal(term) {
+    list.replaceChildren();
+    const contacts = knownContacts().filter(u => {
+      if (!term) return true;
+      const hay = `${u.username || ''} ${u.email || ''}`.toLowerCase();
+      return hay.includes(term);
+    });
+    if (contacts.length) {
+      addLabel(`My contacts · ${contacts.length}`);
+      contacts.forEach(u => addContactRow(u));
+    } else if (!term) {
+      empty('No contacts yet.<br>Search above to find people and start a chat.');
+    }
+    return contacts.length;
+  }
+
+  // Remote lookup so new people can be added straight from this list.
+  let searchTimer = null;
+  let requestToken = 0;
+  async function runContactSearch(term) {
+    const token = ++requestToken;
+    const localCount = renderLocal(term);
+    if (!term) return;
+    const knownUids = new Set(knownContacts().map(u => u.uid));
+    try {
+      const snap = await db.collection('users')
+        .where('username_lower', '>=', term)
+        .where('username_lower', '<=', term + '\uf8ff')
+        .limit(10).get();
+      if (token !== requestToken) return;
+      const found = snap.docs
+        .map(d => d.data())
+        .filter(u => u && u.uid && u.uid !== (currentUser && currentUser.uid) && !knownUids.has(u.uid));
+      if (found.length) {
+        addLabel('Add new contact');
+        found.forEach(u => addContactRow(u, u.email || 'Start a new chat'));
+      } else if (!localCount) {
+        empty('No people found for that search.');
+      }
+    } catch (err) {
+      if (token !== requestToken) return;
+      if (!localCount) empty('Search failed. Please try again.');
+    }
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    const term = input.value.trim().toLowerCase();
+    if (!term) { renderLocal(''); return; }
+    searchTimer = setTimeout(() => runContactSearch(term), 280);
+  });
+
+  renderLocal('');
+
+  const close = document.createElement('button');
+  close.className = 'btn-full';
+  close.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;';
+  close.textContent = 'Close';
+  close.addEventListener('click', closeModal);
+  footer.appendChild(close);
+
+  setTimeout(() => input.focus(), 60);
+}
+
+
+// ==================== BUG REPORT ====================
+function showReportBugModal() {
+  const modal = createModal('Report a Bug');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+
+  const hint = document.createElement('p');
+  hint.style.cssText = 'font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin-bottom:14px;';
+  hint.textContent = 'Describe what went wrong and what you expected to happen. Your app version and device details are attached automatically.';
+  body.appendChild(hint);
+
+  function field(labelText, el) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'margin-bottom:13px;';
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;';
+    label.textContent = labelText;
+    wrap.append(label, el);
+    body.appendChild(wrap);
+    return el;
+  }
+
+  const inputStyle = 'width:100%;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text-primary);font-size:14px;font-family:inherit;outline:none;';
+
+  const select = document.createElement('select');
+  select.style.cssText = inputStyle + 'cursor:pointer;';
+  [['bug','Something is broken'],['ui','Visual / layout problem'],['performance','Slow or unresponsive'],['idea','Feature suggestion'],['other','Other']]
+    .forEach(([value, text]) => { const o = document.createElement('option'); o.value = value; o.textContent = text; select.appendChild(o); });
+  field('Category', select);
+
+  const title = document.createElement('input');
+  title.type = 'text';
+  title.maxLength = 90;
+  title.placeholder = 'Short summary';
+  title.style.cssText = inputStyle;
+  field('Title', title);
+
+  const details = document.createElement('textarea');
+  details.rows = 5;
+  details.maxLength = 1200;
+  details.placeholder = 'Steps to reproduce, what you saw, what you expected…';
+  details.style.cssText = inputStyle + 'resize:vertical;min-height:104px;line-height:1.55;';
+  field('Details', details);
+
+  const meta = document.createElement('div');
+  meta.style.cssText = 'font-size:11px;color:var(--text-muted);background:var(--surface2);border-radius:11px;padding:10px 12px;line-height:1.6;word-break:break-word;';
+  meta.textContent = `Attached: ${AVENIX_MESSENGER_VERSION} · ${AVENIX_BUILD_LABEL} · ${window.innerWidth}×${window.innerHeight}`;
+  body.appendChild(meta);
+
+  const err = document.createElement('div');
+  err.style.cssText = 'color:var(--error);font-size:12.5px;margin-top:10px;min-height:16px;';
+  body.appendChild(err);
+
+  const submit = document.createElement('button');
+  submit.className = 'btn-full';
+  submit.style.cssText = 'background:var(--primary);color:#fff;padding:12px;border-radius:11px;border:none;font-size:14px;font-weight:700;cursor:pointer;';
+  submit.textContent = 'Send Report';
+  submit.addEventListener('click', async () => {
+    err.textContent = '';
+    const summary = title.value.trim();
+    const description = details.value.trim();
+    if (!summary) { err.textContent = 'Please add a short title.'; return; }
+    if (description.length < 10) { err.textContent = 'Please describe the problem in a little more detail.'; return; }
+    submit.disabled = true; submit.textContent = 'Sending…';
+    try {
+      await db.collection('bugReports').add({
+        category: select.value,
+        title: summary,
+        details: description,
+        appVersion: AVENIX_MESSENGER_VERSION,
+        build: AVENIX_BUILD_LABEL,
+        userAgent: navigator.userAgent || '',
+        viewport: `${window.innerWidth}x${window.innerHeight}`,
+        theme: getTheme(),
+        reportedBy: currentUser ? currentUser.uid : null,
+        reportedByName: (currentUserData && currentUserData.username) || null,
+        reportedByEmail: (currentUser && currentUser.email) || null,
+        status: 'open',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      closeModal();
+      showToast('Thanks! Your report was sent.');
+    } catch (e2) {
+      err.textContent = 'Failed to send report: ' + friendlyError(e2);
+      submit.disabled = false; submit.textContent = 'Send Report';
+    }
+  });
+  footer.appendChild(submit);
+
+  const cancel = document.createElement('button');
+  cancel.className = 'btn-full';
+  cancel.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;';
+  cancel.textContent = 'Cancel';
+  cancel.addEventListener('click', closeModal);
+  footer.appendChild(cancel);
+
+  setTimeout(() => title.focus(), 60);
 }
 
 
@@ -12482,5 +14241,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
