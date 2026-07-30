@@ -8930,7 +8930,7 @@ async function deleteMessage(msgId, chatId, isGroup) {
 
 function getChatMessagePreview(msg) {
   if (!msg) return '';
-  if (msg.type === 'file') return '📎 Attachment: ' + (msg.fileName || 'File');
+  if (msg.type === 'file') return msg.text ? '📎 ' + msg.text : '📎 Attachment: ' + (msg.fileName || 'File');
   if (msg.type === 'poll') return (msg.pollType === 'quiz' ? '❓ Quiz: ' : '📊 Poll: ') + (msg.pollQuestion || 'Poll');
   if (msg.type === 'voice') return '🎤 Voice message';
   if (msg.type === 'gif') return '🎞️ GIF';
@@ -9682,21 +9682,38 @@ fileInput.addEventListener('change', async () => {
 
   if (file.size > 10 * 1024 * 1024) { alert('File must be under 10 MB'); return; }
 
+  const fn = file.name.toLowerCase();
+  const isImage = fn.endsWith('.jpg') || fn.endsWith('.jpeg') || fn.endsWith('.png') || fn.endsWith('.gif') || fn.endsWith('.webp') || fn.endsWith('.bmp') || fn.endsWith('.svg');
+  const isVideo = fn.endsWith('.mp4') || fn.endsWith('.webm') || fn.endsWith('.mov') || fn.endsWith('.avi') || fn.endsWith('.mkv') || fn.endsWith('.ogg');
+
+  if (isImage || isVideo) {
+    showMediaSendModal(file, isImage, isVideo);
+  } else {
+    await doSendFile(file, '');
+  }
+});
+
+async function doSendFile(file, caption, startTime, endTime) {
   const col = activeChatIsGroup ? 'groups' : 'chats';
   try {
     const url = await uploadToCloudinary(file, 'files/' + activeChatId);
 
     const msgData = {
       type: 'file',
+      text: caption || '',
       fileName: file.name,
       fileSize: file.size,
       fileURL: url,
       senderId: currentUser.uid,
       senderUsername: currentUserData.username,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      hashtags: extractHashtags(file.name),
+      hashtags: extractHashtags(caption || file.name),
       category: activeMessageCategory
     };
+    if (startTime !== undefined && endTime !== undefined) {
+      msgData.startTime = startTime;
+      msgData.endTime = endTime;
+    }
     if (activeSelfDestructSeconds > 0) {
       msgData.selfDestructSeconds = activeSelfDestructSeconds;
       msgData.expiresAt = firebase.firestore.Timestamp.fromMillis(Date.now() + activeSelfDestructSeconds * 1000);
@@ -9705,7 +9722,9 @@ fileInput.addEventListener('change', async () => {
 
     const ref = db.collection(col).doc(activeChatId);
     await ref.collection('messages').add(msgData);
-    const fileUpdate = { lastMessage: 'Attachment: ' + file.name, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() };
+    
+    const preview = caption ? '📎 ' + caption : 'Attachment: ' + file.name;
+    const fileUpdate = { lastMessage: preview, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() };
     if (!activeChatIsGroup) {
       const pUid = activeChatPartner && activeChatPartner.uid;
       if (pUid) fileUpdate[`unreadCounts.${pUid}`] = firebase.firestore.FieldValue.increment(1);
@@ -9715,7 +9734,160 @@ fileInput.addEventListener('change', async () => {
     }
     await ref.update(fileUpdate);
   } catch(err) { alert('Failed to upload file: ' + friendlyError(err)); }
-});
+}
+
+function showMediaSendModal(file, isImage, isVideo) {
+  const modal = createModal('Send Media');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+  
+  const previewWrap = document.createElement('div');
+  previewWrap.style.cssText = 'width:100%;text-align:center;margin-bottom:12px;position:relative;background:#000;border-radius:12px;overflow:hidden;';
+  
+  let mediaEl;
+  const fileUrl = URL.createObjectURL(file);
+  if (isImage) {
+    mediaEl = document.createElement('img');
+    mediaEl.src = fileUrl;
+    mediaEl.style.cssText = 'max-width:100%;max-height:40vh;object-fit:contain;display:block;margin:0 auto;';
+    previewWrap.appendChild(mediaEl);
+  } else {
+    mediaEl = document.createElement('video');
+    mediaEl.src = fileUrl;
+    mediaEl.controls = true;
+    mediaEl.preload = 'metadata';
+    mediaEl.style.cssText = 'max-width:100%;max-height:40vh;object-fit:contain;display:block;margin:0 auto;';
+    previewWrap.appendChild(mediaEl);
+  }
+  body.appendChild(previewWrap);
+
+  let startTime = 0;
+  let endTime = 0;
+  let duration = 0;
+  let trimWrap;
+
+  if (isVideo) {
+    trimWrap = document.createElement('div');
+    trimWrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-bottom:12px;background:var(--surface2);padding:10px;border-radius:12px;border:1px solid var(--border);';
+    
+    const trimLabel = document.createElement('div');
+    trimLabel.style.cssText = 'font-size:12px;font-weight:700;color:var(--text-muted);';
+    trimLabel.textContent = 'Trim Video (Seconds)';
+    trimWrap.appendChild(trimLabel);
+
+    const controlsRow = document.createElement('div');
+    controlsRow.style.cssText = 'display:flex;gap:10px;align-items:center;';
+
+    const startInput = document.createElement('input');
+    startInput.type = 'number';
+    startInput.min = 0;
+    startInput.step = 0.1;
+    startInput.className = 'modal-input';
+    startInput.style.marginBottom = '0';
+    startInput.placeholder = 'Start';
+
+    const endInput = document.createElement('input');
+    endInput.type = 'number';
+    endInput.min = 0;
+    endInput.step = 0.1;
+    endInput.className = 'modal-input';
+    endInput.style.marginBottom = '0';
+    endInput.placeholder = 'End';
+
+    mediaEl.addEventListener('loadedmetadata', () => {
+      duration = mediaEl.duration;
+      endInput.value = duration.toFixed(1);
+      startInput.value = '0.0';
+      endTime = duration;
+      
+      startInput.max = duration;
+      endInput.max = duration;
+    });
+
+    startInput.addEventListener('change', () => {
+      let v = parseFloat(startInput.value);
+      if (isNaN(v)) v = 0;
+      if (v < 0) v = 0;
+      if (v >= endTime) v = endTime - 0.1;
+      startTime = v;
+      startInput.value = v.toFixed(1);
+      mediaEl.currentTime = startTime;
+    });
+
+    endInput.addEventListener('change', () => {
+      let v = parseFloat(endInput.value);
+      if (isNaN(v)) v = duration;
+      if (v > duration) v = duration;
+      if (v <= startTime) v = startTime + 0.1;
+      endTime = v;
+      endInput.value = v.toFixed(1);
+      mediaEl.currentTime = endTime;
+    });
+
+    controlsRow.appendChild(startInput);
+    controlsRow.appendChild(document.createTextNode('-'));
+    controlsRow.appendChild(endInput);
+    trimWrap.appendChild(controlsRow);
+    
+    const playTrimBtn = document.createElement('button');
+    playTrimBtn.className = 'btn-sm ghost';
+    playTrimBtn.style.alignSelf = 'flex-start';
+    playTrimBtn.textContent = 'Preview Trim';
+    playTrimBtn.addEventListener('click', () => {
+      mediaEl.currentTime = startTime;
+      mediaEl.play();
+    });
+    
+    mediaEl.addEventListener('timeupdate', () => {
+      if (mediaEl.currentTime >= endTime && !mediaEl.paused) {
+        mediaEl.pause();
+        mediaEl.currentTime = startTime;
+      }
+    });
+
+    trimWrap.appendChild(playTrimBtn);
+    body.appendChild(trimWrap);
+  }
+
+  const captionInput = document.createElement('textarea');
+  captionInput.className = 'modal-input';
+  captionInput.placeholder = 'Add a caption...';
+  captionInput.rows = 2;
+  captionInput.style.resize = 'vertical';
+  captionInput.style.marginBottom = '12px';
+  body.appendChild(captionInput);
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn-full';
+  cancelBtn.style.cssText = 'background:var(--surface2);color:var(--text-secondary);padding:11px;border-radius:11px;border:none;font-size:14px;font-weight:600;cursor:pointer;flex:1;';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', () => {
+    URL.revokeObjectURL(fileUrl);
+    closeModal();
+  });
+
+  const sendBtn = document.createElement('button');
+  sendBtn.className = 'btn-full btn-blue';
+  sendBtn.style.flex = '1';
+  sendBtn.textContent = 'Send';
+  sendBtn.addEventListener('click', async () => {
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Sending...';
+    const cap = captionInput.value.trim();
+    if (isVideo && duration > 0) {
+      await doSendFile(file, cap, startTime, endTime);
+    } else {
+      await doSendFile(file, cap);
+    }
+    URL.revokeObjectURL(fileUrl);
+    closeModal();
+  });
+
+  footer.style.display = 'flex';
+  footer.style.gap = '10px';
+  footer.appendChild(cancelBtn);
+  footer.appendChild(sendBtn);
+}
 
 /* ===== LOCATION SHARING ===== */
 async function sendLocation() {
@@ -15612,5 +15784,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21e25217f2c4f53',t:'MTc4NTE4MTUzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21e25217f2c4f53',t:'MTc4NTE4MTUzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23448d55fc18f7d',t:'MTc4NTQxMzY4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
