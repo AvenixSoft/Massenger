@@ -894,25 +894,231 @@ html,body{
 .file-attachment-name{font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .file-attachment-size{font-size:11px;color:var(--text-muted);}
 
-/* Poll */
-.poll-widget{padding:8px 0;min-width:200px;}
-.poll-title{font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:8px;}
+/* ===== POLL WIDGET (Telegram-style, Avenix) ===== */
+.poll-widget{
+  --poll-accent:var(--primary-light);
+  --poll-accent-strong:var(--primary);
+  --poll-accent-soft:rgba(37,99,235,0.16);
+  --poll-track:rgba(255,255,255,0.07);
+  --poll-surface:rgba(255,255,255,0.045);
+  --poll-surface-hover:rgba(255,255,255,0.085);
+  min-width:min(272px,72vw);max-width:352px;
+  padding:3px 0 1px;display:flex;flex-direction:column;
+}
+.poll-widget.poll-kind-quiz{--poll-accent:#fbbf24;--poll-accent-strong:#f59e0b;--poll-accent-soft:rgba(245,158,11,0.18);}
+.poll-widget.poll-closed{--poll-accent:#94a3b8;--poll-accent-strong:#64748b;--poll-accent-soft:rgba(148,163,184,0.16);}
+[data-theme="light"] .poll-widget{
+  --poll-accent:var(--primary);
+  --poll-track:rgba(20,30,60,0.09);
+  --poll-surface:rgba(20,30,60,0.05);
+  --poll-surface-hover:rgba(20,30,60,0.09);
+}
+/* Amber reads too pale on white, so quizzes darken their accent in light mode. */
+[data-theme="light"] .poll-widget.poll-kind-quiz{--poll-accent:#b45309;}
+[data-theme="light"] .poll-widget.poll-closed{--poll-accent:#64748b;}
+[data-theme="light"] .poll-option.poll-correct .poll-option-pct{color:#15803d;}
+[data-theme="light"] .poll-option.poll-wrong .poll-option-pct{color:#b91c1c;}
+[data-theme="light"] .poll-mini-av{border-color:var(--bubble-received);}
+[data-theme="light"] .message-row.sent .poll-mini-av{border-color:var(--bubble-sent);}
+
+/* Question + meta line */
+.poll-question{
+  font-size:15px;font-weight:700;line-height:1.45;color:var(--text-primary);
+  word-break:break-word;white-space:pre-wrap;text-align:start;
+}
+.poll-subhead{
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;direction:ltr;
+  margin:5px 0 10px;font-size:10.5px;font-weight:800;
+  color:var(--text-muted);text-transform:uppercase;letter-spacing:0.55px;
+}
+.poll-subhead .poll-dot{opacity:0.45;font-weight:700;}
+.poll-kind-label{color:var(--poll-accent);display:inline-flex;align-items:center;gap:4px;}
+.poll-kind-label svg{opacity:0.9;}
+.poll-timer{
+  display:inline-flex;align-items:center;gap:3px;margin-inline-start:auto;
+  padding:2px 8px 2px 6px;border-radius:20px;
+  background:var(--poll-accent-soft);color:var(--poll-accent);
+  font-variant-numeric:tabular-nums;font-size:10px;font-weight:800;letter-spacing:0.3px;
+}
+.poll-timer.urgent{background:rgba(239,68,68,0.18);color:#f87171;animation:pollPulse 1.1s ease-in-out infinite;}
+@keyframes pollPulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+
+/* Options */
+.poll-options{display:flex;flex-direction:column;gap:5px;}
 .poll-option{
-  display:flex;align-items:center;gap:8px;padding:7px 10px;
-  border:1.5px solid var(--border);border-radius:10px;
-  cursor:pointer;margin-bottom:5px;background:rgba(255,255,255,0.03);
-  transition:all 0.15s;position:relative;overflow:hidden;
+  position:relative;display:flex;align-items:center;gap:9px;
+  padding:9px 11px 11px;border-radius:13px;
+  border:1.5px solid transparent;background:var(--poll-surface);
+  cursor:pointer;overflow:hidden;isolation:isolate;
+  transition:background .18s ease,border-color .18s ease,transform .12s ease,box-shadow .18s ease;
+  -webkit-user-select:none;user-select:none;
 }
-.poll-option:hover{border-color:var(--primary);background:rgba(37,99,235,0.06);}
-.poll-option.voted{border-color:var(--primary);background:rgba(37,99,235,0.12);}
+.poll-option:focus-visible{outline:2px solid var(--poll-accent);outline-offset:2px;}
+.poll-widget.poll-interactive .poll-option:hover{background:var(--poll-surface-hover);border-color:var(--poll-accent-soft);}
+.poll-widget.poll-interactive .poll-option:active{transform:scale(0.985);}
+.poll-option.poll-locked{cursor:default;}
+.poll-option.poll-picked{border-color:var(--poll-accent-soft);}
+.poll-option.poll-correct{border-color:rgba(34,197,94,0.55);}
+.poll-option.poll-wrong{border-color:rgba(239,68,68,0.5);animation:pollShake .42s cubic-bezier(.36,.07,.19,.97);}
+@keyframes pollShake{10%,90%{transform:translateX(-2px);}20%,80%{transform:translateX(3px);}30%,50%,70%{transform:translateX(-4px);}40%,60%{transform:translateX(4px);}}
+
+.poll-option-fill{
+  position:absolute;left:0;top:0;bottom:0;width:0;z-index:-1;
+  background:var(--poll-accent-soft);pointer-events:none;
+  transition:width .6s cubic-bezier(.22,1,.36,1);
+}
+.poll-option.poll-correct .poll-option-fill{background:rgba(34,197,94,0.16);}
+.poll-option.poll-wrong .poll-option-fill{background:rgba(239,68,68,0.14);}
+
+.poll-option-track{
+  position:absolute;left:0;right:0;bottom:0;height:3px;
+  background:var(--poll-track);display:flex;pointer-events:none;
+}
 .poll-option-bar{
-  position:absolute;left:0;top:0;bottom:0;
-  background:rgba(37,99,235,0.08);transition:width 0.4s ease;
-  pointer-events:none;
+  height:100%;width:0;background:var(--poll-accent-strong);
+  border-radius:0 3px 3px 0;
+  transition:width .6s cubic-bezier(.22,1,.36,1);
 }
-.poll-option-text{font-size:13px;color:var(--text-primary);flex:1;position:relative;}
-.poll-option-pct{font-size:12px;font-weight:700;color:var(--primary-light);position:relative;}
-.poll-votes-total{font-size:11px;color:var(--text-muted);margin-top:4px;text-align:right;}
+.poll-option.poll-correct .poll-option-bar{background:#22c55e;}
+.poll-option.poll-wrong .poll-option-bar{background:#ef4444;}
+
+/* Leading selector (vote mode) */
+.poll-option-selector{
+  width:19px;height:19px;border-radius:50%;flex-shrink:0;
+  border:2px solid var(--text-muted);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .18s ease,border-color .18s ease;
+}
+.poll-widget.poll-multi .poll-option-selector{border-radius:6px;}
+.poll-option-selector svg{opacity:0;transform:scale(0.35);transition:opacity .16s ease,transform .22s cubic-bezier(.34,1.56,.64,1);}
+.poll-option.poll-picked .poll-option-selector{background:var(--poll-accent-strong);border-color:var(--poll-accent-strong);}
+.poll-option.poll-picked .poll-option-selector svg{opacity:1;transform:none;}
+
+/* Leading percentage (results mode) */
+.poll-option-pct{
+  flex-shrink:0;min-width:38px;text-align:right;direction:ltr;
+  font-size:12.5px;font-weight:800;color:var(--poll-accent);
+  font-variant-numeric:tabular-nums;
+}
+.poll-option.poll-correct .poll-option-pct{color:#4ade80;}
+.poll-option.poll-wrong .poll-option-pct{color:#f87171;}
+
+.poll-option-text{
+  flex:1;min-width:0;font-size:13.5px;line-height:1.42;
+  color:var(--text-primary);word-break:break-word;text-align:start;
+}
+
+/* Trailing mark + voter avatars */
+.poll-option-mark{
+  flex-shrink:0;width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  animation:pollPop .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pollPop{from{opacity:0;transform:scale(0.4);}to{opacity:1;transform:none;}}
+.poll-option-mark.ok{background:#22c55e;}
+.poll-option-mark.no{background:#ef4444;}
+.poll-option-mark.pick{background:var(--poll-accent-strong);}
+.poll-option-avatars{display:flex;flex-shrink:0;align-items:center;direction:ltr;}
+.poll-option-avatars .poll-mini-av{margin-left:-6px;}
+.poll-option-avatars .poll-mini-av:first-child{margin-left:0;}
+.poll-mini-av{
+  width:18px;height:18px;border-radius:50%;overflow:hidden;flex-shrink:0;
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary-light));
+  display:flex;align-items:center;justify-content:center;
+  font-size:8.5px;font-weight:800;color:#fff;
+  border:1.5px solid var(--bubble-received);
+}
+.message-row.sent .poll-mini-av{border-color:var(--bubble-sent);}
+.poll-mini-av img{width:100%;height:100%;object-fit:cover;}
+
+/* Footer actions */
+.poll-footer{display:flex;flex-direction:column;gap:6px;margin-top:9px;}
+.poll-action-btn{
+  width:100%;padding:8px 12px;border:none;border-radius:11px;cursor:pointer;
+  font-size:13px;font-weight:800;letter-spacing:0.2px;direction:ltr;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--poll-accent-soft);color:var(--poll-accent);
+  transition:filter .16s ease,opacity .16s ease;
+}
+.poll-action-btn:hover:not(:disabled){filter:brightness(1.25);}
+.poll-action-btn:disabled{opacity:0.45;cursor:default;}
+.poll-action-btn.danger{background:rgba(239,68,68,0.14);color:#f87171;}
+.poll-action-row{display:flex;gap:6px;}
+.poll-action-row .poll-action-btn{flex:1;}
+
+.poll-voters-row{
+  display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:10px;
+  cursor:pointer;background:transparent;border:none;width:100%;direction:ltr;
+  transition:background .15s ease;
+}
+.poll-voters-row:hover{background:var(--poll-surface);}
+.poll-voters-row .poll-voter-stack{display:flex;}
+.poll-voters-row .poll-mini-av{margin-left:-6px;width:20px;height:20px;font-size:9px;}
+.poll-voters-row .poll-mini-av:first-child{margin-left:0;}
+.poll-voters-label{font-size:11.5px;font-weight:700;color:var(--text-secondary);flex:1;text-align:left;}
+.poll-voters-row svg{color:var(--text-muted);flex-shrink:0;}
+
+.poll-total{
+  font-size:11px;font-weight:700;color:var(--text-muted);
+  text-align:center;direction:ltr;padding-top:1px;
+}
+
+/* Quiz explanation callout */
+.poll-explain{
+  margin-top:9px;padding:9px 11px;border-radius:12px;
+  background:var(--poll-accent-soft);
+  border-left:3px solid var(--poll-accent-strong);
+  animation:pollSlide .32s ease;
+}
+@keyframes pollSlide{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:none;}}
+.poll-explain-title{
+  font-size:10px;font-weight:900;letter-spacing:0.7px;text-transform:uppercase;
+  color:var(--poll-accent);margin-bottom:3px;direction:ltr;
+  display:flex;align-items:center;gap:4px;
+}
+.poll-explain-body{font-size:12.5px;line-height:1.5;color:var(--text-primary);word-break:break-word;text-align:start;}
+
+/* Closed / final state */
+.poll-widget.poll-closed .poll-question{opacity:0.85;}
+.poll-closed-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  color:var(--text-muted);
+}
+
+/* RTL mirroring driven by the author's own text direction */
+.poll-widget.poll-rtl .poll-option{flex-direction:row-reverse;}
+.poll-widget.poll-rtl .poll-option-fill{left:auto;right:0;}
+.poll-widget.poll-rtl .poll-option-track{justify-content:flex-end;}
+.poll-widget.poll-rtl .poll-option-bar{border-radius:3px 0 0 3px;}
+.poll-widget.poll-rtl .poll-option-pct{text-align:left;}
+.poll-widget.poll-rtl .poll-explain{border-left:none;border-right:3px solid var(--poll-accent-strong);}
+.poll-widget.poll-rtl .poll-subhead{direction:rtl;}
+.poll-widget.poll-rtl .poll-explain-title{direction:rtl;}
+.poll-widget.poll-rtl .poll-voters-row{direction:rtl;}
+.poll-widget.poll-rtl .poll-voters-label{text-align:right;}
+.poll-widget.poll-rtl .poll-voters-row svg{transform:scaleX(-1);}
+.poll-widget.poll-rtl .poll-option-avatars .poll-mini-av{margin-left:0;margin-right:-6px;}
+.poll-widget.poll-rtl .poll-option-avatars .poll-mini-av:first-child{margin-right:0;}
+
+/* Voter-list modal */
+.poll-voters-group{margin-bottom:16px;}
+.poll-voters-group:last-child{margin-bottom:0;}
+.poll-voters-group-head{
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;
+}
+.poll-voters-group-name{
+  flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--text-primary);
+  word-break:break-word;text-align:start;
+}
+.poll-voters-group-count{
+  font-size:11px;font-weight:800;color:var(--primary-light);flex-shrink:0;
+  background:var(--blue-glow);padding:2px 9px;border-radius:20px;direction:ltr;
+}
+.poll-voter-item{display:flex;align-items:center;gap:9px;padding:6px 0;}
+.poll-voter-item .avatar{width:30px;height:30px;font-size:12px;flex-shrink:0;}
+.poll-voter-name{font-size:13px;font-weight:600;color:var(--text-secondary);}
+.poll-voters-empty{font-size:12px;color:var(--text-muted);padding:2px 0 4px;font-style:italic;}
+
 
 .bubble{
   padding:9px 13px;border-radius:16px;
@@ -1144,26 +1350,178 @@ html,body{
 .poll-creator{
   position:absolute;bottom:70px;left:50%;transform:translateX(-50%);
   background:var(--surface);border:1px solid var(--border);
-  border-radius:18px;padding:20px;
-  box-shadow:0 12px 40px rgba(0,0,0,0.6);z-index:100;
-  width:340px;animation:popIn 0.2s ease;
+  border-radius:20px;z-index:100;
+  box-shadow:0 18px 52px rgba(0,0,0,0.62);
+  width:372px;max-height:min(560px,calc(var(--app-height,100vh) - 150px));
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:popIn 0.22s ease;
 }
-.poll-creator h3{font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
-.poll-creator input{
-  width:100%;padding:9px 13px;border-radius:10px;
+.poll-creator-head{
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+  padding:14px 16px;border-bottom:1px solid var(--border);
+}
+.poll-creator-head-icon{
+  width:32px;height:32px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--blue-glow);color:var(--primary-light);
+  transition:background .2s ease,color .2s ease;
+}
+.poll-creator.is-quiz .poll-creator-head-icon{background:rgba(245,158,11,0.16);color:#fbbf24;}
+.poll-creator-head-text{flex:1;min-width:0;}
+.poll-creator-head h3{font-size:14.5px;font-weight:800;color:var(--text-primary);line-height:1.25;}
+.poll-creator-head small{font-size:10.5px;font-weight:600;color:var(--text-muted);}
+.poll-creator-close{
+  background:transparent;border:none;cursor:pointer;flex-shrink:0;
+  color:var(--text-muted);padding:5px;border-radius:8px;display:flex;
+  transition:color .18s ease,background .18s ease;
+}
+.poll-creator-close:hover{color:var(--error);background:var(--surface2);}
+
+.poll-creator-body{padding:14px 16px 6px;overflow-y:auto;flex:1;}
+.poll-creator-body::-webkit-scrollbar{width:6px;}
+.poll-creator-body::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:3px;}
+
+.poll-field-label{
+  font-size:10px;font-weight:800;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:0.7px;
+  margin:0 0 6px;display:flex;align-items:center;gap:6px;
+}
+.poll-field-label .poll-count{margin-left:auto;font-variant-numeric:tabular-nums;letter-spacing:0;}
+.poll-field-label .poll-count.warn{color:#fbbf24;}
+.poll-field-label .poll-count.over{color:var(--error);}
+
+.poll-creator input,
+.poll-creator textarea{
+  width:100%;padding:10px 13px;border-radius:12px;
   border:1.5px solid var(--border);background:var(--surface2);
-  color:var(--text-primary);font-size:16px;outline:none;margin-bottom:8px;
+  color:var(--text-primary);font-size:16px;outline:none;
+  transition:border-color .18s ease,box-shadow .18s ease;
 }
-.poll-creator input:focus{border-color:var(--primary);}
-.poll-options-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
-.poll-option-input-wrap{display:flex;align-items:center;gap:6px;}
-.poll-option-input-wrap input{margin-bottom:0;}
+.poll-creator input:focus,
+.poll-creator textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--blue-glow);}
+.poll-creator input.poll-invalid{border-color:var(--error);}
+.poll-creator textarea{resize:none;line-height:1.5;font-family:inherit;min-height:64px;}
+.poll-question-input{font-weight:600;}
+
+.poll-creator-section{margin-bottom:14px;}
+
+/* Option rows */
+.poll-options-list{display:flex;flex-direction:column;gap:7px;}
+.poll-option-row{
+  display:flex;align-items:center;gap:7px;
+  animation:pollRowIn .22s ease;
+}
+@keyframes pollRowIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+.poll-option-row.removing{animation:pollRowOut .18s ease forwards;}
+@keyframes pollRowOut{to{opacity:0;transform:translateX(-10px);height:0;}}
+.poll-option-row input{flex:1;min-width:0;padding-right:10px;}
+.poll-correct-toggle{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  border:2px solid var(--border);background:transparent;cursor:pointer;
+  display:none;align-items:center;justify-content:center;color:var(--text-muted);
+  transition:all .18s ease;
+}
+.poll-creator.is-quiz .poll-correct-toggle{display:flex;}
+.poll-correct-toggle:hover{border-color:#22c55e;color:#22c55e;}
+.poll-correct-toggle.is-correct{background:#22c55e;border-color:#22c55e;color:#fff;}
+.poll-correct-toggle svg{opacity:0;transition:opacity .16s ease;}
+.poll-correct-toggle:hover svg,
+.poll-correct-toggle.is-correct svg{opacity:1;}
+.poll-remove-option{
+  width:26px;height:26px;border-radius:8px;flex-shrink:0;
+  border:none;background:transparent;cursor:pointer;color:var(--text-muted);
+  display:flex;align-items:center;justify-content:center;
+  transition:color .16s ease,background .16s ease,opacity .16s ease;
+}
+.poll-remove-option:hover{color:var(--error);background:rgba(239,68,68,0.12);}
+.poll-remove-option:disabled{opacity:0.25;cursor:default;}
+.poll-remove-option:disabled:hover{color:var(--text-muted);background:transparent;}
+
 .poll-add-option{
-  background:transparent;border:none;cursor:pointer;
-  color:var(--primary);font-size:13px;font-weight:600;padding:4px 0;
-  display:flex;align-items:center;gap:5px;
+  background:transparent;border:1.5px dashed var(--border);cursor:pointer;
+  color:var(--primary-light);font-size:12.5px;font-weight:700;
+  padding:9px;border-radius:12px;margin-top:8px;width:100%;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:border-color .18s ease,background .18s ease,opacity .18s ease;
 }
-.poll-creator-actions{display:flex;gap:8px;margin-top:14px;}
+.poll-add-option:hover:not(:disabled){border-color:var(--primary);background:var(--blue-glow);}
+.poll-add-option:disabled{opacity:0.4;cursor:default;}
+
+/* Mode segmented control */
+.poll-mode-tabs{
+  display:flex;gap:3px;padding:3px;border-radius:12px;
+  background:var(--surface2);border:1px solid var(--border);margin-bottom:14px;
+}
+.poll-mode-tab{
+  flex:1;padding:8px 6px;border:none;border-radius:9px;cursor:pointer;
+  background:transparent;color:var(--text-muted);
+  font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:background .18s ease,color .18s ease;
+}
+.poll-mode-tab:hover{color:var(--text-secondary);}
+.poll-mode-tab.active{background:var(--primary);color:#fff;box-shadow:0 3px 10px var(--blue-glow);}
+.poll-creator.is-quiz .poll-mode-tab.active{background:#f59e0b;box-shadow:0 3px 10px rgba(245,158,11,0.28);}
+
+/* Setting rows with switches */
+.poll-settings{
+  display:flex;flex-direction:column;
+  border:1px solid var(--border);border-radius:14px;
+  background:var(--surface2);overflow:hidden;
+}
+.poll-setting-row{
+  display:flex;align-items:center;gap:11px;padding:10px 13px;cursor:pointer;
+  border-bottom:1px solid var(--border);transition:background .15s ease;
+}
+.poll-setting-row:last-child{border-bottom:none;}
+.poll-setting-row:hover{background:var(--row-hover);}
+.poll-setting-row.disabled{opacity:0.42;cursor:default;}
+.poll-setting-row.disabled:hover{background:transparent;}
+.poll-setting-icon{
+  width:28px;height:28px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--blue-glow);color:var(--primary-light);
+}
+.poll-setting-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.poll-setting-title{font-size:12.5px;font-weight:700;color:var(--text-primary);line-height:1.3;}
+.poll-setting-sub{font-size:10.5px;font-weight:500;color:var(--text-muted);line-height:1.35;}
+.poll-switch{
+  width:40px;height:23px;border-radius:12px;flex-shrink:0;position:relative;
+  background:var(--gray);border:1.5px solid var(--border);
+  transition:background .2s ease,border-color .2s ease;
+}
+.poll-switch::after{
+  content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;
+  background:var(--text-muted);transition:transform .2s cubic-bezier(.34,1.4,.64,1),background .2s ease;
+}
+.poll-setting-row.on .poll-switch{background:var(--primary);border-color:var(--primary);}
+.poll-setting-row.on .poll-switch::after{transform:translateX(17px);background:#fff;}
+
+/* Duration chips */
+.poll-duration-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.poll-chip{
+  padding:7px 13px;border-radius:20px;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--surface2);
+  color:var(--text-secondary);font-size:12px;font-weight:700;
+  transition:all .16s ease;
+}
+.poll-chip:hover{border-color:var(--primary);color:var(--text-primary);}
+.poll-chip.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+
+/* Live preview */
+.poll-preview-shell{
+  border:1px solid var(--border);border-radius:14px;
+  background:var(--bubble-received);padding:11px 13px;
+}
+.poll-preview-shell .poll-widget{min-width:0;max-width:100%;}
+
+.poll-creator-footer{
+  display:flex;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--border);flex-shrink:0;
+}
+.poll-creator-footer .btn-sm{flex:1;}
+.poll-creator-footer .btn-sm.primary:disabled{opacity:0.45;cursor:default;background:var(--primary);}
+
 .btn-sm{padding:8px 16px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;}
 .btn-sm.primary{background:var(--primary);color:#fff;}
 .btn-sm.primary:hover{background:var(--primary-dark);}
@@ -1663,7 +2021,9 @@ html,body{
   .brand-name{font-size:19px;}
   .message-row{max-width:90%;}
   .emoji-picker{width:calc(100vw - 24px);left:12px;right:12px;}
-  .poll-creator{width:calc(100vw - 32px);left:50%;transform:translateX(-50%);}
+  .poll-creator{width:calc(100vw - 24px);left:50%;transform:translateX(-50%);max-height:min(72vh,calc(var(--app-height,100vh) - 130px));}
+  .poll-widget{min-width:min(240px,68vw);}
+  .poll-mode-tab span{font-size:11.5px;}
 }
 
 /* ===== CHAT CONTEXT MENU ===== */
@@ -2716,6 +3076,11 @@ html[data-theme="glass"] body{background:transparent;}
 [data-theme="glass"] .contacts-search-wrap input,
 [data-theme="glass"] .chat-search-bar input,
 [data-theme="glass"] .poll-creator input,
+[data-theme="glass"] .poll-creator textarea,
+[data-theme="glass"] .poll-settings,
+[data-theme="glass"] .poll-chip,
+[data-theme="glass"] .poll-mode-tabs,
+[data-theme="glass"] .poll-preview-shell,
 [data-theme="glass"] .schedule-date-input,
 [data-theme="glass"] .schedule-time-input,
 [data-theme="glass"] .article-link-popover input,
@@ -6445,6 +6810,7 @@ function listenToPartnerStatus(partnerUid) {
 /* ===== MESSAGES ===== */
 function listenToMessages(chatId, isGroup) {
   if (unsubMessages) unsubMessages();
+  if (typeof clearAllPollTimers === 'function') clearAllPollTimers();
   messagesEl.innerHTML = '';
   currentChatMessages = [];
   closeChatSearch();
@@ -6453,6 +6819,7 @@ function listenToMessages(chatId, isGroup) {
   unsubMessages = db.collection(col).doc(chatId)
     .collection('messages').orderBy('createdAt','asc').limitToLast(200)
     .onSnapshot(snap => {
+      if (typeof clearAllPollTimers === 'function') clearAllPollTimers();
       messagesEl.innerHTML = '';
       currentChatMessages = [];
       let lastDate = null;
@@ -6574,7 +6941,9 @@ function openSavedMessagesView() {
       });
       messagesEl.scrollTop = messagesEl.scrollHeight;
       const last = snap.docs[snap.docs.length - 1].data();
-      savedMessagesPreview.textContent = last.text || (last.type === 'file' ? 'Attachment: ' + (last.fileName || 'File') : 'Saved item');
+      savedMessagesPreview.textContent = last.text
+        || (last.type === 'file' ? 'Attachment: ' + (last.fileName || 'File')
+        : (last.type === 'poll' ? ((last.pollType === 'quiz' ? 'Quiz: ' : 'Poll: ') + (last.pollQuestion || '')) : 'Saved item'));
     }, err => console.error('Saved messages error:', err));
 }
 
@@ -6587,6 +6956,10 @@ async function saveMessageToSaved(msg, msgId, chatId, isGroup) {
       text: msg.text || '', type: msg.type || 'text',
       fileName: msg.fileName || null, fileURL: msg.fileURL || null, fileSize: msg.fileSize || null,
       pollQuestion: msg.pollQuestion || null, pollOptions: msg.pollOptions || null, pollVotes: msg.pollVotes || null,
+      pollType: msg.pollType || null, pollAnonymous: msg.pollAnonymous !== false,
+      pollMultiple: !!msg.pollMultiple, pollClosed: !!msg.pollClosed,
+      pollQuizAnswer: (typeof msg.pollQuizAnswer === 'number' ? msg.pollQuizAnswer : null),
+      pollExplanation: msg.pollExplanation || null,
       hashtags: msg.hashtags || extractHashtags(msg.text || msg.pollQuestion || msg.fileName || ''),
       category: msg.category || 'general',
       senderUsername: msg.senderUsername || '', originalChatId: chatId || null,
@@ -7074,9 +7447,10 @@ async function forwardMessageTo(msg, targetItem) {
     }
   }
 
-  const fwdText = msg.text || (msg.type === 'file' ? 'Attachment: ' + (msg.fileName || 'File') : (msg.type === 'poll' ? 'Poll: ' + (msg.pollQuestion || '') : ''));
+  const isPoll = msg.type === 'poll';
+  const fwdText = msg.text || (msg.type === 'file' ? 'Attachment: ' + (msg.fileName || 'File') : (isPoll ? ((msg.pollType === 'quiz' ? 'Quiz: ' : 'Poll: ') + (msg.pollQuestion || '')) : ''));
   const msgData = {
-    text: msg.type === 'poll' ? fwdText : (msg.text || ''), type: msg.type === 'poll' ? 'text' : (msg.type || 'text'),
+    text: isPoll ? '' : (msg.text || ''), type: msg.type || 'text',
     fileName: msg.fileName || null, fileURL: msg.fileURL || null, fileSize: msg.fileSize || null,
     hashtags: msg.hashtags || extractHashtags(fwdText),
     category: msg.category || 'general',
@@ -7084,6 +7458,18 @@ async function forwardMessageTo(msg, targetItem) {
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     forwardedFrom: msg.senderUsername || msg.savedSourceName || 'Unknown'
   };
+  // Forwarded polls stay votable: copy the definition but start the tally fresh.
+  if (isPoll) {
+    msgData.pollQuestion = msg.pollQuestion || '';
+    msgData.pollOptions = Array.isArray(msg.pollOptions) ? msg.pollOptions : [];
+    msgData.pollVotes = {};
+    msgData.pollType = msg.pollType || 'regular';
+    msgData.pollAnonymous = msg.pollAnonymous !== false;
+    msgData.pollMultiple = !!msg.pollMultiple;
+    msgData.pollClosed = false;
+    if (typeof msg.pollQuizAnswer === 'number') msgData.pollQuizAnswer = msg.pollQuizAnswer;
+    if (msg.pollExplanation) msgData.pollExplanation = msg.pollExplanation;
+  }
 
   const ref = db.collection(col).doc(targetId);
   await ref.collection('messages').add(msgData);
@@ -7571,6 +7957,8 @@ function renderMessage(msg, msgId, chatId, isGroup) {
   if (msg.voiceDuration) row.dataset.msgVoiceDuration = String(msg.voiceDuration);
   if (msg.gifDescription) row.dataset.msgGifDesc = msg.gifDescription;
   if (msg.pollQuestion) row.dataset.msgPollQuestion = msg.pollQuestion;
+  if (Array.isArray(msg.pollOptions)) { try { row.dataset.msgPollOptions = JSON.stringify(msg.pollOptions); } catch (_) {} }
+  if (msg.pollType) row.dataset.msgPollType = msg.pollType;
 
   // For channels, all posts are "received" style (left-aligned) for non-admins, but admins sent posts go right
   const isChannel = activeChatIsChannel;
@@ -7775,75 +8163,578 @@ function renderMessage(msg, msgId, chatId, isGroup) {
   messagesEl.appendChild(row);
 }
 
-/* ===== POLL WIDGET ===== */
+/* ===== POLL WIDGET =====
+   Telegram-style polls. Supported poll modes, stored on the message doc:
+     pollType        'regular' | 'quiz'
+     pollAnonymous   bool  — when false, voter identities are shown
+     pollMultiple    bool  — regular polls only; several answers allowed
+     pollQuizAnswer  number — index of the correct option (quiz)
+     pollExplanation string — revealed after a quiz answer
+     pollClosesAt    Timestamp|null — auto-close deadline
+     pollClosed      bool  — stopped by the author
+     pollVotes       { [optionIndex]: uid[] }
+*/
+
+const POLL_ICONS = {
+  check: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  cross: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  quiz: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 1 1 5.2 2c-.9.6-1.3 1.1-1.3 2"/><path d="M12 17h.01"/></svg>',
+  clock: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7.5 12 12 15 13.5"/></svg>',
+  lock: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  chevron: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+  undo: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.1-6.4L3 9"/></svg>',
+  stop: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="3"/></svg>',
+  send: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+  bulb: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.6 14.5A6 6 0 1 1 15.4 14.5c-.7.5-1.1 1.3-1.2 2.1h-4.4c-.1-.8-.5-1.6-1.2-2.1z"/></svg>',
+  eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>'
+};
+
+/* Live countdown tickers, keyed by message id, so timed polls stay accurate
+   without re-rendering the whole message list every second. */
+const pollTimers = new Map();
+function clearPollTimer(msgId) {
+  const t = pollTimers.get(msgId);
+  if (t) { clearInterval(t); pollTimers.delete(msgId); }
+}
+function clearAllPollTimers() {
+  pollTimers.forEach(t => clearInterval(t));
+  pollTimers.clear();
+}
+
+function pollToMillis(value) {
+  if (!value) return 0;
+  if (typeof value === 'number') return value;
+  if (typeof value.toMillis === 'function') return value.toMillis();
+  if (typeof value.toDate === 'function') return value.toDate().getTime();
+  if (value.seconds) return value.seconds * 1000;
+  return 0;
+}
+
+function pollIsClosed(msg) {
+  if (!msg) return false;
+  if (msg.pollClosed) return true;
+  const ends = pollToMillis(msg.pollClosesAt);
+  return !!ends && ends <= Date.now();
+}
+
+function pollCountdownText(msMs) {
+  const total = Math.max(0, Math.round(msMs / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+/* Resolves a display name + photo for a voter uid, using whatever is already
+   cached so the common case costs no extra reads. */
+function pollUserBrief(uid) {
+  if (currentUser && uid === currentUser.uid) {
+    return { username: (currentUserData && currentUserData.username) || 'You', photoURL: (currentUserData && currentUserData.photoURL) || '' };
+  }
+  const cached = partnerCache[uid];
+  if (cached) return { username: cached.username || 'User', photoURL: cached.photoURL || '' };
+  return null;
+}
+
+function pollMiniAvatar(uid) {
+  const el = document.createElement('span');
+  el.className = 'poll-mini-av';
+  const brief = pollUserBrief(uid);
+  if (brief) {
+    setAvatarContent(el, brief.username, brief.photoURL);
+    el.title = brief.username;
+  } else {
+    el.textContent = '·';
+    // Fill in lazily once the profile arrives; failures simply keep the dot.
+    db.collection('users').doc(uid).get().then(snap => {
+      if (!snap.exists) return;
+      const u = snap.data();
+      partnerCache[uid] = u;
+      setAvatarContent(el, u.username, u.photoURL);
+      el.title = u.username || 'User';
+    }).catch(() => {});
+  }
+  return el;
+}
+
 function renderPollWidget(msg, msgId, chatId, isGroup) {
   const widget = document.createElement('div');
-  widget.className = 'poll-widget';
-  const title = document.createElement('div');
-  title.className = 'poll-title';
-  appendMessageText(title, msg.pollQuestion || 'Poll');
-  widget.appendChild(title);
+  const isQuiz = msg.pollType === 'quiz';
+  const isMulti = !isQuiz && !!msg.pollMultiple;
+  const isAnon = msg.pollAnonymous !== false;
+  const closed = pollIsClosed(msg);
+  const question = msg.pollQuestion || 'Poll';
+  const rtl = messageTextDirection(question) === 'rtl';
 
-  const totalVotes = Object.values(msg.pollVotes || {}).flat().length;
-  const myVote = Object.entries(msg.pollVotes || {}).find(([, voters]) => (voters||[]).includes(currentUser.uid));
+  widget.className = 'poll-widget'
+    + (isQuiz ? ' poll-kind-quiz' : '')
+    + (isMulti ? ' poll-multi' : '')
+    + (closed ? ' poll-closed' : '')
+    + (rtl ? ' poll-rtl' : '');
 
-  (msg.pollOptions || []).forEach((opt, idx) => {
-    const voters = (msg.pollVotes || {})[idx] || [];
+  const votes = msg.pollVotes || {};
+  const options = Array.isArray(msg.pollOptions) ? msg.pollOptions : [];
+  const myUid = (currentUser && currentUser.uid) || '';
+  const myPicks = [];
+  Object.keys(votes).forEach(k => { if ((votes[k] || []).includes(myUid)) myPicks.push(parseInt(k, 10)); });
+  const hasVoted = myPicks.length > 0;
+
+  // Total = distinct people, so multi-answer polls still read as "N voted".
+  const voterSet = new Set();
+  Object.values(votes).forEach(list => (list || []).forEach(uid => voterSet.add(uid)));
+  const totalVoters = voterSet.size;
+
+  // Results appear once you have voted, once the poll closes, or if you own it.
+  const isAuthor = !!(myUid && msg.senderId === myUid);
+  const showResults = hasVoted || closed || (isAuthor && totalVoters > 0);
+  const canVote = !!chatId && !closed && !(hasVoted && !isMulti);
+  if (canVote) widget.classList.add('poll-interactive');
+
+  // --- Question -----------------------------------------------------------
+  const qEl = document.createElement('div');
+  qEl.className = 'poll-question';
+  appendMessageText(qEl, question);
+  widget.appendChild(qEl);
+
+  // --- Meta line ----------------------------------------------------------
+  const sub = document.createElement('div');
+  sub.className = 'poll-subhead';
+  const bits = [];
+  if (isQuiz) {
+    const q = document.createElement('span');
+    q.className = 'poll-kind-label';
+    q.innerHTML = POLL_ICONS.quiz + '<span>Quiz</span>';
+    bits.push(q);
+  } else {
+    const t = document.createElement('span');
+    t.textContent = isAnon ? 'Anonymous Poll' : 'Public Poll';
+    bits.push(t);
+  }
+  if (isMulti) { const m = document.createElement('span'); m.textContent = 'Multiple Answers'; bits.push(m); }
+  if (closed) {
+    const c = document.createElement('span');
+    c.className = 'poll-closed-chip';
+    c.innerHTML = POLL_ICONS.lock + '<span>Final Results</span>';
+    bits.push(c);
+  }
+  bits.forEach((el, i) => {
+    if (i > 0) { const d = document.createElement('span'); d.className = 'poll-dot'; d.textContent = '·'; sub.appendChild(d); }
+    sub.appendChild(el);
+  });
+
+  // Live countdown for timed polls.
+  const endsAt = pollToMillis(msg.pollClosesAt);
+  let timerEl = null;
+  if (endsAt && !msg.pollClosed) {
+    timerEl = document.createElement('span');
+    timerEl.className = 'poll-timer';
+    sub.appendChild(timerEl);
+  }
+  widget.appendChild(sub);
+
+  // --- Options ------------------------------------------------------------
+  const list = document.createElement('div');
+  list.className = 'poll-options';
+
+  options.forEach((opt, idx) => {
+    const voters = votes[idx] || [];
     const count = voters.length;
-    const pct = totalVotes ? Math.round(count / totalVotes * 100) : 0;
+    // Percentages are of distinct voters so multi-answer totals can exceed 100%
+    // per option but each bar still reflects "share of people who picked this".
+    const pct = totalVoters ? Math.round(count / totalVoters * 100) : 0;
+    const picked = myPicks.includes(idx);
+    const isCorrect = isQuiz && msg.pollQuizAnswer === idx;
 
     const optEl = document.createElement('div');
-    optEl.className = 'poll-option' + (myVote && parseInt(myVote[0]) === idx ? ' voted' : '');
+    optEl.className = 'poll-option';
+    optEl.setAttribute('role', isMulti ? 'checkbox' : 'radio');
+    optEl.setAttribute('aria-checked', picked ? 'true' : 'false');
+    if (picked) optEl.classList.add('poll-picked');
 
+    if (isQuiz && (hasVoted || closed)) {
+      if (isCorrect) optEl.classList.add('poll-correct');
+      else if (picked) optEl.classList.add('poll-wrong');
+    }
+    if (!canVote) optEl.classList.add('poll-locked');
+
+    const fill = document.createElement('div');
+    fill.className = 'poll-option-fill';
+    optEl.appendChild(fill);
+
+    const track = document.createElement('div');
+    track.className = 'poll-option-track';
     const bar = document.createElement('div');
     bar.className = 'poll-option-bar';
-    bar.style.width = pct + '%';
-    optEl.appendChild(bar);
+    track.appendChild(bar);
+    optEl.appendChild(track);
+
+    // Leading slot: selector before voting, percentage once results are out.
+    if (showResults) {
+      const pctEl = document.createElement('div');
+      pctEl.className = 'poll-option-pct';
+      pctEl.textContent = pct + '%';
+      optEl.appendChild(pctEl);
+    } else {
+      const sel = document.createElement('div');
+      sel.className = 'poll-option-selector';
+      sel.innerHTML = POLL_ICONS.check;
+      optEl.appendChild(sel);
+    }
 
     const textEl = document.createElement('div');
     textEl.className = 'poll-option-text';
+    textEl.dir = messageTextDirection(opt);
     textEl.textContent = opt;
     optEl.appendChild(textEl);
 
-    const pctEl = document.createElement('div');
-    pctEl.className = 'poll-option-pct';
-    pctEl.textContent = pct + '%';
-    optEl.appendChild(pctEl);
+    // Trailing slot: quiz verdict, or voter faces on public polls.
+    if (showResults && isQuiz && (hasVoted || closed) && (isCorrect || picked)) {
+      const mark = document.createElement('span');
+      mark.className = 'poll-option-mark ' + (isCorrect ? 'ok' : 'no');
+      mark.innerHTML = isCorrect ? POLL_ICONS.check : POLL_ICONS.cross;
+      optEl.appendChild(mark);
+    } else if (showResults && !isAnon && count) {
+      const av = document.createElement('div');
+      av.className = 'poll-option-avatars';
+      voters.slice(0, 3).forEach(uid => av.appendChild(pollMiniAvatar(uid)));
+      optEl.appendChild(av);
+    } else if (showResults && picked) {
+      const mark = document.createElement('span');
+      mark.className = 'poll-option-mark pick';
+      mark.innerHTML = POLL_ICONS.check;
+      optEl.appendChild(mark);
+    }
 
-    if (chatId) optEl.addEventListener('click', () => votePoll(msgId, chatId, isGroup, idx));
-    else optEl.style.cursor = 'default';
-    widget.appendChild(optEl);
+    if (canVote) {
+      optEl.setAttribute('tabindex', '0');
+      const fire = e => {
+        e.preventDefault();
+        e.stopPropagation();
+        votePoll(msgId, chatId, isGroup, idx, { multiple: isMulti });
+      };
+      optEl.addEventListener('click', fire);
+      optEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fire(e); });
+    }
+
+    list.appendChild(optEl);
+    // Animate the bars in on the next frame instead of snapping to width.
+    if (showResults) requestAnimationFrame(() => { fill.style.width = pct + '%'; bar.style.width = pct + '%'; });
   });
+  widget.appendChild(list);
+
+  // --- Quiz explanation ---------------------------------------------------
+  if (isQuiz && msg.pollExplanation && (hasVoted || closed)) {
+    const ex = document.createElement('div');
+    ex.className = 'poll-explain';
+    const exTitle = document.createElement('div');
+    exTitle.className = 'poll-explain-title';
+    exTitle.innerHTML = POLL_ICONS.bulb + '<span>Explanation</span>';
+    const exBody = document.createElement('div');
+    exBody.className = 'poll-explain-body';
+    exBody.dir = messageTextDirection(msg.pollExplanation);
+    exBody.textContent = msg.pollExplanation;
+    ex.appendChild(exTitle);
+    ex.appendChild(exBody);
+    widget.appendChild(ex);
+  }
+
+  // --- Footer -------------------------------------------------------------
+  const footer = document.createElement('div');
+  footer.className = 'poll-footer';
+
+  if (!isAnon && totalVoters > 0 && showResults) {
+    const votersBtn = document.createElement('button');
+    votersBtn.type = 'button';
+    votersBtn.className = 'poll-voters-row';
+    const stack = document.createElement('span');
+    stack.className = 'poll-voter-stack';
+    Array.from(voterSet).slice(0, 3).forEach(uid => stack.appendChild(pollMiniAvatar(uid)));
+    const label = document.createElement('span');
+    label.className = 'poll-voters-label';
+    label.textContent = totalVoters === 1 ? '1 person voted' : totalVoters + ' people voted';
+    votersBtn.appendChild(stack);
+    votersBtn.appendChild(label);
+    const chev = document.createElement('span');
+    chev.innerHTML = POLL_ICONS.chevron;
+    votersBtn.appendChild(chev);
+    votersBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      showPollVotersModal(msg, msgId, chatId, isGroup);
+    });
+    footer.appendChild(votersBtn);
+  }
+
+  const actionRow = document.createElement('div');
+  actionRow.className = 'poll-action-row';
+
+  // Multi-answer polls submit explicitly, mirroring Telegram's "Vote" button.
+  if (isMulti && !closed && chatId && !hasVoted) {
+    const voteBtn = document.createElement('button');
+    voteBtn.type = 'button';
+    voteBtn.className = 'poll-action-btn';
+    voteBtn.innerHTML = POLL_ICONS.send + '<span>Vote</span>';
+    voteBtn.disabled = true;
+    voteBtn.dataset.pollVoteSubmit = '1';
+    voteBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const picks = Array.from(list.querySelectorAll('.poll-option'))
+        .map((el, i) => el.classList.contains('poll-pending') ? i : -1)
+        .filter(i => i >= 0);
+      if (picks.length) submitMultiVote(msgId, chatId, isGroup, picks);
+    });
+    actionRow.appendChild(voteBtn);
+  }
+
+  // Retract is offered while the poll is still open (Telegram parity).
+  if (hasVoted && !closed && chatId && !isQuiz) {
+    const undoBtn = document.createElement('button');
+    undoBtn.type = 'button';
+    undoBtn.className = 'poll-action-btn';
+    undoBtn.innerHTML = POLL_ICONS.undo + '<span>Retract Vote</span>';
+    undoBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      retractPollVote(msgId, chatId, isGroup);
+    });
+    actionRow.appendChild(undoBtn);
+  }
+
+  // Only the author (or a channel/group admin) may stop a poll early.
+  const canStop = !closed && chatId && (isAuthor || activeChatCanModerate);
+  if (canStop) {
+    const stopBtn = document.createElement('button');
+    stopBtn.type = 'button';
+    stopBtn.className = 'poll-action-btn danger';
+    stopBtn.innerHTML = POLL_ICONS.stop + '<span>Stop Poll</span>';
+    stopBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      stopPoll(msgId, chatId, isGroup);
+    });
+    actionRow.appendChild(stopBtn);
+  }
+
+  if (actionRow.children.length) footer.appendChild(actionRow);
 
   const total = document.createElement('div');
-  total.className = 'poll-votes-total';
-  total.textContent = `${totalVotes} vote${totalVotes !== 1 ? 's' : ''}`;
-  widget.appendChild(total);
+  total.className = 'poll-total';
+  if (!totalVoters) {
+    total.textContent = closed ? 'No votes' : (isQuiz ? 'No answers yet' : 'No votes yet');
+  } else if (isQuiz) {
+    total.textContent = totalVoters === 1 ? '1 answer' : totalVoters + ' answers';
+  } else {
+    total.textContent = totalVoters === 1 ? '1 vote' : totalVoters + ' votes';
+  }
+  footer.appendChild(total);
+  widget.appendChild(footer);
+
+  // Countdown ticker: flips the widget to closed state when time runs out.
+  clearPollTimer(msgId);
+  if (timerEl && endsAt) {
+    const tick = () => {
+      const left = endsAt - Date.now();
+      if (left <= 0) {
+        timerEl.textContent = 'Closed';
+        timerEl.classList.remove('urgent');
+        clearPollTimer(msgId);
+        widget.classList.add('poll-closed');
+        widget.classList.remove('poll-interactive');
+        list.querySelectorAll('.poll-option').forEach(el => el.classList.add('poll-locked'));
+        return;
+      }
+      timerEl.innerHTML = POLL_ICONS.clock + '<span>' + pollCountdownText(left) + '</span>';
+      timerEl.classList.toggle('urgent', left <= 60000);
+    };
+    tick();
+    pollTimers.set(msgId, setInterval(tick, 1000));
+  }
 
   return widget;
 }
 
-async function votePoll(msgId, chatId, isGroup, optionIdx) {
+/* ===== POLL VOTING ===== */
+async function votePoll(msgId, chatId, isGroup, optionIdx, opts = {}) {
+  if (!currentUser || !msgId || !chatId) return;
+
+  // Multi-answer: stage the selection locally, commit on "Vote".
+  if (opts.multiple) {
+    const row = document.querySelector(`.message-row[data-msg-id="${CSS.escape(msgId)}"]`);
+    const optEl = row && row.querySelectorAll('.poll-option')[optionIdx];
+    if (!optEl) return;
+    optEl.classList.toggle('poll-pending');
+    optEl.classList.toggle('poll-picked');
+    optEl.setAttribute('aria-checked', optEl.classList.contains('poll-picked') ? 'true' : 'false');
+    const submit = row.querySelector('[data-poll-vote-submit]');
+    if (submit) {
+      const n = row.querySelectorAll('.poll-option.poll-pending').length;
+      submit.disabled = n === 0;
+      submit.querySelector('span').textContent = n ? `Vote (${n})` : 'Vote';
+    }
+    return;
+  }
+
+  await commitPollVote(msgId, chatId, isGroup, [optionIdx], false);
+}
+
+async function submitMultiVote(msgId, chatId, isGroup, indexes) {
+  await commitPollVote(msgId, chatId, isGroup, indexes, true);
+}
+
+async function commitPollVote(msgId, chatId, isGroup, indexes, multiple) {
   const col = isGroup ? 'groups' : 'chats';
   const ref = db.collection(col).doc(chatId).collection('messages').doc(msgId);
   try {
-    // A transaction prevents simultaneous voters from overwriting each other's votes.
+    // A transaction prevents simultaneous voters from overwriting each other.
     await db.runTransaction(async transaction => {
       const snap = await transaction.get(ref);
       if (!snap.exists) return;
       const data = snap.data();
+      if (pollIsClosed(data)) throw new Error('poll-closed');
+
+      const pollVotes = JSON.parse(JSON.stringify(data.pollVotes || {}));
+      const already = Object.keys(pollVotes).some(k => (pollVotes[k] || []).includes(currentUser.uid));
+      // Single-answer polls are locked in; only multi-answer allows re-submitting.
+      if (already && !multiple) throw new Error('already-voted');
+
+      Object.keys(pollVotes).forEach(k => {
+        pollVotes[k] = (pollVotes[k] || []).filter(uid => uid !== currentUser.uid);
+      });
+      indexes.forEach(i => {
+        if (!pollVotes[i]) pollVotes[i] = [];
+        pollVotes[i].push(currentUser.uid);
+      });
+      transaction.update(ref, { pollVotes });
+    });
+  } catch (err) {
+    if (err && err.message === 'poll-closed') { showToast('This poll has ended'); return; }
+    if (err && err.message === 'already-voted') return;
+    console.error('Vote error:', err);
+    showToast('Could not save your vote. Please try again.');
+  }
+}
+
+async function retractPollVote(msgId, chatId, isGroup) {
+  if (!currentUser || !msgId || !chatId) return;
+  const col = isGroup ? 'groups' : 'chats';
+  const ref = db.collection(col).doc(chatId).collection('messages').doc(msgId);
+  try {
+    await db.runTransaction(async transaction => {
+      const snap = await transaction.get(ref);
+      if (!snap.exists) return;
+      const data = snap.data();
+      if (pollIsClosed(data)) throw new Error('poll-closed');
       const pollVotes = JSON.parse(JSON.stringify(data.pollVotes || {}));
       Object.keys(pollVotes).forEach(k => {
         pollVotes[k] = (pollVotes[k] || []).filter(uid => uid !== currentUser.uid);
       });
-      if (!pollVotes[optionIdx]) pollVotes[optionIdx] = [];
-      pollVotes[optionIdx].push(currentUser.uid);
       transaction.update(ref, { pollVotes });
     });
-  } catch(err) {
-    console.error('Vote error:', err);
-    showToast('Could not save your vote. Please try again.');
+    showToast('Vote retracted');
+  } catch (err) {
+    if (err && err.message === 'poll-closed') { showToast('This poll has ended'); return; }
+    console.error('Retract error:', err);
+    showToast('Could not retract your vote.');
   }
+}
+
+async function stopPoll(msgId, chatId, isGroup) {
+  if (!msgId || !chatId) return;
+  if (!confirm('Stop this poll? Results become final and nobody else can vote.')) return;
+  const col = isGroup ? 'groups' : 'chats';
+  try {
+    await db.collection(col).doc(chatId).collection('messages').doc(msgId).update({ pollClosed: true });
+    clearPollTimer(msgId);
+    showToast('Poll stopped');
+  } catch (err) {
+    console.error('Stop poll error:', err);
+    showToast('Could not stop the poll.');
+  }
+}
+
+/* ===== POLL VOTERS MODAL ===== */
+async function showPollVotersModal(msg, msgId, chatId, isGroup) {
+  const modal = createModal('Poll Results');
+  const body = modal.querySelector('.modal-body');
+  const footer = modal.querySelector('.modal-footer');
+
+  const q = document.createElement('div');
+  q.style.cssText = 'font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:16px;line-height:1.45;word-break:break-word;';
+  q.dir = messageTextDirection(msg.pollQuestion || '');
+  q.textContent = msg.pollQuestion || 'Poll';
+  body.appendChild(q);
+
+  // Read the freshest counts rather than trusting the render-time snapshot.
+  let votes = msg.pollVotes || {};
+  if (chatId && msgId) {
+    try {
+      const snap = await db.collection(isGroup ? 'groups' : 'chats').doc(chatId).collection('messages').doc(msgId).get();
+      if (snap.exists) votes = snap.data().pollVotes || {};
+    } catch (_) {}
+  }
+
+  const options = Array.isArray(msg.pollOptions) ? msg.pollOptions : [];
+  const uids = new Set();
+  Object.values(votes).forEach(list => (list || []).forEach(u => uids.add(u)));
+
+  // Resolve every voter profile once, in parallel, seeding the shared cache.
+  const unknown = Array.from(uids).filter(u => !pollUserBrief(u));
+  if (unknown.length) {
+    const docs = await Promise.all(unknown.map(u => db.collection('users').doc(u).get().catch(() => null)));
+    docs.forEach(d => { if (d && d.exists) partnerCache[d.id] = d.data(); });
+  }
+
+  options.forEach((opt, idx) => {
+    const voters = votes[idx] || [];
+    const group = document.createElement('div');
+    group.className = 'poll-voters-group';
+
+    const head = document.createElement('div');
+    head.className = 'poll-voters-group-head';
+    const name = document.createElement('div');
+    name.className = 'poll-voters-group-name';
+    name.dir = messageTextDirection(opt);
+    name.textContent = opt;
+    head.appendChild(name);
+    if (msg.pollType === 'quiz' && msg.pollQuizAnswer === idx) {
+      const ok = document.createElement('span');
+      ok.className = 'poll-option-mark ok';
+      ok.innerHTML = POLL_ICONS.check;
+      head.appendChild(ok);
+    }
+    const cnt = document.createElement('span');
+    cnt.className = 'poll-voters-group-count';
+    cnt.textContent = String(voters.length);
+    head.appendChild(cnt);
+    group.appendChild(head);
+
+    if (!voters.length) {
+      const empty = document.createElement('div');
+      empty.className = 'poll-voters-empty';
+      empty.textContent = 'No votes';
+      group.appendChild(empty);
+    } else {
+      voters.forEach(uid => {
+        const brief = pollUserBrief(uid) || { username: 'User', photoURL: '' };
+        const item = document.createElement('div');
+        item.className = 'poll-voter-item';
+        const av = document.createElement('div');
+        av.className = 'avatar';
+        setAvatarContent(av, brief.username, brief.photoURL);
+        item.appendChild(av);
+        const nm = document.createElement('div');
+        nm.className = 'poll-voter-name';
+        nm.textContent = (currentUser && uid === currentUser.uid) ? brief.username + ' (You)' : brief.username;
+        item.appendChild(nm);
+        group.appendChild(item);
+      });
+    }
+    body.appendChild(group);
+  });
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn-full btn-blue';
+  closeBtn.textContent = 'Close';
+  closeBtn.addEventListener('click', closeModal);
+  footer.appendChild(closeBtn);
 }
 
 /* ===== REPLY ===== */
@@ -8040,7 +8931,7 @@ async function deleteMessage(msgId, chatId, isGroup) {
 function getChatMessagePreview(msg) {
   if (!msg) return '';
   if (msg.type === 'file') return '📎 Attachment: ' + (msg.fileName || 'File');
-  if (msg.type === 'poll') return '📊 Poll: ' + (msg.pollQuestion || 'Poll');
+  if (msg.type === 'poll') return (msg.pollType === 'quiz' ? '❓ Quiz: ' : '📊 Poll: ') + (msg.pollQuestion || 'Poll');
   if (msg.type === 'voice') return '🎤 Voice message';
   if (msg.type === 'gif') return '🎞️ GIF';
   if (msg.type === 'article') return '📝 Article: ' + (msg.articleTitle || 'Untitled article');
@@ -8438,7 +9329,13 @@ async function downloadChatBackup() {
       } else if (msg.type === 'file') {
         msgText = `📁 File: ${msg.fileName || ''} (${msg.fileURL || ''})`;
       } else if (msg.type === 'poll') {
-        msgText = `📊 Poll: ${msg.pollQuestion || ''}`;
+        const kind = msg.pollType === 'quiz' ? '❓ Quiz' : '📊 Poll';
+        msgText = `${kind}: ${msg.pollQuestion || ''}`;
+        (msg.pollOptions || []).forEach((opt, i) => {
+          const n = ((msg.pollVotes || {})[i] || []).length;
+          const correct = msg.pollType === 'quiz' && msg.pollQuizAnswer === i ? ' ✓' : '';
+          msgText += `\n    ${i + 1}. ${opt}${correct} — ${n} vote${n === 1 ? '' : 's'}`;
+        });
       }
       
       text += `[${time}] ${sender}: ${msgText}\n`;
@@ -8735,7 +9632,7 @@ function buildAttachMenu() {
     action: () => { fileInput.click(); attachMenu.classList.add('hidden'); }
   });
   buildAttachMenuItem({
-    icon: 'poll', title: 'Poll', sub: 'Create a poll for this chat',
+    icon: 'poll', title: 'Poll or Quiz', sub: 'Anonymous, multi-answer, timed or quiz mode',
     action: () => { attachMenu.classList.add('hidden'); buildPollCreator(); pollPanel.classList.remove('hidden'); }
   });
   buildAttachMenuItem({
@@ -8887,91 +9784,558 @@ async function sendLocation() {
 }
 
 /* ===== POLL CREATOR ===== */
+const POLL_MAX_OPTIONS = 12;
+const POLL_MAX_QUESTION = 255;
+const POLL_MAX_OPTION = 100;
+const POLL_MAX_EXPLANATION = 200;
+const POLL_DURATIONS = [
+  { label: 'No limit', seconds: 0 },
+  { label: '5 min',    seconds: 300 },
+  { label: '30 min',   seconds: 1800 },
+  { label: '1 hour',   seconds: 3600 },
+  { label: '1 day',    seconds: 86400 },
+  { label: '1 week',   seconds: 604800 }
+];
+
+// Draft state for the creator panel, reset each time it is opened.
+let pollDraft = null;
+
+function defaultPollDraft() {
+  return {
+    question: '',
+    options: ['', ''],
+    type: 'regular',      // 'regular' | 'quiz'
+    anonymous: true,
+    multiple: false,
+    quizAnswer: 0,
+    explanation: '',
+    durationSeconds: 0
+  };
+}
+
+function pollCreatorIcon(name, size = 15) {
+  const c = `width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"`;
+  const icons = {
+    bars: `<svg ${c}><path d="M4 19V5"/><path d="M4 19h16"/><rect x="7" y="11" width="3" height="5" rx="1"/><rect x="12" y="7" width="3" height="9" rx="1"/><rect x="17" y="9" width="3" height="7" rx="1"/></svg>`,
+    quiz: `<svg ${c}><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 1 1 5.2 2c-.9.6-1.3 1.1-1.3 2"/><path d="M12 17h.01"/></svg>`,
+    mask: `<svg ${c}><path d="M20 12c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8"/><path d="M9 10h.01"/><path d="M15 10h.01"/><path d="M9 15c1.8 1.3 4.2 1.3 6 0"/><path d="M16 3.5 21 6l-5 2.5z"/></svg>`,
+    multi: `<svg ${c}><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`,
+    clock: `<svg ${c}><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 13.5"/></svg>`,
+    check: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    close: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+    trash: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+    plus: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`
+  };
+  return icons[name] || icons.bars;
+}
+
 function buildPollCreator() {
+  pollDraft = defaultPollDraft();
   pollPanel.innerHTML = '';
+  pollPanel.classList.remove('is-quiz');
 
-  const title = document.createElement('h3');
-  title.textContent = 'Create a Poll';
-  pollPanel.appendChild(title);
+  /* --- Header ----------------------------------------------------------- */
+  const head = document.createElement('div');
+  head.className = 'poll-creator-head';
+  const headIcon = document.createElement('div');
+  headIcon.className = 'poll-creator-head-icon';
+  headIcon.innerHTML = pollCreatorIcon('bars', 17);
+  const headText = document.createElement('div');
+  headText.className = 'poll-creator-head-text';
+  const h3 = document.createElement('h3');
+  h3.textContent = 'Create a Poll';
+  const small = document.createElement('small');
+  small.textContent = 'Gather answers from this chat';
+  headText.appendChild(h3);
+  headText.appendChild(small);
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'poll-creator-close';
+  closeBtn.setAttribute('aria-label', 'Close poll creator');
+  closeBtn.innerHTML = pollCreatorIcon('close');
+  closeBtn.addEventListener('click', () => pollPanel.classList.add('hidden'));
+  head.appendChild(headIcon);
+  head.appendChild(headText);
+  head.appendChild(closeBtn);
+  pollPanel.appendChild(head);
 
-  const qInput = document.createElement('input');
-  qInput.placeholder = 'Question…';
-  qInput.className = 'modal-input';
-  qInput.style.marginBottom = '10px';
-  pollPanel.appendChild(qInput);
+  /* --- Body ------------------------------------------------------------- */
+  const body = document.createElement('div');
+  body.className = 'poll-creator-body';
+  pollPanel.appendChild(body);
 
+  // Mode tabs: Poll vs Quiz
+  const tabs = document.createElement('div');
+  tabs.className = 'poll-mode-tabs';
+  const tabDefs = [
+    { id: 'regular', label: 'Poll', icon: 'bars' },
+    { id: 'quiz',    label: 'Quiz', icon: 'quiz' }
+  ];
+  const tabEls = {};
+  tabDefs.forEach(def => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'poll-mode-tab' + (def.id === 'regular' ? ' active' : '');
+    b.innerHTML = pollCreatorIcon(def.icon, 14) + '<span>' + def.label + '</span>';
+    b.addEventListener('click', () => setPollMode(def.id));
+    tabEls[def.id] = b;
+    tabs.appendChild(b);
+  });
+  body.appendChild(tabs);
+
+  // Question
+  const qSection = document.createElement('div');
+  qSection.className = 'poll-creator-section';
+  const qLabel = document.createElement('div');
+  qLabel.className = 'poll-field-label';
+  const qLabelText = document.createElement('span');
+  qLabelText.textContent = 'Question';
+  const qCount = document.createElement('span');
+  qCount.className = 'poll-count';
+  qLabel.appendChild(qLabelText);
+  qLabel.appendChild(qCount);
+  const qInput = document.createElement('textarea');
+  qInput.className = 'poll-question-input';
+  qInput.rows = 2;
+  qInput.placeholder = 'Ask something…';
+  qInput.maxLength = POLL_MAX_QUESTION;
+  qSection.appendChild(qLabel);
+  qSection.appendChild(qInput);
+  body.appendChild(qSection);
+
+  // Options
+  const oSection = document.createElement('div');
+  oSection.className = 'poll-creator-section';
+  const oLabel = document.createElement('div');
+  oLabel.className = 'poll-field-label';
+  const oLabelText = document.createElement('span');
+  oLabelText.textContent = 'Options';
+  const oCount = document.createElement('span');
+  oCount.className = 'poll-count';
+  oLabel.appendChild(oLabelText);
+  oLabel.appendChild(oCount);
   const optsList = document.createElement('div');
   optsList.className = 'poll-options-list';
-
-  function addOptionRow(val) {
-    const wrap = document.createElement('div');
-    wrap.className = 'poll-option-input-wrap';
-    const inp = document.createElement('input');
-    inp.placeholder = 'Option…';
-    inp.className = 'modal-input';
-    inp.style.margin = '0';
-    inp.value = val || '';
-    const del = document.createElement('button');
-    del.type = 'button';
-    del.className = 'msg-action-btn danger';
-    del.style.flexShrink = '0';
-    del.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-    del.addEventListener('click', () => wrap.remove());
-    wrap.appendChild(inp);
-    wrap.appendChild(del);
-    optsList.appendChild(wrap);
-  }
-
-  addOptionRow(); addOptionRow();
-  pollPanel.appendChild(optsList);
-
   const addOptBtn = document.createElement('button');
   addOptBtn.type = 'button';
   addOptBtn.className = 'poll-add-option';
-  addOptBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Option`;
-  addOptBtn.addEventListener('click', () => addOptionRow());
-  pollPanel.appendChild(addOptBtn);
+  addOptBtn.innerHTML = pollCreatorIcon('plus') + '<span>Add an option</span>';
+  oSection.appendChild(oLabel);
+  oSection.appendChild(optsList);
+  oSection.appendChild(addOptBtn);
+  body.appendChild(oSection);
 
+  // Quiz explanation (quiz mode only)
+  const exSection = document.createElement('div');
+  exSection.className = 'poll-creator-section hidden';
+  const exLabel = document.createElement('div');
+  exLabel.className = 'poll-field-label';
+  const exLabelText = document.createElement('span');
+  exLabelText.textContent = 'Explanation — optional';
+  const exCount = document.createElement('span');
+  exCount.className = 'poll-count';
+  exLabel.appendChild(exLabelText);
+  exLabel.appendChild(exCount);
+  const exInput = document.createElement('textarea');
+  exInput.rows = 2;
+  exInput.placeholder = 'Shown after someone answers…';
+  exInput.maxLength = POLL_MAX_EXPLANATION;
+  exSection.appendChild(exLabel);
+  exSection.appendChild(exInput);
+  body.appendChild(exSection);
+
+  // Settings switches
+  const sSection = document.createElement('div');
+  sSection.className = 'poll-creator-section';
+  const sLabel = document.createElement('div');
+  sLabel.className = 'poll-field-label';
+  sLabel.textContent = 'Settings';
+  const settings = document.createElement('div');
+  settings.className = 'poll-settings';
+  sSection.appendChild(sLabel);
+  sSection.appendChild(settings);
+  body.appendChild(sSection);
+
+  function addSettingRow(cfg) {
+    const row = document.createElement('div');
+    row.className = 'poll-setting-row' + (cfg.on ? ' on' : '');
+    const icon = document.createElement('div');
+    icon.className = 'poll-setting-icon';
+    icon.innerHTML = pollCreatorIcon(cfg.icon);
+    const text = document.createElement('div');
+    text.className = 'poll-setting-text';
+    const t = document.createElement('div');
+    t.className = 'poll-setting-title';
+    t.textContent = cfg.title;
+    const s = document.createElement('div');
+    s.className = 'poll-setting-sub';
+    s.textContent = cfg.sub;
+    text.appendChild(t);
+    text.appendChild(s);
+    const sw = document.createElement('div');
+    sw.className = 'poll-switch';
+    row.appendChild(icon);
+    row.appendChild(text);
+    row.appendChild(sw);
+    row.addEventListener('click', () => {
+      if (row.classList.contains('disabled')) return;
+      row.classList.toggle('on');
+      cfg.onChange(row.classList.contains('on'));
+    });
+    settings.appendChild(row);
+    return { row, sub: s };
+  }
+
+  const anonRow = addSettingRow({
+    icon: 'mask', title: 'Anonymous voting', on: true,
+    sub: 'Voter names stay hidden',
+    onChange: v => {
+      pollDraft.anonymous = v;
+      anonRow.sub.textContent = v ? 'Voter names stay hidden' : 'Everyone can see who voted';
+      refreshPreview();
+    }
+  });
+
+  const multiRow = addSettingRow({
+    icon: 'multi', title: 'Multiple answers', on: false,
+    sub: 'Let people pick more than one option',
+    onChange: v => { pollDraft.multiple = v; refreshPreview(); }
+  });
+
+  // Duration
+  const dSection = document.createElement('div');
+  dSection.className = 'poll-creator-section';
+  const dLabel = document.createElement('div');
+  dLabel.className = 'poll-field-label';
+  dLabel.textContent = 'Close automatically after';
+  const chips = document.createElement('div');
+  chips.className = 'poll-duration-chips';
+  POLL_DURATIONS.forEach((d, i) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'poll-chip' + (i === 0 ? ' active' : '');
+    chip.textContent = d.label;
+    chip.addEventListener('click', () => {
+      pollDraft.durationSeconds = d.seconds;
+      chips.querySelectorAll('.poll-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+    chips.appendChild(chip);
+  });
+  dSection.appendChild(dLabel);
+  dSection.appendChild(chips);
+  body.appendChild(dSection);
+
+  // Live preview
+  const pSection = document.createElement('div');
+  pSection.className = 'poll-creator-section';
+  const pLabel = document.createElement('div');
+  pLabel.className = 'poll-field-label';
+  pLabel.textContent = 'Preview';
+  const preview = document.createElement('div');
+  preview.className = 'poll-preview-shell';
+  pSection.appendChild(pLabel);
+  pSection.appendChild(preview);
+  body.appendChild(pSection);
+
+  /* --- Footer ----------------------------------------------------------- */
   const actions = document.createElement('div');
-  actions.className = 'poll-creator-actions';
-
+  actions.className = 'poll-creator-footer';
   const cancelBtn = document.createElement('button');
   cancelBtn.type = 'button';
   cancelBtn.className = 'btn-sm ghost';
   cancelBtn.textContent = 'Cancel';
   cancelBtn.addEventListener('click', () => pollPanel.classList.add('hidden'));
-
   const sendBtn = document.createElement('button');
   sendBtn.type = 'button';
   sendBtn.className = 'btn-sm primary';
   sendBtn.textContent = 'Send Poll';
-  sendBtn.addEventListener('click', async () => {
-    const question = qInput.value.trim();
-    const options = Array.from(optsList.querySelectorAll('input')).map(i => i.value.trim()).filter(Boolean);
-    if (!question) { alert('Enter a question'); return; }
-    if (options.length < 2) { alert('Add at least 2 options'); return; }
-    if (!canPostInActiveChat()) { showToast('Only admins and publishers can post in this channel'); return; }
+  sendBtn.disabled = true;
+  actions.appendChild(cancelBtn);
+  actions.appendChild(sendBtn);
+  pollPanel.appendChild(actions);
 
-    const col = activeChatIsGroup ? 'groups' : 'chats';
-    const ref = db.collection(col).doc(activeChatId);
-    await ref.collection('messages').add({
+  /* --- Option rows ------------------------------------------------------ */
+  function addOptionRow(value) {
+    if (optsList.children.length >= POLL_MAX_OPTIONS) return;
+    const row = document.createElement('div');
+    row.className = 'poll-option-row';
+
+    const correct = document.createElement('button');
+    correct.type = 'button';
+    correct.className = 'poll-correct-toggle';
+    correct.title = 'Mark as the correct answer';
+    correct.innerHTML = pollCreatorIcon('check');
+    correct.addEventListener('click', () => {
+      const idx = Array.from(optsList.children).indexOf(row);
+      pollDraft.quizAnswer = idx;
+      syncCorrectToggles();
+      refreshPreview();
+      validate();
+    });
+
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.placeholder = 'Option ' + (optsList.children.length + 1);
+    inp.maxLength = POLL_MAX_OPTION;
+    inp.value = value || '';
+    inp.addEventListener('input', () => {
+      inp.dir = messageTextDirection(inp.value);
+      inp.classList.remove('poll-invalid');
+      syncDraftOptions();
+      refreshPreview();
+      validate();
+    });
+    // Enter jumps to the next option, creating one when at the end.
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const rows = Array.from(optsList.children);
+        const i = rows.indexOf(row);
+        if (i === rows.length - 1) {
+          if (optsList.children.length < POLL_MAX_OPTIONS) { addOptionRow(); focusLastOption(); }
+        } else {
+          const next = rows[i + 1].querySelector('input');
+          if (next) next.focus();
+        }
+      }
+      // Backspace on an empty trailing option removes it.
+      if (e.key === 'Backspace' && !inp.value && optsList.children.length > 2) {
+        e.preventDefault();
+        const rows = Array.from(optsList.children);
+        const i = rows.indexOf(row);
+        const prev = rows[i - 1] && rows[i - 1].querySelector('input');
+        removeRow(row);
+        if (prev) { prev.focus(); prev.setSelectionRange(prev.value.length, prev.value.length); }
+      }
+    });
+
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'poll-remove-option';
+    del.title = 'Remove option';
+    del.innerHTML = pollCreatorIcon('trash');
+    del.addEventListener('click', () => removeRow(row));
+
+    row.appendChild(correct);
+    row.appendChild(inp);
+    row.appendChild(del);
+    optsList.appendChild(row);
+    syncDraftOptions();
+    syncCorrectToggles();
+    renumber();
+    validate();
+    refreshPreview();
+  }
+
+  function removeRow(row) {
+    if (optsList.children.length <= 2) return;
+    const idx = Array.from(optsList.children).indexOf(row);
+    row.classList.add('removing');
+    setTimeout(() => {
+      row.remove();
+      // Keep the quiz answer pointing at the same option after a removal.
+      if (pollDraft.quizAnswer === idx) pollDraft.quizAnswer = 0;
+      else if (pollDraft.quizAnswer > idx) pollDraft.quizAnswer -= 1;
+      syncDraftOptions();
+      syncCorrectToggles();
+      renumber();
+      validate();
+      refreshPreview();
+    }, 160);
+  }
+
+  function renumber() {
+    Array.from(optsList.children).forEach((row, i) => {
+      const inp = row.querySelector('input');
+      if (inp && !inp.value) inp.placeholder = 'Option ' + (i + 1);
+      const del = row.querySelector('.poll-remove-option');
+      if (del) del.disabled = optsList.children.length <= 2;
+    });
+    addOptBtn.disabled = optsList.children.length >= POLL_MAX_OPTIONS;
+    const remaining = POLL_MAX_OPTIONS - optsList.children.length;
+    addOptBtn.querySelector('span').textContent = remaining > 0
+      ? `Add an option (${remaining} left)`
+      : 'Maximum options reached';
+  }
+
+  function syncCorrectToggles() {
+    Array.from(optsList.children).forEach((row, i) => {
+      const t = row.querySelector('.poll-correct-toggle');
+      if (t) t.classList.toggle('is-correct', pollDraft.type === 'quiz' && pollDraft.quizAnswer === i);
+    });
+  }
+
+  function syncDraftOptions() {
+    pollDraft.options = Array.from(optsList.querySelectorAll('input')).map(i => i.value);
+  }
+
+  function focusLastOption() {
+    const inputs = optsList.querySelectorAll('input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }
+
+  addOptBtn.addEventListener('click', () => { addOptionRow(); focusLastOption(); });
+
+  /* --- Mode switching --------------------------------------------------- */
+  function setPollMode(mode) {
+    pollDraft.type = mode;
+    Object.keys(tabEls).forEach(k => tabEls[k].classList.toggle('active', k === mode));
+    const isQuiz = mode === 'quiz';
+    pollPanel.classList.toggle('is-quiz', isQuiz);
+    exSection.classList.toggle('hidden', !isQuiz);
+    headIcon.innerHTML = pollCreatorIcon(isQuiz ? 'quiz' : 'bars', 17);
+    h3.textContent = isQuiz ? 'Create a Quiz' : 'Create a Poll';
+    small.textContent = isQuiz ? 'One correct answer, revealed on tap' : 'Gather answers from this chat';
+    sendBtn.textContent = isQuiz ? 'Send Quiz' : 'Send Poll';
+    qInput.placeholder = isQuiz ? 'Ask your question…' : 'Ask something…';
+
+    // Quizzes are single-answer and always public-facing per option state.
+    if (isQuiz) {
+      multiRow.row.classList.remove('on');
+      multiRow.row.classList.add('disabled');
+      multiRow.sub.textContent = 'Not available in quiz mode';
+      pollDraft.multiple = false;
+    } else {
+      multiRow.row.classList.remove('disabled');
+      multiRow.sub.textContent = 'Let people pick more than one option';
+    }
+    syncCorrectToggles();
+    validate();
+    refreshPreview();
+  }
+
+  /* --- Validation ------------------------------------------------------- */
+  function validate() {
+    const q = qInput.value.trim();
+    const opts = Array.from(optsList.querySelectorAll('input')).map(i => i.value.trim()).filter(Boolean);
+    let ok = q.length > 0 && opts.length >= 2;
+
+    if (pollDraft.type === 'quiz') {
+      // The correct answer must be one of the filled-in options.
+      const inputs = Array.from(optsList.querySelectorAll('input'));
+      const answerInput = inputs[pollDraft.quizAnswer];
+      if (!answerInput || !answerInput.value.trim()) ok = false;
+    }
+
+    sendBtn.disabled = !ok;
+
+    qCount.textContent = q.length + '/' + POLL_MAX_QUESTION;
+    qCount.className = 'poll-count' + (q.length > POLL_MAX_QUESTION * 0.9 ? ' warn' : '');
+    oCount.textContent = opts.length + '/' + POLL_MAX_OPTIONS;
+    exCount.textContent = exInput.value.length + '/' + POLL_MAX_EXPLANATION;
+    return ok;
+  }
+
+  /* --- Live preview ----------------------------------------------------- */
+  function refreshPreview() {
+    const q = qInput.value.trim();
+    const opts = Array.from(optsList.querySelectorAll('input')).map(i => i.value.trim()).filter(Boolean);
+    preview.innerHTML = '';
+    if (!q && !opts.length) {
+      const hint = document.createElement('div');
+      hint.style.cssText = 'font-size:12px;color:var(--text-muted);text-align:center;padding:10px 0;';
+      hint.textContent = 'Your poll will appear here';
+      preview.appendChild(hint);
+      return;
+    }
+    // Reuse the real widget so the preview never drifts from the sent result.
+    const stub = {
+      pollQuestion: q || 'Your question',
+      pollOptions: opts.length ? opts : ['Option 1', 'Option 2'],
+      pollVotes: {},
+      pollType: pollDraft.type,
+      pollAnonymous: pollDraft.anonymous,
+      pollMultiple: pollDraft.multiple,
+      pollQuizAnswer: pollDraft.quizAnswer,
+      pollExplanation: exInput.value.trim(),
+      senderId: null
+    };
+    preview.appendChild(renderPollWidget(stub, '__preview__', null, false));
+    clearPollTimer('__preview__');
+  }
+
+  qInput.addEventListener('input', () => {
+    qInput.dir = messageTextDirection(qInput.value);
+    validate();
+    refreshPreview();
+  });
+  exInput.addEventListener('input', () => {
+    exInput.dir = messageTextDirection(exInput.value);
+    validate();
+    refreshPreview();
+  });
+
+  /* --- Send ------------------------------------------------------------- */
+  sendBtn.addEventListener('click', async () => {
+    if (!validate()) return;
+    const question = qInput.value.trim();
+    const inputs = Array.from(optsList.querySelectorAll('input'));
+    // Keep the original indexes so the quiz answer survives blank-option filtering.
+    const kept = inputs.map((inp, i) => ({ text: inp.value.trim(), i })).filter(o => o.text);
+    const options = kept.map(o => o.text);
+
+    if (options.length < 2) { showToast('Add at least 2 options'); return; }
+    if (new Set(options.map(o => o.toLowerCase())).size !== options.length) {
+      showToast('Options must be unique'); return;
+    }
+    if (!canPostInActiveChat()) { showToast('Only admins and publishers can post in this channel'); return; }
+    if (!activeChatId) { showToast('Open a chat first'); return; }
+
+    const isQuiz = pollDraft.type === 'quiz';
+    const answerPos = kept.findIndex(o => o.i === pollDraft.quizAnswer);
+    if (isQuiz && answerPos < 0) { showToast('Mark the correct answer'); return; }
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Sending…';
+
+    const data = {
       type: 'poll',
       pollQuestion: question,
       pollOptions: options,
       pollVotes: {},
+      pollType: isQuiz ? 'quiz' : 'regular',
+      pollAnonymous: !!pollDraft.anonymous,
+      pollMultiple: !isQuiz && !!pollDraft.multiple,
+      pollClosed: false,
       senderId: currentUser.uid,
       senderUsername: currentUserData.username,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       hashtags: extractHashtags(question),
       category: activeMessageCategory
-    });
-    await ref.update({ lastMessage: 'Poll: ' + question, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() });
-    pollPanel.classList.add('hidden');
+    };
+    if (isQuiz) {
+      data.pollQuizAnswer = answerPos;
+      if (exInput.value.trim()) data.pollExplanation = exInput.value.trim();
+    }
+    if (pollDraft.durationSeconds > 0) {
+      data.pollClosesAt = firebase.firestore.Timestamp.fromMillis(Date.now() + pollDraft.durationSeconds * 1000);
+    }
+
+    try {
+      const col = activeChatIsGroup ? 'groups' : 'chats';
+      const ref = db.collection(col).doc(activeChatId);
+      await ref.collection('messages').add(data);
+      await ref.update({
+        lastMessage: (isQuiz ? 'Quiz: ' : 'Poll: ') + question,
+        lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      pollPanel.classList.add('hidden');
+      showToast(isQuiz ? 'Quiz sent' : 'Poll sent');
+    } catch (err) {
+      console.error('Send poll error:', err);
+      showToast('Could not send the poll. Please try again.');
+      sendBtn.disabled = false;
+      sendBtn.textContent = isQuiz ? 'Send Quiz' : 'Send Poll';
+    }
   });
 
-  actions.appendChild(cancelBtn);
-  actions.appendChild(sendBtn);
-  pollPanel.appendChild(actions);
+  addOptionRow();
+  addOptionRow();
+  renumber();
+  validate();
+  refreshPreview();
+  setTimeout(() => qInput.focus(), 60);
 }
 
 pollPanel.addEventListener('click', e => e.stopPropagation());
@@ -10719,7 +12083,7 @@ function buildPopupFullMenu(ctx) {
 
   if (isChannel && isAdminCtx && ctx.msgId) {
     addItem({ icon: popupIcon('pin'), label: 'Pin message', action: () => {
-      const msgText = ctx.msg.text || (ctx.msg.type === 'file' ? 'Attachment: ' + (ctx.msg.fileName || 'File') : ctx.msg.type === 'poll' ? 'Poll: ' + ctx.msg.pollQuestion : '');
+      const msgText = ctx.msg.text || (ctx.msg.type === 'file' ? 'Attachment: ' + (ctx.msg.fileName || 'File') : ctx.msg.type === 'poll' ? ((ctx.msg.pollType === 'quiz' ? 'Quiz: ' : 'Poll: ') + ctx.msg.pollQuestion) : '');
       if (typeof pinMessage === 'function') pinMessage(ctx.msgId, msgText);
     }});
   }
@@ -10853,7 +12217,12 @@ function copyMessageText(ctx) {
   let text = '';
   if (m.type === 'text') text = m.text || '';
   else if (m.type === 'file') text = m.fileName ? '📎 ' + m.fileName + (m.fileSize ? ' (' + formatBytes(m.fileSize) + ')' : '') : '';
-  else if (m.type === 'poll') text = '📊 ' + (m.pollQuestion || 'Poll');
+  else if (m.type === 'poll') {
+    text = (m.pollType === 'quiz' ? '❓ ' : '📊 ') + (m.pollQuestion || 'Poll');
+    if (Array.isArray(m.pollOptions) && m.pollOptions.length) {
+      text += '\n' + m.pollOptions.map((o, i) => (i + 1) + '. ' + o).join('\n');
+    }
+  }
   else if (m.type === 'voice') text = '🎤 Voice message' + (m.voiceDuration ? ' (' + formatTime(m.voiceDuration) + ')' : '');
   else if (m.type === 'gif') text = '🎞️ ' + (m.gifDescription || 'GIF');
   else if (m.text) text = m.text;
@@ -10914,6 +12283,8 @@ function bindMessageRowInteractions() {
       voiceDuration: row.dataset.msgVoiceDuration ? parseInt(row.dataset.msgVoiceDuration, 10) : 0,
       gifDescription: row.dataset.msgGifDesc || '',
       pollQuestion: row.dataset.msgPollQuestion || '',
+      pollOptions: row.dataset.msgPollOptions ? JSON.parse(row.dataset.msgPollOptions) : [],
+      pollType: row.dataset.msgPollType || 'regular',
       reactions: {}
     };
     showMessageActionPopup(row, msg, msgId, chatId, isGroup);
@@ -10923,7 +12294,7 @@ function bindMessageRowInteractions() {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const row = getRow(e.target);
     if (!row) return;
-    if (e.target.closest && e.target.closest('a, button, .reaction-pill, .message-category-pill, .hashtag-link, .voice-play-btn, .voice-speed-btn, .file-attachment, .reply-quote')) return;
+    if (e.target.closest && e.target.closest('a, button, .reaction-pill, .message-category-pill, .hashtag-link, .voice-play-btn, .voice-speed-btn, .file-attachment, .reply-quote, .poll-option, .poll-widget button')) return;
 
     longPressed = false;
     activeRow = row;
@@ -10959,7 +12330,7 @@ function bindMessageRowInteractions() {
   messagesEl.addEventListener('click', (e) => {
     const row = getRow(e.target);
     if (!row) return;
-    if (e.target.closest && e.target.closest('a, button, .reaction-pill, .message-category-pill, .hashtag-link, .voice-play-btn, .voice-speed-btn, .file-attachment, .reply-quote, .poll-option')) return;
+    if (e.target.closest && e.target.closest('a, button, .reaction-pill, .message-category-pill, .hashtag-link, .voice-play-btn, .voice-speed-btn, .file-attachment, .reply-quote, .poll-option, .poll-widget button')) return;
 
     if (longPressed) {
       e.preventDefault();
@@ -14241,5 +15612,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21e25217f2c4f53',t:'MTc4NTE4MTUzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
