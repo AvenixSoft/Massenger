@@ -3293,14 +3293,6 @@ html[data-theme="glass"] body{background:transparent;}
   .glass-settings-row input[type="range"]{flex:1 1 100%;order:3;}
   .glass-value{order:2;}
 }
-
-.img-auto-dl-wrapper img, .vid-auto-dl-wrapper video {
-   border-radius: 12px;
-}
-.img-auto-dl-wrapper, .vid-auto-dl-wrapper {
-   border-radius: 12px;
-}
-
 </style>
 </head>
 <body>
@@ -8036,152 +8028,25 @@ function renderMessage(msg, msgId, chatId, isGroup) {
 
   // Content based on type
   if (msg.type === 'file') {
-    const fn = (msg.fileName || '').toLowerCase();
-    const isImage = fn.endsWith('.jpg') || fn.endsWith('.jpeg') || fn.endsWith('.png') || fn.endsWith('.gif') || fn.endsWith('.webp') || fn.endsWith('.bmp') || fn.endsWith('.svg');
-    const isVideo = fn.endsWith('.mp4') || fn.endsWith('.webm') || fn.endsWith('.mov') || fn.endsWith('.avi') || fn.endsWith('.mkv') || fn.endsWith('.ogg');
-
-    // Make an auto-download setting based on preference or just load automatically.
-    // The user said "and the user first downloads the photo/video right there like Telegram to see it, or it downloads automatically"
-    // I will display the photo fully without blur. (Like auto-download in Telegram).
-
-    if (msg.fileURL && (isImage || isVideo)) {
-      const mediaWrap = document.createElement('div');
-      mediaWrap.style.cssText = 'border-radius:12px;overflow:hidden;margin-bottom:6px;max-width:100%;position:relative;background:var(--surface2); cursor:pointer;';
-      
-      const fileId = msgId || Math.random().toString(36).substring(7);
-      
-      if (isImage) {
-        mediaWrap.innerHTML = `
-          <div class="img-auto-dl-wrapper" style="position:relative; width:100%; min-height:10px; display:flex; align-items:center; justify-content:center; background:transparent;">
-            <div class="dl-btn" style="display:none; position:absolute; z-index:2; width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,0.5); color:#fff; align-items:center; justify-content:center;">
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            </div>
-            <img class="actual-media" src="${escapeHtml(msg.fileURL)}" style="width:100%; display:block; max-height:340px; object-fit:cover; border-radius:12px; cursor:pointer;" alt="${escapeHtml(msg.fileName || 'Image')}">
-          </div>
-        `;
-        
-        mediaWrap.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const img = mediaWrap.querySelector('.actual-media');
-          const dlBtn = mediaWrap.querySelector('.dl-btn');
-          if (!img.src || img.src === window.location.href || img.style.display === 'none') {
-             img.src = escapeHtml(msg.fileURL);
-             img.style.display = 'block';
-             if(dlBtn) dlBtn.style.display = 'none';
-          } else {
-             showMediaPreview(msg.fileURL, 'image', msg.fileName);
-          }
-        });
-      } else {
-        const tParams = (msg.startTime !== undefined && msg.endTime !== undefined) ? `#t=${msg.startTime},${msg.endTime}` : '';
-        mediaWrap.innerHTML = `
-          <div class="vid-auto-dl-wrapper" style="position:relative; width:100%; display:flex; align-items:center; justify-content:center; background:transparent;">
-            <div class="dl-btn" style="display:flex; position:absolute; z-index:2; width:48px; height:48px; border-radius:50%; background:rgba(0,0,0,0.6); color:#fff; align-items:center; justify-content:center; pointer-events:none;">
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            </div>
-            <video class="actual-media" src="${escapeHtml(msg.fileURL)}${tParams}" style="width:100%; display:block; max-height:340px; object-fit:cover; border-radius:12px; cursor:pointer;" preload="metadata"></video>
-            <div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.5); color:#fff; font-size:11px; padding:2px 6px; border-radius:10px; font-weight:600; z-index:2;">${msg.fileSize ? formatBytes(msg.fileSize) : 'Video'}</div>
-          </div>
-        `;
-        
-        mediaWrap.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const vid = mediaWrap.querySelector('.actual-media');
-          const dlBtn = mediaWrap.querySelector('.dl-btn');
-          
-          if (!vid.src || vid.src === window.location.href || vid.style.display === 'none') {
-             // "Download" click
-             vid.src = escapeHtml(msg.fileURL) + tParams;
-             vid.style.display = 'block';
-             if(dlBtn) {
-               dlBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
-             }
-          } else {
-             if (vid.paused) {
-                if(dlBtn) dlBtn.style.display = 'none';
-                vid.controls = true;
-                vid.play();
-             } else {
-                vid.pause();
-                vid.controls = false;
-                if(dlBtn) dlBtn.style.display = 'flex';
-             }
-          }
-        });
-      }
-      bubble.appendChild(mediaWrap);
-    } else {
-            if (vid.paused) {
-               if(dlBtn) dlBtn.style.display = 'none';
-               vid.controls = true;
-               vid.play();
-            } else {
-               vid.pause();
-               vid.controls = false;
-               if(dlBtn) dlBtn.style.display = 'flex';
-            }
-          }
-        });
-      }
-      bubble.appendChild(mediaWrap);
-    } else {
-        // Video 
-        const tParams = (msg.startTime !== undefined && msg.endTime !== undefined) ? `#t=${msg.startTime},${msg.endTime}` : '';
-        mediaWrap.innerHTML = `
-          <video src="${escapeHtml(msg.fileURL)}${tParams}" style="width:100%;display:block;max-height:340px;object-fit:cover;" preload="metadata"></video>
-          <div class="video-play-btn" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.2); cursor:pointer;">
-             <div style="width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:#fff;">
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-             </div>
-          </div>
-          <div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.5); color:#fff; font-size:11px; padding:2px 6px; border-radius:10px; font-weight:600;">${msg.fileSize ? formatBytes(msg.fileSize) : 'Video'}</div>
-        `;
-        
-        const vid = mediaWrap.querySelector('video');
-        const playBtn = mediaWrap.querySelector('.video-play-btn');
-        
-        playBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          playBtn.style.display = 'none';
-          vid.controls = true;
-          vid.play();
-        });
-        
-        mediaWrap.addEventListener('click', () => {
-          if (vid.paused) {
-             playBtn.style.display = 'none';
-             vid.controls = true;
-             vid.play();
-          }
-        });
-      }
-      bubble.appendChild(mediaWrap);
-    } else {
-        const tParams = (msg.startTime !== undefined && msg.endTime !== undefined) ? `#t=${msg.startTime},${msg.endTime}` : '';
-        mediaWrap.innerHTML = `<video src="${escapeHtml(msg.fileURL)}${tParams}" style="width:100%;display:block;max-height:340px;object-fit:cover;" controls preload="metadata"></video>`;
-      }
-      bubble.appendChild(mediaWrap);
-    } else {
-      const fa = document.createElement('div');
-      fa.className = 'file-attachment';
-      fa.innerHTML = `<div class="file-attachment-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-        </svg>
-      </div>
-      <div class="file-attachment-info">
-        <div class="file-attachment-name">${escapeHtml(msg.fileName || 'File')}</div>
-        <div class="file-attachment-size">${msg.fileSize ? formatBytes(msg.fileSize) : ''}</div>
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--text-muted)">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>`;
-      if (msg.fileURL) fa.addEventListener('click', () => openSafeExternalUrl(msg.fileURL));
-      bubble.appendChild(fa);
-    }
+    const fa = document.createElement('div');
+    fa.className = 'file-attachment';
+    fa.innerHTML = `<div class="file-attachment-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+    </div>
+    <div class="file-attachment-info">
+      <div class="file-attachment-name">${escapeHtml(msg.fileName || 'File')}</div>
+      <div class="file-attachment-size">${msg.fileSize ? formatBytes(msg.fileSize) : ''}</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--text-muted)">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>`;
+    if (msg.fileURL) fa.addEventListener('click', () => openSafeExternalUrl(msg.fileURL));
+    bubble.appendChild(fa);
   } else if (msg.type === 'poll') {
     bubble.appendChild(renderPollWidget(msg, msgId, chatId, isGroup));
   } else if (msg.type === 'location') {
@@ -8200,19 +8065,11 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     </div>`;
     locCard.addEventListener('click', () => openSafeExternalUrl(mapsUrl));
     bubble.appendChild(locCard);
-  } 
-
-  if (msg.type === 'file' || msg.type === 'text') {
-    let existing = bubble.querySelector('.message-text');
-    if (!existing) {
-       const textNode = document.createElement('span');
-       textNode.className = 'message-text';
-       appendMessageText(textNode, msg.text || '');
-       if (msg.type === 'file' && !msg.text) {
-           textNode.style.display = 'none';
-       }
-       bubble.appendChild(textNode);
-    }
+  } else {
+    const textNode = document.createElement('span');
+    textNode.className = 'message-text';
+    appendMessageText(textNode, msg.text || '');
+    bubble.appendChild(textNode);
   }
 
   bubbleWrap.appendChild(bubble);
@@ -9866,7 +9723,7 @@ async function doSendFile(file, caption, startTime, endTime) {
     const ref = db.collection(col).doc(activeChatId);
     await ref.collection('messages').add(msgData);
     
-    const preview = caption ? '📎 ' + caption : '📎 Attachment: ' + file.name;
+    const preview = caption ? '📎 ' + caption : 'Attachment: ' + file.name;
     const fileUpdate = { lastMessage: preview, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() };
     if (!activeChatIsGroup) {
       const pUid = activeChatPartner && activeChatPartner.uid;
@@ -15927,5 +15784,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21e25217f2c4f53',t:'MTc4NTE4MTUzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23472ba5b00581e',t:'MTc4NTQxNTM5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21e25217f2c4f53',t:'MTc4NTE4MTUzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23448d55fc18f7d',t:'MTc4NTQxMzY4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
