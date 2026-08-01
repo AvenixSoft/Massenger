@@ -855,6 +855,41 @@ html,body{
 
 /* ===== MESSAGES ===== */
 .messages{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth;}
+
+/* ===== JUMP-TO-LATEST BUTTON =====
+   Floats over the message list (bottom-right, just above the composer) and is
+   only visible while the user has scrolled away from the newest message. */
+.scroll-bottom-btn{
+  position:absolute;right:18px;
+  bottom:calc(var(--composer-h,64px) + 14px);
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface);color:var(--text-primary);
+  border:1px solid var(--border);
+  box-shadow:0 6px 20px rgba(0,0,0,0.35);
+  cursor:pointer;z-index:25;
+  opacity:0;transform:translateY(12px) scale(0.85);pointer-events:none;
+  transition:opacity 0.22s ease, transform 0.22s ease, background 0.2s;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+}
+.scroll-bottom-btn.visible{opacity:1;transform:none;pointer-events:auto;}
+.scroll-bottom-btn:hover{background:var(--surface2);color:var(--primary);}
+.scroll-bottom-btn:active{transform:scale(0.92);}
+.scroll-bottom-btn svg{width:22px;height:22px;}
+.scroll-bottom-badge{
+  position:absolute;top:-5px;right:-4px;min-width:20px;height:20px;
+  padding:0 5px;border-radius:10px;background:var(--primary);color:#fff;
+  font-size:11px;font-weight:700;line-height:20px;text-align:center;
+  border:2px solid var(--surface);box-shadow:0 2px 8px rgba(37,99,235,0.45);
+}
+.scroll-bottom-badge.hidden{display:none!important;}
+[data-theme="glass"] .scroll-bottom-btn{
+  background:rgba(var(--glass-tint),var(--glass-alpha-modal));
+  border:1px solid var(--glass-border);
+}
+@media(max-width:768px){
+  .scroll-bottom-btn{right:12px;width:42px;height:42px;bottom:calc(var(--composer-h,60px) + 10px);}
+}
 .date-separator{display:flex;align-items:center;justify-content:center;margin:12px 0 8px;}
 .date-separator span{
   background:rgba(37,99,235,0.1);color:var(--text-secondary);
@@ -3785,6 +3820,12 @@ html[data-theme="glass"] body{background:transparent;}
 
       <div id="messages" class="messages" role="log" aria-live="polite"></div>
 
+      <!-- Jump to the newest message (shown only when scrolled up) -->
+      <button type="button" id="scroll-bottom-btn" class="scroll-bottom-btn" title="Jump to latest message" aria-label="Jump to latest message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        <span class="scroll-bottom-badge hidden" id="scroll-bottom-badge">0</span>
+      </button>
+
       <div id="compose-meta-bar" class="compose-meta-bar hidden"></div>
       <form id="message-form" class="message-form">
         <button type="button" class="form-icon-btn" id="attach-btn" title="Message tools">
@@ -4094,6 +4135,8 @@ const appLockUnlockBtn = document.getElementById('app-lock-unlock-btn');
 const appLockError = document.getElementById('app-lock-error');
 const appLockHint = document.getElementById('app-lock-hint');
 const composeMetaBar = document.getElementById('compose-meta-bar');
+const scrollBottomBtn = document.getElementById('scroll-bottom-btn');
+const scrollBottomBadge = document.getElementById('scroll-bottom-badge');
 
 /* ===== STATE ===== */
 let currentUser = null, currentUserData = null;
@@ -5995,6 +6038,9 @@ function cleanupListeners() {
   if (unsubGroupTyping) { unsubGroupTyping(); unsubGroupTyping = null; }
   if (unsubPinnedMsg) { unsubPinnedMsg(); unsubPinnedMsg = null; }
   if (unsubChatDoc) { unsubChatDoc(); unsubChatDoc = null; }
+  // The downloaded-media list is per account, so drop the in-memory copy.
+  mediaSeenCache = null; mediaSeenCacheKey = '';
+  if (typeof resetMessagesScrollState === 'function') resetMessagesScrollState();
 }
 
 function showApp() {
@@ -6032,6 +6078,7 @@ function showAuth(options = {}) {
   chatsListEl.innerHTML = '';
   searchResultsEl.innerHTML = '';
   messagesEl.innerHTML = '';
+  resetMessagesScrollState();
   chatActive.classList.add('hidden');
   chatEmpty.classList.remove('hidden');
 }
@@ -6807,6 +6854,202 @@ function listenToPartnerStatus(partnerUid) {
   });
 }
 
+/* ===== "ALREADY DOWNLOADED" MEDIA MEMORY =====
+   Once a photo/video has been opened (downloaded) in a chat, remember it so the
+   next time the chat is opened it is shown straight away instead of hiding
+   behind the blurred download button. The list is stored per account and
+   trimmed so localStorage never grows without bound. */
+const MEDIA_SEEN_LIMIT = 600;
+var mediaSeenCache = null;   // var: cleanupListeners may run before this line
+var mediaSeenCacheKey = '';
+
+function mediaSeenStorageKey() {
+  const uid = (currentUser && currentUser.uid) ? currentUser.uid : 'guest';
+  return 'downloadedMedia:' + uid;
+}
+function mediaKeyFor(url) {
+  if (!url) return '';
+  // Normalise the URL so the same asset is recognised no matter which
+  // Cloudinary transformation (blurred thumbnail, resized copy, .jpg poster of
+  // a video…) produced it: drop the query string, the transformation segment
+  // and the version segment, and ignore the file extension.
+  let key = String(url).split('#')[0].split('?')[0];
+  const marker = '/upload/';
+  const at = key.indexOf(marker);
+  if (at !== -1) {
+    const head = key.slice(0, at + marker.length);
+    const parts = key.slice(at + marker.length).split('/').filter(part => {
+      if (/^v\d+$/.test(part)) return false;                       // version
+      if (/^[a-z]{1,3}_[^/]*$/.test(part)) return false;           // w_400,e_blur:1000,q_10
+      return true;
+    });
+    key = head + parts.join('/');
+  }
+  key = key.replace(/\.[a-z0-9]{2,5}$/i, '');
+  return key;
+}
+function loadMediaSeenSet() {
+  const storeKey = mediaSeenStorageKey();
+  if (mediaSeenCache && mediaSeenCacheKey === storeKey) return mediaSeenCache;
+  let arr = [];
+  try { arr = JSON.parse(localStorage.getItem(storeKey) || '[]') || []; } catch (_) { arr = []; }
+  mediaSeenCache = new Set(Array.isArray(arr) ? arr : []);
+  mediaSeenCacheKey = storeKey;
+  return mediaSeenCache;
+}
+function isMediaAlreadyDownloaded(url) {
+  const key = mediaKeyFor(url);
+  if (!key) return false;
+  return loadMediaSeenSet().has(key);
+}
+function markMediaDownloaded(url) {
+  const key = mediaKeyFor(url);
+  if (!key) return;
+  const set = loadMediaSeenSet();
+  if (set.has(key)) return;
+  set.add(key);
+  let arr = Array.from(set);
+  if (arr.length > MEDIA_SEEN_LIMIT) {
+    arr = arr.slice(arr.length - MEDIA_SEEN_LIMIT);
+    mediaSeenCache = new Set(arr);
+  }
+  try { localStorage.setItem(mediaSeenStorageKey(), JSON.stringify(arr)); } catch (_) {}
+}
+function forgetAllDownloadedMedia() {
+  try { localStorage.removeItem(mediaSeenStorageKey()); } catch (_) {}
+  mediaSeenCache = null;
+  mediaSeenCacheKey = '';
+}
+
+/* ===== MESSAGE LIST SCROLL HELPERS =====
+   Three behaviours live here:
+   1. Opening a chat always lands on the newest message.
+   2. A floating button appears while the user is scrolled up and jumps back
+      to the newest message (with a counter of messages that arrived meanwhile).
+   3. New incoming messages only auto-scroll when the user is already at the
+      bottom, so reading history is never interrupted. */
+const SCROLL_BOTTOM_THRESHOLD = 90;   // px from bottom still counted as "at bottom"
+const SCROLL_BTN_SHOW_AFTER  = 220;   // px scrolled up before the button appears
+var forceScrollNextSnapshot = false;  // set right after I send something myself
+var missedMessageCount = 0;
+var seenMessageIds = new Set();
+var messagesInitialLoadDone = false;
+
+/* .messages uses scroll-behavior:smooth, which would animate (and therefore
+   visibly jump) every programmatic re-anchor. This sets the position instantly. */
+function setMessagesScrollTop(value) {
+  if (!messagesEl) return;
+  const prev = messagesEl.style.scrollBehavior;
+  messagesEl.style.scrollBehavior = 'auto';
+  messagesEl.scrollTop = value;
+  messagesEl.style.scrollBehavior = prev || '';
+}
+function messagesDistanceFromBottom() {
+  if (!messagesEl) return 0;
+  return messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight;
+}
+function isMessagesAtBottom(threshold) {
+  return messagesDistanceFromBottom() <= (threshold == null ? SCROLL_BOTTOM_THRESHOLD : threshold);
+}
+
+/* Jump to the newest message. Media that is still loading changes the list
+   height after the fact, so the position is re-applied over a few frames. */
+function scrollMessagesToBottom(smooth) {
+  if (!messagesEl) return;
+  const jump = () => {
+    if (!messagesEl) return;
+    const prevBehavior = messagesEl.style.scrollBehavior;
+    messagesEl.style.scrollBehavior = smooth ? 'smooth' : 'auto';
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    // Restore whatever the stylesheet asked for on the next tick.
+    requestAnimationFrame(() => { messagesEl.style.scrollBehavior = prevBehavior || ''; });
+  };
+  jump();
+  requestAnimationFrame(jump);
+  setTimeout(jump, 60);
+  setTimeout(jump, 220);
+  if (!smooth) setTimeout(jump, 500);
+  resetMissedMessages();
+}
+
+function resetMissedMessages() {
+  missedMessageCount = 0;
+  updateScrollBottomButton();
+}
+
+/* Keeps the button just above whatever currently sits below the list
+   (composer, compose-meta bar, "channel locked" bar…). */
+function positionScrollBottomButton() {
+  if (!scrollBottomBtn || !messagesEl || !chatActive) return;
+  const listRect = messagesEl.getBoundingClientRect();
+  const paneRect = chatActive.getBoundingClientRect();
+  if (!listRect.height || !paneRect.height) return;
+  const isPhone = window.innerWidth <= 768;
+  // On phones the composer floats over the list, so the list bottom is the pane
+  // bottom; fall back to the published composer height there.
+  let gap = Math.max(0, paneRect.bottom - listRect.bottom);
+  if (isPhone) {
+    const composerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--composer-h')) || 60;
+    gap = Math.max(gap, composerH);
+  }
+  scrollBottomBtn.style.bottom = (gap + (isPhone ? 10 : 14)) + 'px';
+}
+
+function updateScrollBottomButton() {
+  if (!scrollBottomBtn || !messagesEl) return;
+  positionScrollBottomButton();
+  const chatVisible = chatActive && !chatActive.classList.contains('hidden');
+  const distance = messagesDistanceFromBottom();
+  // Never flash the button while a chat is still being built for the first time.
+  const shouldShow = chatVisible && messagesInitialLoadDone && distance > SCROLL_BTN_SHOW_AFTER;
+  scrollBottomBtn.classList.toggle('visible', shouldShow);
+  if (!shouldShow) {
+    if (distance <= SCROLL_BOTTOM_THRESHOLD) missedMessageCount = 0;
+  }
+  if (scrollBottomBadge) {
+    if (missedMessageCount > 0 && shouldShow) {
+      scrollBottomBadge.textContent = missedMessageCount > 99 ? '99+' : String(missedMessageCount);
+      scrollBottomBadge.classList.remove('hidden');
+    } else {
+      scrollBottomBadge.classList.add('hidden');
+    }
+  }
+}
+
+/* Called whenever a chat/view is (re)opened so counters start clean. */
+function resetMessagesScrollState() {
+  missedMessageCount = 0;
+  seenMessageIds = new Set();
+  messagesInitialLoadDone = false;
+  if (scrollBottomBtn) scrollBottomBtn.classList.remove('visible');
+  if (scrollBottomBadge) scrollBottomBadge.classList.add('hidden');
+}
+
+if (messagesEl) {
+  messagesEl.addEventListener('scroll', () => {
+    if (isMessagesAtBottom()) missedMessageCount = 0;
+    updateScrollBottomButton();
+  }, { passive: true });
+}
+if (scrollBottomBtn) {
+  scrollBottomBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    scrollMessagesToBottom(true);
+  });
+}
+/* Images/videos finish loading after the list is built and change its height.
+   If the reader is at the newest message, keep them pinned there. */
+if (messagesEl) {
+  messagesEl.addEventListener('load', (e) => {
+    const tag = e.target && e.target.tagName;
+    if (tag !== 'IMG' && tag !== 'VIDEO') return;
+    if (isMessagesAtBottom(160)) setMessagesScrollTop(messagesEl.scrollHeight);
+    updateScrollBottomButton();
+  }, true);
+}
+window.addEventListener('resize', () => updateScrollBottomButton());
+
 /* ===== MESSAGES ===== */
 function listenToMessages(chatId, isGroup) {
   if (unsubMessages) unsubMessages();
@@ -6814,17 +7057,30 @@ function listenToMessages(chatId, isGroup) {
   messagesEl.innerHTML = '';
   currentChatMessages = [];
   closeChatSearch();
+  resetMessagesScrollState();
   const col = isGroup ? 'groups' : 'chats';
 
   unsubMessages = db.collection(col).doc(chatId)
     .collection('messages').orderBy('createdAt','asc').limitToLast(200)
     .onSnapshot(snap => {
       if (typeof clearAllPollTimers === 'function') clearAllPollTimers();
+      // Remember where the reader was before the list is rebuilt, so scrolling
+      // up through history is not yanked back down by every incoming message.
+      const wasAtBottom = !messagesInitialLoadDone || forceScrollNextSnapshot || isMessagesAtBottom();
+      forceScrollNextSnapshot = false;
+      const prevScrollTop = messagesEl.scrollTop;
+      const prevScrollHeight = messagesEl.scrollHeight;
+      let freshIncoming = 0;
       messagesEl.innerHTML = '';
       currentChatMessages = [];
       let lastDate = null;
       snap.forEach(doc => {
         const msg = doc.data();
+        if (messagesInitialLoadDone && !seenMessageIds.has(doc.id)
+            && !(msg.senderId && currentUser && msg.senderId === currentUser.uid)) {
+          freshIncoming++;
+        }
+        seenMessageIds.add(doc.id);
         if (msg.createdAt && msg.createdAt.toDate) {
           const dateStr = msg.createdAt.toDate().toDateString();
           if (dateStr !== lastDate) {
@@ -6854,7 +7110,18 @@ function listenToMessages(chatId, isGroup) {
           });
         }
       });
-      messagesEl.scrollTop = messagesEl.scrollHeight;
+
+      if (wasAtBottom) {
+        // Opening a chat (or already reading the newest message) lands on the
+        // last message, exactly like Telegram/WhatsApp.
+        scrollMessagesToBottom(false);
+      } else {
+        // Keep the reader anchored to the same message they were looking at.
+        setMessagesScrollTop(prevScrollTop + (messagesEl.scrollHeight - prevScrollHeight));
+        if (freshIncoming > 0) missedMessageCount += freshIncoming;
+        updateScrollBottomButton();
+      }
+      messagesInitialLoadDone = true;
     }, err => console.error('Messages error:', err));
 }
 
@@ -6906,6 +7173,7 @@ function openSavedMessagesView() {
 
   messagesEl.innerHTML = '';
   currentChatMessages = [];
+  resetMessagesScrollState();
 
   if (unsubSavedMessages) unsubSavedMessages();
   unsubSavedMessages = db.collection('users').doc(currentUser.uid)
@@ -6939,7 +7207,8 @@ function openSavedMessagesView() {
           });
         }
       });
-      messagesEl.scrollTop = messagesEl.scrollHeight;
+      scrollMessagesToBottom(false);
+      messagesInitialLoadDone = true;
       const last = snap.docs[snap.docs.length - 1].data();
       savedMessagesPreview.textContent = last.text
         || (last.type === 'file' ? 'Attachment: ' + (last.fileName || 'File')
@@ -7170,6 +7439,7 @@ function openAvenixChatView() {
   // Render notifications
   messagesEl.innerHTML = '';
   currentChatMessages = [];
+  resetMessagesScrollState();
 
   // Fetch and render
   db.collection('users').doc(currentUser.uid)
@@ -7257,7 +7527,8 @@ function renderAvenixMessagesFromSnapshot(snap) {
     messagesEl.appendChild(row);
   });
 
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  scrollMessagesToBottom(false);
+  messagesInitialLoadDone = true;
 }
 
 // Click handler for Avenix row
@@ -7472,6 +7743,7 @@ async function forwardMessageTo(msg, targetItem) {
   }
 
   const ref = db.collection(col).doc(targetId);
+  if (targetId === activeChatId) forceScrollNextSnapshot = true;
   await ref.collection('messages').add(msgData);
   const updateData = { lastMessage: fwdText, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() };
   if (!isGroupTarget) {
@@ -8035,58 +8307,68 @@ function renderMessage(msg, msgId, chatId, isGroup) {
     if (isImage || isVideo) {
       const mediaWrap = document.createElement('div');
       mediaWrap.className = 'media-message-container';
-      mediaWrap.style.cssText = 'position:relative;width:100%;max-width:320px;border-radius:12px;overflow:hidden;background:var(--surface2);cursor:pointer;';
-      
-      const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.35);z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;transition:opacity 0.2s;';
-      
-      const icon = document.createElement('div');
-      icon.style.cssText = 'width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;margin-bottom:6px;';
-      icon.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
-      
-      const sizeLabel = document.createElement('div');
-      sizeLabel.style.cssText = 'font-size:11.5px;font-weight:700;background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:10px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);';
-      sizeLabel.textContent = msg.fileSize ? formatBytes(msg.fileSize) : (isVideo ? 'Video' : 'Image');
-      
-      overlay.appendChild(icon);
-      overlay.appendChild(sizeLabel);
-      mediaWrap.appendChild(overlay);
+      mediaWrap.style.cssText = 'position:relative;width:100%;max-width:340px;border-radius:12px;overflow:hidden;background:var(--surface2);cursor:pointer;display:flex;justify-content:center;align-items:center;min-height:100px;';
 
-      // Thumb image to hold the layout and provide blur
+      // Media that was already downloaded once is shown right away: no blur and
+      // no download button on any later visit to this chat.
+      const alreadyDownloaded = (typeof isMediaAlreadyDownloaded === 'function') && isMediaAlreadyDownloaded(msg.fileURL);
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.3);z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;transition:opacity 0.25s, background 0.25s;';
+
+      const iconBtn = document.createElement('div');
+      iconBtn.style.cssText = 'width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,0.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;margin-bottom:8px;color:#fff;transition:transform 0.15s;';
+      iconBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+
+      const sizeLabel = document.createElement('div');
+      sizeLabel.style.cssText = 'font-size:12px;font-weight:700;background:rgba(0,0,0,0.5);padding:3px 10px;border-radius:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;';
+      sizeLabel.textContent = msg.fileSize ? formatBytes(msg.fileSize) : (isVideo ? 'Video' : 'Image');
+
+      overlay.appendChild(iconBtn);
+      overlay.appendChild(sizeLabel);
+
       const thumb = document.createElement('img');
-      thumb.style.cssText = 'display:block;width:100%;height:auto;max-height:400px;object-fit:cover;filter:blur(12px);transform:scale(1.1);';
-      
+      thumb.style.cssText = 'display:block;width:100%;height:auto;max-height:420px;object-fit:cover;filter:blur(16px);transform:scale(1.15);transition:filter 0.3s;';
+
       let thumbUrl = msg.fileURL;
       if (thumbUrl && thumbUrl.includes('/upload/')) {
-        let tUrl = thumbUrl.replace('/upload/', '/upload/w_400,e_blur:1000,q_10/');
+        // Already-downloaded media gets a clean (un-blurred) preview so nothing
+        // looks hidden while the full-size file decodes.
+        const transform = alreadyDownloaded ? 'w_500,q_60/' : 'w_400,e_blur:1000,q_10/';
+        let tUrl = thumbUrl.replace('/upload/', '/upload/' + transform);
         if (isVideo) tUrl = tUrl.replace(/\.[^/.]+$/, '.jpg');
         thumb.src = tUrl;
       } else {
-        // Fallback if not cloudinary
         thumb.src = msg.fileURL;
       }
-      mediaWrap.appendChild(thumb);
+      if (alreadyDownloaded) thumb.style.filter = 'none';
 
-      mediaWrap.addEventListener('click', (e) => {
-        e.stopPropagation();
-        
-        // Change icon to a loading spinner
-        icon.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><style>@keyframes spin { 100% { transform: rotate(360deg); } }</style><path style="animation: spin 1s linear infinite; transform-origin: center;" d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
-        sizeLabel.style.display = 'none';
-        
+      // Builds the real (full quality) element and swaps it in.
+      function revealFullMedia(autoplay) {
         if (isImage) {
           const img = document.createElement('img');
           img.src = msg.fileURL;
-          img.style.cssText = 'display:block;width:100%;height:auto;max-height:400px;object-fit:cover;';
-          img.onload = () => {
-            overlay.remove();
-            thumb.replaceWith(img);
+          img.style.cssText = 'display:block;width:100%;height:auto;max-height:420px;object-fit:cover;';
+          const swap = () => {
+            if (overlay.parentNode) overlay.remove();
+            if (thumb.parentNode) thumb.replaceWith(img);
+            else if (!img.parentNode) mediaWrap.appendChild(img);
+            if (typeof markMediaDownloaded === 'function') markMediaDownloaded(msg.fileURL);
           };
-          // Once loaded and replacing thumb, future clicks should open preview
+          img.onload = swap;
+          img.onerror = () => {
+            // Loading failed: put the download affordance back so it can be retried.
+            if (!overlay.parentNode) mediaWrap.appendChild(overlay);
+            iconBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+            sizeLabel.style.display = '';
+            attachDownloadHandler();
+          };
+          if (img.complete && img.naturalWidth) swap();
           img.addEventListener('click', ev => {
             ev.stopPropagation();
             if (typeof showMediaPreview === 'function') {
-              showMediaPreview(msg.fileURL, 'image', msg.fileName);
+              // Pass msgId so we can locate the message later
+              showMediaPreview(msg.fileURL, 'image', msg.fileName, msgId);
             } else {
               openSafeExternalUrl(msg.fileURL);
             }
@@ -8095,14 +8377,66 @@ function renderMessage(msg, msgId, chatId, isGroup) {
           const vid = document.createElement('video');
           vid.src = msg.fileURL;
           vid.controls = true;
-          vid.autoplay = true;
-          vid.style.cssText = 'display:block;width:100%;height:auto;max-height:400px;object-fit:contain;background:#000;';
-          vid.onloadeddata = () => {
-            overlay.remove();
-            thumb.replaceWith(vid);
+          vid.playsInline = true;
+          vid.setAttribute('playsinline', '');
+          vid.preload = 'metadata';
+          if (autoplay) vid.autoplay = true;
+          vid.style.cssText = 'display:block;width:100%;height:auto;max-height:420px;object-fit:contain;background:#000;';
+          const swap = () => {
+            if (overlay.parentNode) overlay.remove();
+            if (thumb.parentNode) thumb.replaceWith(vid);
+            else if (!vid.parentNode) mediaWrap.appendChild(vid);
+            if (typeof markMediaDownloaded === 'function') markMediaDownloaded(msg.fileURL);
           };
+          vid.onloadeddata = swap;
+          vid.onloadedmetadata = swap;
+          vid.onerror = () => {
+            if (!overlay.parentNode) mediaWrap.appendChild(overlay);
+            iconBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+            sizeLabel.style.display = '';
+            attachDownloadHandler();
+          };
+          vid.addEventListener('click', ev => {
+             ev.stopPropagation();
+             if (vid.paused) vid.play(); else vid.pause();
+          });
         }
-      }, { once: true });
+      }
+
+      function attachDownloadHandler() {
+        mediaWrap.addEventListener('click', onDownloadClick, { once: true });
+      }
+      function onDownloadClick(e) {
+        e.stopPropagation();
+        iconBtn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><style>@keyframes spin { 100% { transform: rotate(360deg); } }</style><path style="animation: spin 1s linear infinite; transform-origin: center;" d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+        sizeLabel.style.display = 'none';
+        revealFullMedia(true);
+      }
+
+      if (alreadyDownloaded) {
+        // Sharp placeholder while the cached file decodes, then swap it in.
+        thumb.style.transform = 'none';
+        mediaWrap.appendChild(thumb);
+        revealFullMedia(false);
+      } else {
+        mediaWrap.appendChild(overlay);
+        mediaWrap.appendChild(thumb);
+
+        mediaWrap.addEventListener('mouseenter', () => {
+          if(overlay.parentNode) {
+              overlay.style.background = 'rgba(0,0,0,0.4)';
+              iconBtn.style.transform = 'scale(1.05)';
+          }
+        });
+        mediaWrap.addEventListener('mouseleave', () => {
+          if(overlay.parentNode) {
+              overlay.style.background = 'rgba(0,0,0,0.3)';
+              iconBtn.style.transform = 'scale(1)';
+          }
+        });
+
+        attachDownloadHandler();
+      }
 
       bubble.appendChild(mediaWrap);
       
@@ -8143,6 +8477,8 @@ function renderMessage(msg, msgId, chatId, isGroup) {
       }
     }
   } else if (msg.type === 'poll') {
+
+
 
     bubble.appendChild(renderPollWidget(msg, msgId, chatId, isGroup));
   } else if (msg.type === 'location') {
@@ -9108,6 +9444,7 @@ function syncComposerHeight() {
   if (wasAtBottom && messagesEl) {
     requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
   }
+  if (typeof updateScrollBottomButton === 'function') updateScrollBottomButton();
 }
 window.addEventListener('resize', syncComposerHeight);
 /* The composer grows with the text and shrinks after sending, so watch it
@@ -9179,6 +9516,7 @@ messageForm.addEventListener('submit', async e => {
 
   try {
     const ref = db.collection(col).doc(activeChatId);
+    forceScrollNextSnapshot = true;
     await ref.collection('messages').add(msgData);
     const updateData = { lastMessage: text, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() };
     // Increment unread for recipients
@@ -9817,6 +10155,10 @@ async function doSendFile(file, caption, startTime, endTime) {
     if (replyToMsg) { msgData.replyTo = { ...replyToMsg }; clearReply(); }
 
     const ref = db.collection(col).doc(activeChatId);
+    // I already have this file locally, so never hide my own upload behind a
+    // download button.
+    if (typeof markMediaDownloaded === 'function') markMediaDownloaded(url);
+    forceScrollNextSnapshot = true;
     await ref.collection('messages').add(msgData);
     
     const preview = caption ? '📎 ' + caption : 'Attachment: ' + file.name;
@@ -10023,6 +10365,7 @@ async function sendLocation() {
 
       try {
         const ref = db.collection(col).doc(activeChatId);
+        forceScrollNextSnapshot = true;
         await ref.collection('messages').add(msgData);
         const locUpdate = {
           lastMessage: '📍 Location shared',
@@ -13307,6 +13650,7 @@ async function uploadAndSendVoice(audioBlob, duration) {
     if (replyToMsg) { msgData.replyTo = { ...replyToMsg }; clearReply(); }
 
     const ref = db.collection(col).doc(activeChatId);
+    forceScrollNextSnapshot = true;
     await ref.collection('messages').add(msgData);
 
     const updateData = {
@@ -13725,6 +14069,7 @@ async function sendGif(gifData) {
 
   try {
     const ref = db.collection(col).doc(activeChatId);
+    forceScrollNextSnapshot = true;
     await ref.collection('messages').add(msgData);
     const updateData = {
       lastMessage: '🎞️ GIF',
@@ -14068,26 +14413,52 @@ let mediaGalleryActiveTab = 'images';
 async function showSharedMediaGallery() {
   const modal = createModal('Shared Media');
   const body = modal.querySelector('.modal-body');
-  body.style.padding = '12px';
+  body.style.padding = '0'; // removing padding for full bleed
+  body.style.display = 'flex';
+  body.style.flexDirection = 'column';
 
   const tabs = document.createElement('div');
   tabs.className = 'media-gallery-tabs';
+  tabs.style.cssText = 'display:flex; gap:8px; margin:16px; background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:6px; overflow-x:auto; scrollbar-width:none; flex-shrink:0;';
+
+  const getIconSvg = (id) => {
+      if(id === 'images') return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+      if(id === 'videos') return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>';
+      if(id === 'files') return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+      if(id === 'voice') return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+      return '';
+  };
 
   const tabDefs = [
-    { id: 'images', label: '🖼️ Images', icon: 'image' },
-    { id: 'videos', label: '🎬 Videos', icon: 'video' },
-    { id: 'files', label: '📁 Files', icon: 'file' },
-    { id: 'voice', label: '🎤 Voice', icon: 'mic' }
+    { id: 'images', label: 'Photos' },
+    { id: 'videos', label: 'Videos' },
+    { id: 'files', label: 'Files' },
+    { id: 'voice', label: 'Voice' }
   ];
 
   tabDefs.forEach(td => {
     const tab = document.createElement('button');
     tab.className = 'media-gallery-tab' + (td.id === mediaGalleryActiveTab ? ' active' : '');
-    tab.textContent = td.label;
+    tab.innerHTML = `<span style="display:flex;align-items:center;gap:6px;">${getIconSvg(td.id)} <span style="letter-spacing:0.2px;">${td.label}</span></span>`;
+    tab.style.cssText = 'flex:1; padding:10px 14px; border:none; background:transparent; border-radius:10px; cursor:pointer; font-size:13px; font-weight:700; color:var(--text-secondary); transition:all 0.15s ease; white-space:nowrap; display:flex; align-items:center; justify-content:center; font-family:inherit;';
+    if(td.id === mediaGalleryActiveTab) {
+        tab.style.background = 'var(--primary)';
+        tab.style.color = '#fff';
+        tab.style.boxShadow = '0 4px 12px rgba(37,99,235,0.3)';
+    }
+    
     tab.addEventListener('click', () => {
       mediaGalleryActiveTab = td.id;
-      tabs.querySelectorAll('.media-gallery-tab').forEach(t => t.classList.remove('active'));
+      tabs.querySelectorAll('.media-gallery-tab').forEach(t => {
+          t.classList.remove('active');
+          t.style.background = 'transparent';
+          t.style.color = 'var(--text-secondary)';
+          t.style.boxShadow = 'none';
+      });
       tab.classList.add('active');
+      tab.style.background = 'var(--primary)';
+      tab.style.color = '#fff';
+      tab.style.boxShadow = '0 4px 12px rgba(37,99,235,0.3)';
       loadMediaContent(grid, td.id);
     });
     tabs.appendChild(tab);
@@ -14097,6 +14468,7 @@ async function showSharedMediaGallery() {
 
   const grid = document.createElement('div');
   grid.className = 'media-gallery-grid';
+  grid.style.cssText = 'display:grid; grid-template-columns:repeat(3, 1fr); gap:2px; max-height:420px; overflow-y:auto; flex:1; min-height:0;';
   body.appendChild(grid);
 
   // Load initial tab
@@ -14104,7 +14476,7 @@ async function showSharedMediaGallery() {
 }
 
 async function loadMediaContent(grid, tabId) {
-  grid.innerHTML = '<div class="media-gallery-empty">Loading…</div>';
+  grid.innerHTML = '<div class="media-gallery-empty" style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);font-size:13.5px;">Loading…</div>';
   if (!activeChatId) return;
 
   const col = activeChatIsGroup ? 'groups' : 'chats';
@@ -14123,14 +14495,29 @@ async function loadMediaContent(grid, tabId) {
       query = query.where('type', '==', 'file');
     }
 
-    const snap = await query.orderBy('createdAt', 'desc').limit(50).get();
+    const snap = await query.orderBy('createdAt', 'desc').limit(60).get();
 
     if (snap.empty) {
-      grid.innerHTML = '<div class="media-gallery-empty">No media found 📭</div>';
+      grid.style.gap = '6px';
+      grid.innerHTML = `<div class="media-gallery-empty" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:12px;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.25;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>No ${tabId} found</span>
+      </div>`;
       return;
     }
 
     grid.innerHTML = '';
+    
+    // Switch to list layout for files and voice
+    if (tabId === 'files' || tabId === 'voice') {
+        grid.style.display = 'flex';
+        grid.style.flexDirection = 'column';
+        grid.style.gap = '0';
+    } else {
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        grid.style.gap = '2px';
+    }
 
     snap.docs.forEach(doc => {
       const msg = doc.data();
@@ -14155,84 +14542,339 @@ async function loadMediaContent(grid, tabId) {
       item.className = 'media-gallery-item';
 
       if (tabId === 'images' && msg.fileURL) {
+        item.style.cssText = 'aspect-ratio:1; overflow:hidden; cursor:pointer; position:relative; background:var(--surface2);';
         const img = document.createElement('img');
-        img.src = msg.fileURL;
+        if (msg.fileURL.includes('/upload/')) {
+            img.src = msg.fileURL.replace('/upload/', '/upload/w_300,h_300,c_fill,q_auto/');
+        } else {
+            img.src = msg.fileURL;
+        }
         img.alt = msg.fileName || 'Image';
         img.loading = 'lazy';
+        img.style.cssText = 'width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.25s ease;';
+        
+        item.addEventListener('mouseenter', () => { img.style.transform = 'scale(1.08)'; });
+        item.addEventListener('mouseleave', () => { img.style.transform = 'scale(1)'; });
+        
         item.appendChild(img);
-        item.addEventListener('click', () => showMediaPreview(msg.fileURL, 'image', msg.fileName));
+        item.addEventListener('click', () => showMediaPreview(msg.fileURL, 'image', msg.fileName, msgId));
       } else if (tabId === 'videos' && msg.fileURL) {
-        const vid = document.createElement('video');
-        vid.src = msg.fileURL;
-        vid.preload = 'metadata';
-        item.appendChild(vid);
-        item.addEventListener('click', () => showMediaPreview(msg.fileURL, 'video', msg.fileName));
+        item.style.cssText = 'aspect-ratio:1; overflow:hidden; cursor:pointer; position:relative; background:var(--surface2);';
+        const vidContainer = document.createElement('div');
+        vidContainer.style.cssText = 'position:relative; width:100%; height:100%; overflow:hidden;';
+        
+        const img = document.createElement('img');
+        img.style.cssText = 'width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.25s ease;';
+        
+        let thumbUrl = msg.fileURL;
+        if (thumbUrl.includes('/upload/')) {
+            thumbUrl = thumbUrl.replace('/upload/', '/upload/w_300,h_300,c_fill,q_auto/').replace(/\.[^/.]+$/, '.jpg');
+            img.src = thumbUrl;
+            vidContainer.appendChild(img);
+        } else {
+            const vid = document.createElement('video');
+            vid.src = msg.fileURL;
+            vid.preload = 'metadata';
+            vid.style.cssText = 'width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.25s ease;';
+            vidContainer.appendChild(vid);
+        }
+        
+        item.addEventListener('mouseenter', () => { 
+            const tgt = vidContainer.querySelector('img, video');
+            if(tgt) tgt.style.transform = 'scale(1.08)'; 
+        });
+        item.addEventListener('mouseleave', () => { 
+            const tgt = vidContainer.querySelector('img, video');
+            if(tgt) tgt.style.transform = 'scale(1)'; 
+        });
+        
+        const playIcon = document.createElement('div');
+        playIcon.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:36px; height:36px; border-radius:50%; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; color:#fff; pointer-events:none;';
+        playIcon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+        vidContainer.appendChild(playIcon);
+
+        const durationLabel = document.createElement('div');
+        durationLabel.style.cssText = 'position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.6); color:#fff; font-size:11px; font-weight:700; padding:3px 6px; border-radius:6px; pointer-events:none; letter-spacing:0.5px;';
+        if(msg.fileSize) durationLabel.textContent = formatBytes(msg.fileSize);
+        vidContainer.appendChild(durationLabel);
+        
+        item.appendChild(vidContainer);
+        item.addEventListener('click', () => showMediaPreview(msg.fileURL, 'video', msg.fileName, msgId));
       } else if (tabId === 'voice' && msg.voiceURL) {
+        item.style.cssText = 'display:flex; align-items:center; gap:14px; padding:12px 20px; cursor:pointer; background:transparent; transition:background 0.15s ease; border-bottom:1px solid var(--border);';
+        item.addEventListener('mouseenter', () => item.style.background = 'var(--row-hover)');
+        item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+        
         const iconDiv = document.createElement('div');
         iconDiv.className = 'media-file-icon';
-        iconDiv.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
-        const name = document.createElement('div');
-        name.className = 'media-file-name';
-        name.textContent = (msg.voiceDuration || 0) + 's';
-        iconDiv.appendChild(name);
+        iconDiv.style.cssText = 'width:42px; height:42px; display:flex; align-items:center; justify-content:center; color:var(--primary); background:var(--blue-glow); border-radius:50%; flex-shrink:0;';
+        iconDiv.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+        
+        const info = document.createElement('div');
+        info.style.cssText = 'display:flex; flex-direction:column; flex:1; min-width:0; gap:2px;';
+        
+        const name = document.createElement('strong');
+        name.style.cssText = 'font-size:14px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+        name.textContent = 'Voice Message';
+        
+        const meta = document.createElement('span');
+        meta.style.cssText = 'font-size:12px; color:var(--text-muted); font-weight:600;';
+        meta.textContent = (msg.voiceDuration || 0) + ' seconds • ' + formatTime(msg.createdAt);
+        
+        info.appendChild(name);
+        info.appendChild(meta);
+        
         item.appendChild(iconDiv);
+        item.appendChild(info);
+        
         item.addEventListener('click', () => {
           const audio = new Audio(msg.voiceURL);
           audio.play().catch(() => showToast('Failed to play audio'));
         });
       } else if (tabId === 'files' && msg.fileURL) {
+        item.style.cssText = 'display:flex; align-items:center; gap:14px; padding:12px 20px; cursor:pointer; background:transparent; transition:background 0.15s ease; border-bottom:1px solid var(--border);';
+        item.addEventListener('mouseenter', () => item.style.background = 'var(--row-hover)');
+        item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+        
         const iconDiv = document.createElement('div');
         iconDiv.className = 'media-file-icon';
-        iconDiv.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
-        const name = document.createElement('div');
-        name.className = 'media-file-name';
-        name.textContent = msg.fileName || 'File';
-        iconDiv.appendChild(name);
+        iconDiv.style.cssText = 'width:42px; height:42px; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); background:var(--surface2); border:1px solid var(--border); border-radius:12px; flex-shrink:0;';
+        iconDiv.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+        
+        const info = document.createElement('div');
+        info.style.cssText = 'display:flex; flex-direction:column; flex:1; min-width:0; gap:2px;';
+        
+        const name = document.createElement('strong');
+        name.style.cssText = 'font-size:14px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+        name.textContent = msg.fileName || 'Unknown File';
+        
+        const meta = document.createElement('span');
+        meta.style.cssText = 'font-size:12px; color:var(--text-muted); font-weight:600;';
+        meta.textContent = (msg.fileSize ? formatBytes(msg.fileSize) : '') + ' • ' + formatTime(msg.createdAt);
+        
+        info.appendChild(name);
+        info.appendChild(meta);
+        
         item.appendChild(iconDiv);
+        item.appendChild(info);
+        
         item.addEventListener('click', () => openSafeExternalUrl(msg.fileURL));
       }
 
       grid.appendChild(item);
     });
 
-    if (grid.children.length === 0) {
-      grid.innerHTML = '<div class="media-gallery-empty">No ' + tabId + ' found 📭</div>';
-    }
   } catch (err) {
-    grid.innerHTML = '<div class="media-gallery-empty">Failed to load: ' + friendlyError(err) + '</div>';
+    grid.style.display = 'block';
+    grid.innerHTML = '<div class="media-gallery-empty" style="text-align:center;padding:40px 20px;color:var(--error);font-size:13.5px;font-weight:600;">Failed to load: ' + friendlyError(err) + '</div>';
   }
 }
 
-function showMediaPreview(url, type, name) {
+
+function showMediaPreview(url, type, name, msgId) {
+  // Viewing it full screen counts as downloaded too.
+  if (typeof markMediaDownloaded === 'function') markMediaDownloaded(url);
   const overlay = document.createElement('div');
   overlay.className = 'media-preview-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;animation:fadeIn 0.2s ease;user-select:none;';
 
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'media-preview-close';
-  closeBtn.innerHTML = '✕';
-  closeBtn.addEventListener('click', (e) => { e.stopPropagation(); overlay.remove(); });
+  let currentRotation = 0;
+  let currentZoom = 1;
+  let isDragging = false;
+  let startX = 0, startY = 0, translateX = 0, translateY = 0;
+
+  const header = document.createElement('div');
+  header.style.cssText = 'position:absolute;top:0;left:0;right:0;height:64px;background:linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:20;';
+
+  const titleGroup = document.createElement('div');
+  titleGroup.style.cssText = 'color:#fff;font-size:16px;font-weight:600;display:flex;align-items:center;gap:16px;';
+  
+  const backBtn = document.createElement('button');
+  backBtn.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+  backBtn.style.cssText = 'background:transparent;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:8px;margin-left:-8px;border-radius:50%;';
+  backBtn.addEventListener('click', (e) => { e.stopPropagation(); overlay.remove(); });
+
+  const titleText = document.createElement('span');
+  titleText.textContent = type === 'video' ? 'Video' : 'Photo';
+  
+  titleGroup.appendChild(backBtn);
+  titleGroup.appendChild(titleText);
+
+  const actionsGroup = document.createElement('div');
+  actionsGroup.style.cssText = 'display:flex;align-items:center;gap:8px;color:#fff;position:relative;';
+
+  // Rotate Button
+  if (type === 'image') {
+    const rotateBtn = document.createElement('button');
+    rotateBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/></svg>';
+    rotateBtn.style.cssText = 'background:transparent;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:8px;border-radius:50%;transition:background 0.2s;';
+    rotateBtn.title = "Rotate";
+    rotateBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      currentRotation = (currentRotation + 90) % 360;
+      updateTransform();
+    });
+    actionsGroup.appendChild(rotateBtn);
+  }
+
+  // Download Button
+  const downloadBtn = document.createElement('button');
+  downloadBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+  downloadBtn.style.cssText = 'background:transparent;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:8px;border-radius:50%;transition:background 0.2s;';
+  downloadBtn.title = "Download";
+  downloadBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (typeof markMediaDownloaded === 'function') markMediaDownloaded(url);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name || 'download';
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+  actionsGroup.appendChild(downloadBtn);
+
+  // More (Three Dots) Button
+  const moreBtn = document.createElement('button');
+  moreBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>';
+  moreBtn.style.cssText = 'background:transparent;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:8px;margin-right:-8px;border-radius:50%;transition:background 0.2s;';
+  moreBtn.title = "More options";
+  
+  const ctxMenu = document.createElement('div');
+  ctxMenu.style.cssText = 'position:absolute;top:100%;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5);display:none;flex-direction:column;gap:2px;z-index:30;animation:popIn 0.15s ease;';
+
+  const addMenuOption = (label, iconSvg, onClick) => {
+    const btn = document.createElement('button');
+    btn.innerHTML = `<span style="display:flex;align-items:center;color:var(--text-muted);">${iconSvg}</span> <span style="flex:1;text-align:left;font-size:13.5px;font-weight:600;color:var(--text-primary);">${label}</span>`;
+    btn.style.cssText = 'background:transparent;border:none;padding:10px 12px;display:flex;align-items:center;gap:10px;border-radius:8px;cursor:pointer;transition:background 0.15s;font-family:inherit;width:100%;';
+    btn.addEventListener('mouseenter', () => btn.style.background = 'var(--surface2)');
+    btn.addEventListener('mouseleave', () => btn.style.background = 'transparent');
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      ctxMenu.style.display = 'none';
+      onClick();
+    });
+    ctxMenu.appendChild(btn);
+  };
+
+  // Menu Options
+  addMenuOption('Show in chat', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', () => {
+    overlay.remove();
+    if (msgId) {
+      const targetRow = document.querySelector(`.message-row[data-msg-id="${msgId}"]`);
+      if (targetRow) {
+        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const bubble = targetRow.querySelector('.bubble');
+        if (bubble) {
+          bubble.classList.add('search-match-active');
+          setTimeout(() => bubble.classList.remove('search-match-active'), 2000);
+        }
+      }
+    }
+  });
+
+  addMenuOption('Shared media', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', () => {
+    overlay.remove();
+    if (typeof showSharedMediaGallery === 'function') {
+      showSharedMediaGallery();
+    }
+  });
 
   if (type === 'image') {
-    const img = document.createElement('img');
-    img.src = url;
-    img.alt = name || 'Image';
-    overlay.appendChild(img);
-  } else if (type === 'video') {
-    const vid = document.createElement('video');
-    vid.src = url;
-    vid.controls = true;
-    vid.autoplay = true;
-    overlay.appendChild(vid);
+      addMenuOption('Toggle Zoom', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>', () => {
+        currentZoom = currentZoom === 1 ? 2 : 1;
+        if(currentZoom === 1) { translateX = 0; translateY = 0; }
+        updateTransform();
+      });
   }
+  
+  addMenuOption('Open in new tab', '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>', () => {
+    openSafeExternalUrl(url);
+  });
+
+  moreBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    ctxMenu.style.display = ctxMenu.style.display === 'flex' ? 'none' : 'flex';
+  });
+  
+  actionsGroup.appendChild(moreBtn);
+  actionsGroup.appendChild(ctxMenu);
+
+  header.appendChild(titleGroup);
+  header.appendChild(actionsGroup);
+  
+  overlay.appendChild(header);
+
+  // The media container to allow bounds/padding
+  const mediaContainer = document.createElement('div');
+  mediaContainer.style.cssText = 'position:relative; width:calc(100vw - 32px); height:calc(100vh - 120px); display:flex; align-items:center; justify-content:center; overflow:hidden;';
+
+  let mediaEl;
+  if (type === 'image') {
+    mediaEl = document.createElement('img');
+    mediaEl.src = url;
+    mediaEl.alt = name || 'Image';
+    mediaEl.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;transition:transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);cursor:grab;';
+    
+    // Drag to pan if zoomed
+    mediaContainer.addEventListener('mousedown', (e) => {
+        if(currentZoom <= 1) return;
+        isDragging = true;
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+        mediaEl.style.cursor = 'grabbing';
+        mediaEl.style.transition = 'none'; // disable transition while dragging
+    });
+    window.addEventListener('mousemove', (e) => {
+        if(!isDragging) return;
+        translateX = e.clientX - startX;
+        translateY = e.clientY - startY;
+        updateTransform();
+    });
+    window.addEventListener('mouseup', () => {
+        if(!isDragging) return;
+        isDragging = false;
+        mediaEl.style.cursor = 'grab';
+        mediaEl.style.transition = 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)';
+    });
+    
+    // Double click to zoom
+    mediaContainer.addEventListener('dblclick', (e) => {
+        currentZoom = currentZoom === 1 ? 2.5 : 1;
+        if(currentZoom === 1) { translateX = 0; translateY = 0; }
+        updateTransform();
+    });
+
+  } else if (type === 'video') {
+    mediaEl = document.createElement('video');
+    mediaEl.src = url;
+    mediaEl.controls = true;
+    mediaEl.autoplay = true;
+    mediaEl.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;outline:none;border-radius:8px;';
+    mediaEl.addEventListener('click', e => e.stopPropagation());
+  }
+
+  function updateTransform() {
+      if(!mediaEl) return;
+      mediaEl.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom}) rotate(${currentRotation}deg)`;
+  }
+
+  mediaContainer.appendChild(mediaEl);
+  overlay.appendChild(mediaContainer);
 
   const info = document.createElement('div');
   info.className = 'media-preview-info';
   info.textContent = name || '';
+  info.style.cssText = 'position:absolute;bottom:24px;color:#ccc;font-size:13.5px;text-align:center;z-index:10;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,0.8);max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
   overlay.appendChild(info);
-  overlay.appendChild(closeBtn);
 
   overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) overlay.remove();
+    if (ctxMenu.style.display === 'flex') {
+        ctxMenu.style.display = 'none';
+        return;
+    }
+    if (e.target === overlay || e.target === mediaContainer) overlay.remove();
   });
 
   document.body.appendChild(overlay);
@@ -14561,6 +15203,7 @@ async function sendArticleMessage() {
     if (activeSelfDestructSeconds > 0) { msgData.selfDestructSeconds=activeSelfDestructSeconds; msgData.expiresAt=firebase.firestore.Timestamp.fromMillis(Date.now()+activeSelfDestructSeconds*1000); }
     if (replyToMsg) { msgData.replyTo={...replyToMsg}; clearReply(); }
     const ref = db.collection(col).doc(activeChatId);
+    forceScrollNextSnapshot = true;
     await ref.collection('messages').add(msgData);
     const updateData = { lastMessage:'📝 Article: ' + title, lastMessageAt:firebase.firestore.FieldValue.serverTimestamp() };
     if (!activeChatIsGroup) { const uid=activeChatPartner && activeChatPartner.uid; if (uid) updateData['unreadCounts.'+uid]=firebase.firestore.FieldValue.increment(1); }
@@ -14633,6 +15276,7 @@ function settingsHubIcon(name, size = 18) {
     palette: `<svg ${a}><circle cx="13.5" cy="6.5" r=".7" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".7" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".7" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".7" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.1 0-.9.7-1.7 1.7-1.7h2.1c3.1 0 5.6-2.5 5.6-5.6C22 6 17.5 2 12 2z"/></svg>`,
     article: `<svg ${a}><path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>`,
     download: `<svg ${a}><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>`,
+    image: `<svg ${a}><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>`,
     trash: `<svg ${a}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>`,
     refresh: `<svg ${a}><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/></svg>`,
     close: `<svg ${a}><path d="M7.5 7.5 16.5 16.5M16.5 7.5 7.5 16.5" stroke-width="2.6"/></svg>`
@@ -15161,6 +15805,11 @@ function showSettingsHub(options = {}) {
     label('Local data');
     addRow('article','Article drafts', `${settingsArticleDraftCount()} draft${settingsArticleDraftCount() === 1 ? '' : 's'} saved locally on this device.`, 'Clear', clearSettingsArticleDrafts, true);
     addRow('download','Export settings','Download a JSON backup of your appearance and compose preferences.', 'Export', exportSettingsBackup);
+    addRow('image','Downloaded media','Photos and videos you already opened are shown instantly instead of a download button.', 'Clear', () => {
+      if (!confirm('Forget which photos and videos were already downloaded on this device?')) return;
+      forgetAllDownloadedMedia();
+      showToast('Downloaded media list cleared');
+    }, true);
     label('Interface maintenance');
     addRow('refresh','Check for updates', `You are using ${AVENIX_MESSENGER_VERSION}.`, 'Check', ()=>showToast('You are using the latest available build.'));
     addRow('trash','Reset interface settings','Resets local theme, wallpaper, font size and compose preferences.', 'Reset', resetLocalInterfaceSettings, true);
@@ -15880,5 +16529,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21e25217f2c4f53',t:'MTc4NTE4MTUzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23448d55fc18f7d',t:'MTc4NTQxMzY4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23db67ba9fd81af',t:'MTc4NTUxMjU0NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21e25217f2c4f53',t:'MTc4NTE4MTUzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23448d55fc18f7d',t:'MTc4NTQxMzY4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23df9c3dd2ef784',t:'MTc4NTUxNTMwMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
