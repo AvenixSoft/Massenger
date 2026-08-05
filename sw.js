@@ -1,7 +1,7 @@
 // Avenix Messenger Service Worker
 // Updated for better cache invalidation on GitHub Pages / deployments
 
-const CACHE_NAME = 'avenix-cache-v2026087'; // ← CHANGE THIS VERSION ON EVERY DEPLOY (or use build date)
+const CACHE_NAME = 'avenix-cache-v2026086'; // ← CHANGE THIS VERSION ON EVERY DEPLOY (or use build date)
 const OFFLINE_URL = 'index.html';
 
 self.addEventListener('install', (event) => {
