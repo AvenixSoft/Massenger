@@ -3328,6 +3328,345 @@ html[data-theme="glass"] body{background:transparent;}
   .glass-settings-row input[type="range"]{flex:1 1 100%;order:3;}
   .glass-value{order:2;}
 }
+
+/* =====================================================================
+   RESPONSIVE APP-SHELL HARDENING
+   The chat is an app shell: the document never scrolls. Only the sidebar,
+   message list, drawers and modal bodies are allowed to scroll.
+   ===================================================================== */
+:root{
+  --viewport-top:0px;
+  --viewport-width:100vw;
+}
+@supports (height:100svh){:root{--app-height:100svh;}}
+@supports (height:100dvh){:root{--app-height:100dvh;}}
+
+html,
+body{
+  width:100%;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+/* Lock the browser page itself. This prevents the white/blank page from
+   rubber-banding behind the messenger on iOS and Android browsers. */
+body{
+  position:fixed;
+  inset:0;
+  height:100%;
+  max-height:100%;
+  overflow:hidden;
+  -webkit-overflow-scrolling:auto;
+}
+
+#loading-screen,
+#install-guide-screen,
+#app-lock-screen,
+#auth-screen,
+#app{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  width:100%;
+  min-width:0;
+  min-height:0;
+  height:var(--app-height,100vh);
+  max-height:none;
+}
+
+#loading-screen,
+#install-guide-screen,
+#app-lock-screen,
+#auth-screen{
+  bottom:auto;
+}
+
+#app{
+  bottom:auto;
+  display:flex;
+  overflow:hidden;
+}
+
+/* Every flex child that contains a scroll area must be allowed to shrink.
+   Without min-height:0, small phones create a second page-sized scroll layer. */
+.sidebar,
+.chat-window,
+.chat-active,
+.chats-list,
+.search-results,
+.messages,
+.drawer-nav,
+.modal,
+.modal-body{
+  min-height:0;
+}
+
+.sidebar,
+.chat-window{
+  height:100%;
+  overflow:hidden;
+}
+
+.chat-window{
+  flex:1 1 auto;
+  min-width:0;
+}
+
+.chat-active{
+  flex:1 1 auto;
+  min-width:0;
+}
+
+.chat-header,
+.chat-search-bar,
+.reply-bar,
+.pinned-bar,
+.compose-meta-bar,
+.message-form,
+.channel-locked-bar{
+  flex:0 0 auto;
+  min-width:0;
+}
+
+.chat-header,
+.chat-header-info,
+#chat-header-actions,
+.message-form,
+.msg-input-wrap,
+.user-row-body,
+.file-attachment-info{
+  min-width:0;
+}
+
+.chats-list,
+.search-results,
+.messages,
+.drawer-nav,
+.modal-body,
+.article-editor-scroll,
+.settings-hub-content{
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
+.messages{
+  min-height:0;
+  overflow-x:hidden;
+  overflow-y:auto;
+  scroll-padding-bottom:calc(var(--composer-h,60px) + 18px + env(safe-area-inset-bottom));
+}
+
+.message-row{
+  min-width:0;
+  max-width:min(84%,100%);
+}
+
+.bubble,
+.message-text,
+.poll-widget,
+.article-message-card,
+.file-attachment{
+  min-width:0;
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+
+.poll-widget{
+  width:min(352px,100%);
+  min-width:0;
+}
+
+/* Do not let long names, URLs or dynamic buttons widen the viewport. */
+button,
+input,
+textarea,
+select{
+  max-width:100%;
+}
+
+/* The app should not move when the iOS keyboard or browser chrome changes. */
+#app{
+  transform:none;
+}
+
+@media (min-width:769px) and (max-width:1100px){
+  .sidebar{width:clamp(280px,31vw,320px);min-width:280px;}
+  .message-row{max-width:min(76%,100%);}
+}
+
+@media (max-width:768px){
+  /* On phones both panes occupy the exact same fixed rectangle. */
+  #app{display:block;}
+  .sidebar,
+  .chat-window{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    min-height:0;
+    flex:none;
+  }
+  .sidebar{z-index:20;}
+  .chat-window{z-index:10;}
+
+  .sidebar .chats-list,
+  .sidebar .search-results:not(:empty),
+  .sidebar #archived-list{
+    min-height:0;
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .chat-active{height:100%;min-height:0;}
+  .messages{
+    padding-bottom:calc(max(var(--composer-h,60px),60px) + 18px + env(safe-area-inset-bottom));
+    overscroll-behavior-y:contain;
+  }
+
+  .chat-header{
+    min-height:52px;
+    margin-top:calc(8px + env(safe-area-inset-top));
+    margin-left:max(8px,env(safe-area-inset-left));
+    margin-right:max(8px,env(safe-area-inset-right));
+    padding-top:9px;
+    padding-bottom:9px;
+  }
+
+  .chat-header .icon-btn{padding:6px;}
+  #chat-header-actions{overflow:hidden;}
+  .chat-with-username,
+  .chat-with-status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  .message-form{
+    left:0;
+    right:0;
+    bottom:0;
+    width:100%;
+    max-width:100%;
+    padding-left:max(8px,env(safe-area-inset-left));
+    padding-right:max(8px,env(safe-area-inset-right));
+    padding-bottom:max(8px,env(safe-area-inset-bottom));
+    overflow:visible;
+  }
+
+  .msg-input-wrap{min-width:0;}
+  .message-form textarea{font-size:16px;}
+
+  /* Menus stay above the composer and are always contained by the viewport. */
+  .emoji-picker,
+  .attach-menu,
+  .gif-picker,
+  .schedule-picker,
+  .poll-creator{
+    box-sizing:border-box;
+    max-width:calc(100vw - 16px);
+    max-height:calc(var(--app-height,100vh) - 108px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+  .emoji-picker,
+  .gif-picker{
+    left:8px;
+    right:8px;
+    width:auto;
+    bottom:calc(100% + 8px);
+  }
+  .attach-menu,
+  .schedule-picker{
+    left:8px;
+    right:8px;
+    width:auto;
+    min-width:0;
+    bottom:calc(100% + 8px);
+  }
+  .poll-creator{
+    left:50%;
+    right:auto;
+    bottom:calc(100% + 8px);
+    width:calc(100vw - 16px);
+    max-height:calc(var(--app-height,100vh) - 108px);
+  }
+
+  .poll-widget,
+  .article-message-card{width:100%;max-width:100%;}
+  .poll-question{font-size:14px;}
+
+  /* Correct the safe-area sides for the floating dock. */
+  .mobile-nav-dock{
+    left:0;
+    right:0;
+    padding-left:max(12px,env(safe-area-inset-left));
+    padding-right:max(12px,env(safe-area-inset-right));
+  }
+
+  .mobile-nav-bar,
+  .mobile-nav-avatar{flex-shrink:0;}
+  .mobile-nav-item{min-width:0;}
+
+  /* Prevent accidental horizontal panning on narrow devices. */
+  .sidebar,
+  .chat-window,
+  .chat-active,
+  .messages,
+  .chats-list,
+  .search-results{overflow-x:hidden;}
+}
+
+@media (max-width:420px){
+  .chat-header{gap:6px;padding-left:9px;padding-right:9px;}
+  .chat-header .avatar.sm{width:30px;height:30px;font-size:11px;}
+  .chat-header .icon-btn{padding:5px;}
+  .chat-with-username{font-size:14px;}
+  .chat-with-status{font-size:10.5px;}
+  .messages{padding-left:8px;padding-right:8px;}
+  .message-row{max-width:calc(100% - 2px);}
+  .bubble{padding-left:11px;padding-right:11px;}
+  .message-form{gap:5px;padding-left:6px;padding-right:6px;}
+  .message-form > .form-icon-btn{width:40px;height:40px;}
+  .btn-send{width:40px;height:40px;}
+  .msg-input-wrap{padding-left:3px;padding-right:3px;}
+  .msg-input-wrap .form-icon-btn,
+  .msg-input-wrap .voice-record-btn{width:32px;height:32px;}
+  .msg-input-wrap textarea{padding-left:6px;padding-right:6px;}
+  .mobile-nav-dock{gap:7px;}
+  .mobile-nav-bar{padding-left:3px;padding-right:3px;}
+  .mobile-nav-item .nav-label{font-size:9px;}
+}
+
+@media (max-width:360px){
+  .mobile-nav-dock{gap:5px;}
+  .mobile-nav-item .nav-icon{width:23px;height:23px;}
+  .mobile-nav-item .nav-icon svg{width:20px;height:20px;}
+  .mobile-nav-item .nav-label{font-size:8.5px;}
+  .mobile-nav-avatar{--mnav-h:54px;}
+  .mobile-nav-bar{height:54px;}
+  .message-form > .form-icon-btn{width:38px;height:38px;}
+  .btn-send{width:38px;height:38px;}
+}
+
+/* Touch devices should not keep desktop hover transforms stuck on a tapped row. */
+@media (hover:none){
+  .user-row:hover,
+  .archive-toggle:hover,
+  .user-row.saved-row:hover,
+  .user-row.avenix-row:hover,
+  .user-row.pinned-row:hover,
+  .btn-primary:hover,
+  .btn-send:hover{transform:none;}
+}
+
+@media (max-width:768px) and (orientation:landscape){
+  .mobile-nav-dock{--mnav-h:52px;--mnav-gap:8px;}
+  .mobile-nav-bar{height:52px;}
+  .mobile-nav-avatar{--mnav-h:52px;}
+  .chat-header{margin-top:calc(4px + env(safe-area-inset-top));}
+  .messages{padding-top:7px;}
+}
 </style>
 </head>
 <body>
@@ -5958,7 +6297,7 @@ logoutBtn.addEventListener('click', async () => {
   await auth.signOut();
 });
 
-backBtn.addEventListener('click', () => { sidebar.classList.remove('hide-mobile'); var nav = document.getElementById('mobile-nav'); if(nav) nav.style.display=''; document.querySelectorAll('.mobile-nav-item').forEach(el=>el.classList.remove('active')); var c=document.getElementById('mnav-chats'); if(c) c.classList.add('active'); });
+backBtn.addEventListener('click', () => { sidebar.classList.remove('hide-mobile'); if (window.innerWidth <= 768) { chatActive.classList.add('hidden'); chatEmpty.classList.remove('hidden'); } var nav = document.getElementById('mobile-nav'); if(nav) nav.style.display=''; document.querySelectorAll('.mobile-nav-item').forEach(el=>el.classList.remove('active')); var c=document.getElementById('mnav-chats'); if(c) c.classList.add('active'); if (window.__avenixSyncMobileChrome) window.__avenixSyncMobileChrome(); });
 
 /* ===== AUTH STATE ===== */
 /* clear owner cache on auth change */
@@ -13421,45 +13760,89 @@ async function updateUserOnlineStatus(isOnline) {
   db.collection('users').doc(currentUser.uid).update(updates).catch(()=>{});
 }
 
-/* ===== SAFARI iOS KEYBOARD FIX ===== */
+/* ===== APP VIEWPORT / MOBILE SHELL STABILIZER ===== */
+/* Keep the browser page fixed and let visualViewport only resize the app shell.
+   The old iOS translateY workaround made the whole messenger visibly jump when
+   the address bar or keyboard changed; the shell is now fixed instead. */
 (function() {
-  var isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || 
-              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var root = document.documentElement;
+  var frame = 0;
+
+  function syncMobileChrome() {
+    var mobile = window.innerWidth <= 768;
+    var sidebar = document.getElementById('sidebar');
+    var chatActive = document.getElementById('chat-active');
+    var nav = document.getElementById('mobile-nav');
+    if (!mobile) {
+      if (sidebar) sidebar.classList.remove('hide-mobile');
+      if (nav) nav.style.removeProperty('display');
+      return;
+    }
+    /* The back button can leave the active chat mounted behind the list. The
+       sidebar state is the source of truth for which mobile screen is visible. */
+    var chatScreen = !!(sidebar && sidebar.classList.contains('hide-mobile') && chatActive && !chatActive.classList.contains('hidden'));
+    if (nav) nav.style.display = chatScreen ? 'none' : '';
+  }
 
   function applyViewportHeight() {
-    var vp = window.visualViewport;
-    var vh = vp ? vp.height : window.innerHeight;
-    
-    document.documentElement.style.setProperty('--app-height', vh + 'px');
-    
-    // On iOS, when keyboard opens, visualViewport shifts up (offsetTop increases).
-    // We need to counteract this by translating the app down by the offset amount.
-    if (isIOS && vp) {
-      var offsetTop = vp.offsetTop || 0;
+    if (frame) window.cancelAnimationFrame(frame);
+    frame = window.requestAnimationFrame(function() {
+      frame = 0;
+      var vp = window.visualViewport;
+      var rawHeight = vp && vp.height ? vp.height : window.innerHeight;
+      var rawWidth = vp && vp.width ? vp.width : window.innerWidth;
+      var height = Math.max(1, Math.round(rawHeight));
+      var width = Math.max(1, Math.round(rawWidth));
+      var offsetTop = vp && vp.offsetTop ? Math.max(0, Math.round(vp.offsetTop)) : 0;
+
+      root.style.setProperty('--app-height', height + 'px');
+      root.style.setProperty('--viewport-width', width + 'px');
+      root.style.setProperty('--viewport-top', offsetTop + 'px');
+      root.classList.toggle('keyboard-open', !!(vp && window.innerHeight - vp.height > 120));
+
       var app = document.getElementById('app');
-      var auth = document.getElementById('auth-screen');
-      
       if (app && !app.classList.contains('hidden')) {
-        app.style.height = vh + 'px';
-        app.style.transform = 'translateY(' + offsetTop + 'px)';
+        app.style.height = height + 'px';
+        app.style.transform = 'none';
       }
-      if (auth && !auth.classList.contains('hidden')) {
-        auth.style.height = vh + 'px';
-      }
-    }
+
+      ['loading-screen','install-guide-screen','app-lock-screen','auth-screen'].forEach(function(id) {
+        var screen = document.getElementById(id);
+        if (screen && !screen.classList.contains('hidden')) screen.style.height = height + 'px';
+      });
+
+      syncMobileChrome();
+      if (typeof syncComposerHeight === 'function') syncComposerHeight();
+    });
   }
 
   applyViewportHeight();
-
   if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', applyViewportHeight);
-    window.visualViewport.addEventListener('scroll', applyViewportHeight);
+    window.visualViewport.addEventListener('resize', applyViewportHeight, { passive:true });
+    window.visualViewport.addEventListener('scroll', applyViewportHeight, { passive:true });
   }
-  window.addEventListener('resize', applyViewportHeight);
+  window.addEventListener('resize', applyViewportHeight, { passive:true });
+  window.addEventListener('pageshow', applyViewportHeight, { passive:true });
   window.addEventListener('orientationchange', function() {
-    setTimeout(applyViewportHeight, 300);
+    setTimeout(applyViewportHeight, 250);
+    setTimeout(applyViewportHeight, 650);
+  }, { passive:true });
+  document.addEventListener('focusin', function(event) {
+    var tag = event.target && event.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') setTimeout(applyViewportHeight, 120);
   });
+  document.addEventListener('focusout', function() { setTimeout(applyViewportHeight, 220); });
+
+  var chatActive = document.getElementById('chat-active');
+  var sidebar = document.getElementById('sidebar');
+  if (window.MutationObserver) {
+    var observer = new MutationObserver(function() { syncMobileChrome(); });
+    if (chatActive) observer.observe(chatActive, { attributes:true, attributeFilter:['class'] });
+    if (sidebar) observer.observe(sidebar, { attributes:true, attributeFilter:['class'] });
+  }
+  window.__avenixSyncMobileChrome = syncMobileChrome;
 })();
+
 
 /* ===== PWA: register real service worker for offline caching & faster loads ===== */
 if ('serviceWorker' in navigator) {
@@ -16529,5 +16912,5 @@ document.addEventListener('visibilitychange', () => {
   updateUserOnlineStatus(document.visibilityState === 'visible');
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21e25217f2c4f53',t:'MTc4NTE4MTUzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23448d55fc18f7d',t:'MTc4NTQxMzY4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23df9c3dd2ef784',t:'MTc4NTUxNTMwMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1d4bb4bcb071f89',t:'MTc4NDQxMTczNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1db5c5f8c9c92dc',t:'MTc4NDQ4MTI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e434237dca8f7d',t:'MTc4NDU3Mzk3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1e457807bf55d0d',t:'MTc4NDU3NTQyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a215cce00cd2d7aa',t:'MTc4NTA5NDAzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21e25217f2c4f53',t:'MTc4NTE4MTUzMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23448d55fc18f7d',t:'MTc4NTQxMzY4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23df9c3dd2ef784',t:'MTc4NTUxNTMwMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a268b0ccff4562a0',t:'MTc4NTk2MzE5OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
