@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Avenix Messenger - Update</title>
+<title>Avenix Messenger - Beta</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -70,8 +70,27 @@
    spans edge to edge, including underneath the floating composer. */
 .messages{background-size:cover;background-position:center;background-repeat:no-repeat;}
 .chat-wallpaper{
-  position:absolute;inset:0;z-index:0;pointer-events:none;
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-size:cover;background-position:center;background-repeat:no-repeat;
+}
+/* When a wallpaper is applied, the app shell becomes see-through so the full-screen
+   wallpaper shows on the home (sidebar/chats) page and the chat page alike. The
+   bottom nav and the composer keep their own frosted panels so they stay put. */
+.app-wallpaper .app,
+.app-wallpaper .sidebar,
+.app-wallpaper .chat-window,
+.app-wallpaper .search-box,
+.app-wallpaper .folder-tabs,
+.app-wallpaper .chats-list{background:transparent!important;}
+.app-wallpaper .chat-window::before{display:none;}
+[data-theme="glass"] .app-wallpaper .sidebar{background:transparent!important;}
+
+/* On phones, photos & videos in chat are a touch smaller (in width and height) so
+   they never swallow the whole screen; the fixed bottom nav and composer stay put. */
+@media (max-width:768px){
+  .media-message-container{max-width:min(84vw,320px)!important;}
+  .media-message-container img,
+  .media-message-container video{max-height:min(46vh,320px)!important;}
 }
 .messages.has-wallpaper .message-row.received .bubble{background:rgba(19,19,30,0.82);backdrop-filter:blur(2px);}
 .messages.has-wallpaper .message-row.sent .bubble{background:rgba(30,58,95,0.86);backdrop-filter:blur(2px);}
@@ -3610,6 +3629,10 @@ body{touch-action:manipulation;}
 <!-- Glass theme backdrop: the black/photo layer every frosted panel blurs -->
 <div id="glass-backdrop" class="glass-backdrop"></div>
 
+<!-- Wallpaper layer: fixed to the whole viewport so the chosen background covers
+     the full screen edge-to-edge on both the home (chats) page and the chat page. -->
+<div id="chat-wallpaper" class="chat-wallpaper"></div>
+
 <!-- LOADING SCREEN -->
 <div id="loading-screen" class="auth-screen" style="background:var(--bg);" aria-live="polite" aria-label="Loading Avenix Messenger">
   <style>
@@ -4014,8 +4037,6 @@ body{touch-action:manipulation;}
   </div>
 
   <main class="chat-window">
-    <!-- Full-window wallpaper layer: spans the whole chat, under the composer -->
-    <div id="chat-wallpaper" class="chat-wallpaper"></div>
     <div id="chat-empty" class="chat-empty">
       <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -8242,10 +8263,12 @@ function applyWallpaper() {
     if (layer) layer.style.backgroundImage = `url("${wp}")`;
     messagesEl.style.backgroundImage = '';
     messagesEl.classList.add('has-wallpaper');
+    document.body.classList.add('app-wallpaper');
   } else {
     if (layer) layer.style.backgroundImage = '';
     messagesEl.style.backgroundImage = '';
     messagesEl.classList.remove('has-wallpaper');
+    document.body.classList.remove('app-wallpaper');
   }
 }
 
