@@ -3583,6 +3583,26 @@ body{touch-action:manipulation;}
   .chat-header{min-width:0;}
   .chat-header .icon-btn{flex-shrink:0;}
 }
+/* ===== MOBILE CHAT VISIBILITY FIX =====
+   The sidebar already covers the chat on phones. Hiding the chat with
+   `visibility:hidden` as well can leave a black screen when its transform and
+   class update happen in different rendering frames (especially on iOS/PWA).
+   Keep the chat rendered; the sidebar remains the only layer that hides it. */
+@media (max-width:768px), (max-width:932px) and (max-height:480px) and (orientation:landscape){
+  #app .chat-window,
+  #app .sidebar:not(.hide-mobile) ~ .chat-window,
+  #app .sidebar.hide-mobile ~ .chat-window{
+    visibility:visible !important;
+    opacity:1 !important;
+    display:flex !important;
+    background:var(--chat-bg);
+  }
+  #app .sidebar:not(.hide-mobile) ~ .chat-window *{
+    pointer-events:auto;
+  }
+  #app .chat-active{min-height:0;}
+  #app .sidebar{will-change:transform;}
+}
 </style>
 </head>
 <body>
@@ -16879,5 +16899,5 @@ document.addEventListener('visibilitychange', () => {
   lockShell();
 })();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a270db10f80fe600',t:'MTc4NjA0ODgxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
