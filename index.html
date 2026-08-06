@@ -83,19 +83,10 @@ html,body{
   background:var(--bg);color:var(--text-primary);
   overflow:hidden;overscroll-behavior:none;
 }
-/* Use dvh whenever the browser supports it. The JS layer further refines
-   --app-height to compensate for the iOS Safari URL bar and the on-screen
-   keyboard so the layout never jumps. */
+/* Safari iOS dvh support */
 @supports (height: 100dvh) {
   html, body { height: 100dvh; }
-  :root { --app-height:100dvh; }
 }
-/* When the keyboard is open on mobile, shrink --app-height so absolutely-
-   positioned children (chat, composer, sidebar) shrink with the visible
-   viewport instead of staying at the pre-keyboard height. */
-html.kb-open { --app-height: var(--kb-height, 100dvh); }
-/* Lock body width so 100vw scrollbars never add a horizontal offset. */
-body{position:fixed;inset:0;width:100%;}
 .hidden{display:none!important;}
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -1877,11 +1868,7 @@ body{position:fixed;inset:0;width:100%;}
     bottom:calc(var(--mnav-gap) + env(safe-area-inset-bottom));
     padding:0 max(12px,env(safe-area-inset-left)) 0 max(12px,env(safe-area-inset-right));
     z-index:50;pointer-events:none;
-    /* Hide the dock while the soft keyboard is open so it never overlaps the
-       composer or the input field. Fades in/out smoothly. */
-    transition:opacity .18s ease, transform .22s ease;
   }
-  html.kb-open .mobile-nav-dock{opacity:0;transform:translateY(20px);pointer-events:none;}
   .mobile-nav-dock > *{pointer-events:auto;}
 
   /* Rounded glass pill holding the four tabs */
@@ -1960,23 +1947,19 @@ body{position:fixed;inset:0;width:100%;}
   .sidebar-header{display:none;}
   .sidebar-tabs{display:none;}
 
-  /* On phones the sidebar becomes a flex column that fills the chat window
-     (no more absolutely positioned layers, which were the source of the
-     keyboard / dock jumps). The dock floats above with pointer-events:none,
-     and the lists carry enough bottom padding to clear it. */
+  /* Adjust sidebar to clear the floating dock (bar height + gap above and below) */
   .app{position:relative;}
   .sidebar{
-    width:100%;min-width:0;
-    top:0;left:0;right:0;
-    z-index:20;height:100%;
-    display:flex;flex-direction:column;
+    width:100%;min-width:0;position:absolute;
+    top:0;left:0;right:0;bottom:0;
+    z-index:20;height:auto;
   }
   /* The lists keep scrolling all the way down so the background runs under the
      floating dock, while the trailing padding keeps the last row reachable. */
   .sidebar .chats-list,
   .sidebar .search-results:not(:empty),
   .sidebar #archived-list{
-    padding-bottom:calc(var(--mnav-h) + (var(--mnav-gap) * 2) + env(safe-area-inset-bottom) + 8px);
+    padding-bottom:calc(var(--mnav-h) + (var(--mnav-gap) * 2) + env(safe-area-inset-bottom));
   }
   .sidebar.hide-mobile{transform:translateX(-100%);}
 
@@ -2007,15 +1990,12 @@ body{position:fixed;inset:0;width:100%;}
   .emoji-picker{width:290px;right:8px;}
 
   /* Chat takes the whole screen: the wallpaper layer spans the full window and
-     the composer sits in the document flow at the bottom of .chat-active, so
-     it is never hidden by the on-screen keyboard or the floating dock. The
-     frosted glass look is preserved; the difference is layout, not visuals. */
+     the composer floats over the message list, Telegram style, so bubbles
+     scroll underneath the frosted pill instead of stopping above a solid bar. */
   .chat-active{padding-bottom:0;}
   .message-form{
-    position:relative;left:0;right:0;bottom:0;z-index:30;
-    padding:6px 8px;
-    padding-bottom:max(8px,env(safe-area-inset-bottom));
-    flex-shrink:0;background:transparent;
+    position:absolute;left:0;right:0;bottom:0;z-index:30;
+    padding:6px 8px;padding-bottom:max(8px,env(safe-area-inset-bottom));
   }
   .message-form textarea{max-height:108px;}
   /* Reserve the composer's height so the newest message is never hidden.
@@ -3351,167 +3331,6 @@ html[data-theme="glass"] body{background:transparent;}
 </style>
 </head>
 <body>
-<script>
-/* ============================================================================
-   Avenix · Viewport Stabiliser
-   ----------------------------------------------------------------------------
-   Solves three problems on mobile:
-
-   1. Page jumps when the iOS / Android browser shows or hides the URL bar, or
-      when the soft keyboard opens and closes. We track `visualViewport` and
-      the window's `resize` event and continuously write the actual visible
-      height into a CSS custom property (--app-height). Every layout-driven
-      element (.app, .sidebar, .chat-window, .auth-screen, …) reads from that
-      variable instead of `100vh`, so the UI never has to "snap" to a stale
-      height.
-
-   2. The composer used to measure its own height with `offsetHeight` once,
-      which returned 0 while the chat was still hidden and then never updated
-      when the textarea grew. A ResizeObserver now follows the form for its
-      whole lifetime and writes the live value to --composer-h, which .messages
-      reads as its bottom padding.
-
-   3. The floating mobile dock used to cover the input when the soft keyboard
-      was open. We detect the keyboard via `visualViewport.height` shrinking
-      and add a `kb-open` class on <html> that hides the dock and shrinks
-      --app-height to the visible viewport. The transition is instant, so
-      there is no jank when the user focuses the textarea.
-
-   Everything is wrapped in a guard that runs even if a global error happens
-   elsewhere in the page; the worst case is "viewport is slightly off" rather
-   than a broken chat.
-   ============================================================================ */
-(function(){
-  try {
-    var doc = document.documentElement;
-    var lastKeyboardOpen = null;
-    var lastInnerHeight = 0;
-    var lastInnerWidth = 0;
-
-    function readViewport() {
-      var win = window;
-      var vv = win.visualViewport;
-      // The most reliable "visible" height is the visualViewport's height,
-      // falling back to the window's innerHeight (which on Android equals
-      // what is actually visible). We never use 100vh, because on iOS Safari
-      // it still includes the URL bar area and produces the classic jump.
-      var visibleHeight = (vv && vv.height) ? Math.round(vv.height) : win.innerHeight;
-      var visibleTop = (vv && vv.offsetTop) ? Math.round(vv.offsetTop) : 0;
-      // Detect the keyboard by the classic heuristic: visualViewport shrinks
-      // by more than 120px compared to the previous full-screen height.
-      var fullHeight = Math.max(win.innerHeight || 0, lastInnerHeight);
-      var keyboardOpen = !!vv && (fullHeight - visibleHeight) > 120;
-      return {
-        visibleHeight: visibleHeight,
-        visibleTop: visibleTop,
-        fullHeight: fullHeight,
-        width: win.innerWidth || 0,
-        keyboardOpen: keyboardOpen
-      };
-    }
-
-    function applyViewport(state) {
-      // --app-height is the single source of truth for the visible height.
-      // It is the visualViewport height when the keyboard is open (so the
-      // page shrinks with the keyboard), and the window inner height when
-      // it is not (so we ignore the iOS Safari URL bar area which can
-      // briefly report 0 right after a layout change).
-      var height = state.keyboardOpen ? state.visibleHeight : state.fullHeight;
-      doc.style.setProperty('--app-height', height + 'px');
-      if (state.keyboardOpen) {
-        doc.style.setProperty('--kb-height', state.visibleHeight + 'px');
-        doc.classList.add('kb-open');
-      } else {
-        doc.classList.remove('kb-open');
-      }
-      lastKeyboardOpen = state.keyboardOpen;
-    }
-
-    function tick() {
-      var state = readViewport();
-      // Skip writes when nothing actually changed. This keeps the layout
-      // stable during regular scrolling (resize is not fired for scroll).
-      if (state.width === lastInnerWidth && state.fullHeight === lastInnerHeight && state.keyboardOpen === lastKeyboardOpen) {
-        // Even if the visible height did not change, we still re-apply it on
-        // the first run and after orientation change, where the very first
-        // tick establishes the baseline.
-        if (doc.style.getPropertyValue('--app-height')) return;
-      }
-      lastInnerWidth = state.width;
-      lastInnerHeight = state.fullHeight;
-      applyViewport(state);
-    }
-
-    // Run once as soon as possible so the first paint uses the real height
-    // (no FOUC of "100vh" before the script kicks in).
-    tick();
-
-    // visualViewport fires every time the URL bar slides or the keyboard
-    // appears. The window resize event catches orientation changes.
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', tick);
-      window.visualViewport.addEventListener('scroll', tick);
-    }
-    window.addEventListener('resize', function(){
-      // On orientation change the innerWidth/Height numbers swap. Reset the
-      // cached baseline so the next tick re-measures everything.
-      lastInnerHeight = 0;
-      lastInnerWidth = 0;
-      tick();
-    });
-    window.addEventListener('orientationchange', function(){
-      lastInnerHeight = 0;
-      lastInnerWidth = 0;
-      setTimeout(tick, 60);
-      setTimeout(tick, 280);
-    });
-    // Pageshow covers the bfcache restore case (iOS keeps the page alive and
-    // replays the last viewport, which can be wildly off).
-    window.addEventListener('pageshow', function(){
-      lastInnerHeight = 0;
-      lastInnerWidth = 0;
-      setTimeout(tick, 30);
-    });
-
-    /* --------------------------------------------------------------------
-       Composer height tracking
-       --------------------------------------------------------------------
-       The chat list needs to know how tall the composer is so the newest
-       message is never hidden underneath it. The existing `syncComposerHeight`
-       function in the main script already does this perfectly (offsetHeight
-       + ResizeObserver + safe-area handling + auto-scroll-to-bottom on
-       growth), so we simply re-trigger it after layout-affecting changes
-       (font load, viewport resize, keyboard show/hide) instead of running
-       a parallel measurement that would race with the original. */
-    function refreshComposerHeight() {
-      if (typeof syncComposerHeight === 'function') {
-        try { syncComposerHeight(); } catch (_) {}
-      }
-    }
-    // Re-measure after fonts load (the chat can grow a few pixels when
-    // Inter swaps in from the system fallback).
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(refreshComposerHeight);
-    }
-    // Re-measure when the viewport changes — the safe-area insets may have
-    // shifted (URL bar, keyboard, orientation change).
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', refreshComposerHeight);
-      window.visualViewport.addEventListener('scroll', refreshComposerHeight);
-    }
-    window.addEventListener('resize', refreshComposerHeight);
-    // Expose a manual hook the rest of the code can call after hiding or
-    // showing the composer (e.g. switching to voice record).
-    window.avenixRefreshComposerHeight = function(){
-      requestAnimationFrame(refreshComposerHeight);
-      setTimeout(refreshComposerHeight, 50);
-    };
-  } catch (err) {
-    // Never let the stabiliser break the rest of the app.
-    try { console && console.warn && console.warn('Avenix viewport stabiliser:', err); } catch (_) {}
-  }
-})();
-</script>
 
 <!-- Glass theme backdrop: the black/photo layer every frosted panel blurs -->
 <div id="glass-backdrop" class="glass-backdrop"></div>
