@@ -70,20 +70,17 @@
    spans edge to edge, including underneath the floating composer. */
 .messages{background-size:cover;background-position:center;background-repeat:no-repeat;}
 .chat-wallpaper{
-  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  position:absolute;inset:0;z-index:0;pointer-events:none;
   background-size:cover;background-position:center;background-repeat:no-repeat;
 }
-/* When a wallpaper is applied, the app shell becomes see-through so the full-screen
-   wallpaper shows on the home (sidebar/chats) page and the chat page alike. The
-   bottom nav and the composer keep their own frosted panels so they stay put. */
-.app-wallpaper .app,
-.app-wallpaper .sidebar,
-.app-wallpaper .chat-window,
-.app-wallpaper .search-box,
-.app-wallpaper .folder-tabs,
-.app-wallpaper .chats-list{background:transparent!important;}
-.app-wallpaper .chat-window::before{display:none;}
-[data-theme="glass"] .app-wallpaper .sidebar{background:transparent!important;}
+/* The wallpaper is contained inside the chat pane, so it only affects the chat
+   page. The home/sidebar keeps its own theme background and never picks it up. */
+.chat-window:has(.messages.has-wallpaper)::before{display:none;}
+/* In glass mode the sidebar is transparent, and on phones the chat pane is rendered
+   behind it — so an opaque sidebar is what stops the chat from bleeding into the
+   home page. Keep it near-opaque here (chat keeps its own wallpaper/backdrop).
+   The doubled class beats the later glass structural rule's specificity. */
+[data-theme="glass"] .sidebar.sidebar{background:rgba(13,13,22,0.96)!important;}
 
 /* On phones, photos & videos in chat are a touch smaller (in width and height) so
    they never swallow the whole screen; the fixed bottom nav and composer stay put. */
@@ -732,13 +729,15 @@ html,body{
 /* The header floats as a detached rounded card on every screen size. */
 .chat-header{
   display:flex;align-items:center;gap:12px;
-  padding:11px 16px;background:var(--chat-header-bg);
-  border:1px solid var(--border);flex-shrink:0;
+  padding:11px 16px;background:rgba(15,15,23,0.35);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.06);flex-shrink:0;
   margin:10px 12px 0;border-radius:20px;
-  box-shadow:0 6px 22px rgba(0,0,0,0.32);
+  box-shadow:0 6px 22px rgba(0,0,0,0.18);
   position:relative;z-index:2;
 }
-[data-theme="light"] .chat-header{box-shadow:0 6px 20px rgba(20,30,60,0.12);}
+/* Keep the header open/see-through in light theme too, so messages stay visible behind it. */
+[data-theme="light"] .chat-header{background:rgba(255,255,255,0.35);border-color:rgba(20,30,60,0.06);box-shadow:0 6px 18px rgba(20,30,60,0.10);}
 .chat-header-info{flex:1;display:flex;flex-direction:column;min-width:0;cursor:pointer;}
 .chat-header-info:hover .chat-with-username{color:var(--primary);}
 .chat-with-username{font-weight:700;font-size:15px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color 0.2s;}
@@ -2648,7 +2647,7 @@ html,body{
 .media-preview-overlay img,
 .media-preview-overlay video { max-width: 92vw; max-height: 80vh; border-radius: 12px; }
 .media-preview-close {
-  position: absolute; top: 16px; right: 16px;
+  position: absolute; top: calc(env(safe-area-inset-top,0px) + 16px); right: 16px;
   background: rgba(255,255,255,0.1); border: none; cursor: pointer;
   color: #fff; width: 40px; height: 40px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -3571,9 +3570,11 @@ body{touch-action:manipulation;}
   .mobile-nav-dock{transform:none!important;will-change:auto;}
   .scroll-bottom-btn{z-index:44;}
 
-  /* When keyboard opens, hide the bottom dock and keep chat controls steady. */
+  /* When keyboard opens, hide the bottom dock and seat the composer right on top
+     of the keyboard (drop the home-indicator padding so there's no gap), then
+     keep the newest message above the composer. */
   html.avenix-keyboard-open .mobile-nav-dock{display:none!important;}
-  html.avenix-keyboard-open .message-form{bottom:0!important;}
+  html.avenix-keyboard-open .message-form{bottom:0!important;padding-bottom:8px!important;}
   html.avenix-keyboard-open .messages{padding-bottom:calc(max(var(--composer-h,60px),60px) + 10px)!important;}
 
   /* Avoid browser auto zoom and accidental layout shifts on focus. */
@@ -3622,16 +3623,29 @@ body{touch-action:manipulation;}
   #app .chat-active{min-height:0;}
   #app .sidebar{will-change:transform;}
 }
+
+/* On phones the "Only admins / publishers can post" (and blocked / banned) bar
+   floats at the bottom, above the nav dock, right where the composer would be —
+   instead of sitting under the top header. */
+@media (max-width:768px){
+  .channel-locked-bar{
+    position:absolute;
+    left:10px;right:10px;
+    bottom:calc(var(--mnav-h,58px) + var(--mnav-gap,12px) + env(safe-area-inset-bottom) + 8px);
+    z-index:31;
+    padding:12px 14px;
+    border:1px solid var(--input-border);
+    border-radius:16px;
+    background:var(--input-bg);
+    box-shadow:0 6px 20px rgba(0,0,0,0.28);
+  }
+}
 </style>
 </head>
 <body>
 
 <!-- Glass theme backdrop: the black/photo layer every frosted panel blurs -->
 <div id="glass-backdrop" class="glass-backdrop"></div>
-
-<!-- Wallpaper layer: fixed to the whole viewport so the chosen background covers
-     the full screen edge-to-edge on both the home (chats) page and the chat page. -->
-<div id="chat-wallpaper" class="chat-wallpaper"></div>
 
 <!-- LOADING SCREEN -->
 <div id="loading-screen" class="auth-screen" style="background:var(--bg);" aria-live="polite" aria-label="Loading Avenix Messenger">
@@ -4037,6 +4051,9 @@ body{touch-action:manipulation;}
   </div>
 
   <main class="chat-window">
+    <!-- Wallpaper layer: contained inside the chat pane so it fills the chat page
+         only (never the home page), edge to edge incl. under the composer. -->
+    <div id="chat-wallpaper" class="chat-wallpaper"></div>
     <div id="chat-empty" class="chat-empty">
       <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -8263,12 +8280,10 @@ function applyWallpaper() {
     if (layer) layer.style.backgroundImage = `url("${wp}")`;
     messagesEl.style.backgroundImage = '';
     messagesEl.classList.add('has-wallpaper');
-    document.body.classList.add('app-wallpaper');
   } else {
     if (layer) layer.style.backgroundImage = '';
     messagesEl.style.backgroundImage = '';
     messagesEl.classList.remove('has-wallpaper');
-    document.body.classList.remove('app-wallpaper');
   }
 }
 
@@ -9768,6 +9783,17 @@ messageInput.addEventListener('input', () => {
 });
 messageInput.addEventListener('blur', () => {
   if (isTypingFlag) { isTypingFlag = false; clearTimeout(typingTimeout); setTypingState(false); }
+});
+/* When the composer is focused (esp. on phones, where the keyboard appears) make
+   sure the newest message is scrolled up to sit just above the composer. */
+messageInput.addEventListener('focus', () => {
+  if (typeof syncComposerHeight === 'function') requestAnimationFrame(syncComposerHeight);
+  if (messagesEl) {
+    requestAnimationFrame(() => {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      setTimeout(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }, 120);
+    });
+  }
 });
 messageInput.addEventListener('keydown', event => {
   if (event.key !== 'Enter' || event.isComposing) return;
@@ -14982,7 +15008,7 @@ function showMediaPreview(url, type, name, msgId) {
   let startX = 0, startY = 0, translateX = 0, translateY = 0;
 
   const header = document.createElement('div');
-  header.style.cssText = 'position:absolute;top:0;left:0;right:0;height:64px;background:linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:20;';
+  header.style.cssText = 'position:absolute;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;background:linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);display:flex;align-items:center;justify-content:space-between;min-height:64px;z-index:20;';
 
   const titleGroup = document.createElement('div');
   titleGroup.style.cssText = 'color:#fff;font-size:16px;font-weight:600;display:flex;align-items:center;gap:16px;';
@@ -16922,5 +16948,5 @@ document.addEventListener('visibilitychange', () => {
   lockShell();
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a270db10f80fe600',t:'MTc4NjA0ODgxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a270db10f80fe600',t:'MTc4NjA0ODgxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a27186cac803c991',t:'MTc4NjA1NTg1MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
