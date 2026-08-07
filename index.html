@@ -66,21 +66,25 @@
 [data-theme="light"] .input-group input:focus ~ label,
 [data-theme="light"] .input-group input:not(:placeholder-shown) ~ label{background:linear-gradient(to bottom,transparent 40%,rgba(255,255,255,0.95) 40%);}
 .bubble{font-size:var(--msg-font-size,14.5px)!important;}
-/* The wallpaper lives on a dedicated full-window layer (.chat-wallpaper) so it
-   spans edge to edge, including underneath the floating composer. */
+/* The chat wallpaper lives on a dedicated layer so it spans edge to edge,
+   including underneath the floating composer. In dark/light/custom themes this
+   remains scoped to the chat pane. Glass mode mirrors the selected image onto
+   its own page-wide .glass-backdrop from JavaScript. */
 .messages{background-size:cover;background-position:center;background-repeat:no-repeat;}
 .chat-wallpaper{
   position:absolute;inset:0;z-index:0;pointer-events:none;
   background-size:cover;background-position:center;background-repeat:no-repeat;
 }
-/* The wallpaper is contained inside the chat pane, so it only affects the chat
-   page. The home/sidebar keeps its own theme background and never picks it up. */
 .chat-window:has(.messages.has-wallpaper)::before{display:none;}
-/* In glass mode the sidebar is transparent, and on phones the chat pane is rendered
-   behind it — so an opaque sidebar is what stops the chat from bleeding into the
-   home page. Keep it near-opaque here (chat keeps its own wallpaper/backdrop).
-   The doubled class beats the later glass structural rule's specificity. */
-[data-theme="glass"] .sidebar.sidebar{background:rgba(13,13,22,0.96)!important;}
+/* Keep the home/sidebar genuinely glassy. The former near-opaque fill hid the
+   glass backdrop, so a chosen Glass wallpaper could not be seen on the main
+   page. This light frost keeps the image visible without letting the chat pane
+   bleed through on mobile. */
+[data-theme="glass"] .sidebar.sidebar{
+  background:rgba(var(--glass-tint),var(--glass-alpha-soft))!important;
+  backdrop-filter:blur(calc(var(--glass-blur) * .45)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter:blur(calc(var(--glass-blur) * .45)) saturate(var(--glass-saturate));
+}
 
 /* On phones, photos & videos in chat are a touch smaller (in width and height) so
    they never swallow the whole screen; the fixed bottom nav and composer stay put. */
@@ -6901,11 +6905,13 @@ async function openChatWith(partnerData) {
   isAvenixView = false;
   if (unsubSavedMessages) { unsubSavedMessages(); unsubSavedMessages = null; }
   messagesEl.classList.remove('has-wallpaper');
-  applyWallpaper();
 
   const chatId = getChatId(currentUser.uid, partnerData.uid);
   if (!(await requireChatUnlock(chatId, partnerData.username || 'this chat'))) return;
   activeChatId = chatId;
+  // Resolve the wallpaper after selecting the chat so its per-chat image is
+  // used both in the chat pane and, in Glass mode, on the home backdrop.
+  applyWallpaper();
   activeChatPartner = partnerData;
   activeChatIsGroup = false;
   activeChatIsChannel = false;
@@ -7019,10 +7025,12 @@ async function openGroupChat(groupId, groupData) {
   isSavedMessagesView = false;
   isAvenixView = false;
   if (unsubSavedMessages) { unsubSavedMessages(); unsubSavedMessages = null; }
-  applyWallpaper();
   if (!(await requireChatUnlock(groupId, (groupData && groupData.name) || 'this chat'))) return;
 
   activeChatId = groupId;
+  // Resolve the wallpaper after selecting the chat so a group/channel's custom
+  // image is reflected correctly in the Glass home backdrop as well.
+  applyWallpaper();
   activeChatPartner = groupData;
   activeChatIsGroup = true;
   document.getElementById('blocked-banner').style.display = 'none';
@@ -8211,11 +8219,9 @@ function applyGlassSettings(settings) {
     root.style.setProperty('--blue-glow', hexToRgba(g.accent, 0.18));
   }
 
-  const layer = document.getElementById('glass-backdrop');
-  if (layer) {
-    const url = g.background ? safeImageSource(g.background) : '';
-    layer.style.backgroundImage = url ? `url("${url}")` : '';
-  }
+  // A selected chat/global wallpaper is mirrored behind the glass panels.
+  // If there is none, the dedicated Glass background remains the fallback.
+  applyGlassBackdrop(g);
 }
 /* Accepts https URLs and inline data images only. */
 function safeImageSource(value) {
@@ -8260,6 +8266,9 @@ function applyTheme(theme) {
     clearGlassVariables();
     document.documentElement.setAttribute('data-theme', selected === 'light' ? 'light' : 'dark');
   }
+  // Repaint the wallpaper whenever the theme changes. This clears the global
+  // Glass layer in dark/light and mirrors it again when Glass is selected.
+  applyWallpaper();
 }
 function getTheme() { return localStorage.getItem('appTheme') || 'dark'; }
 
@@ -8269,22 +8278,51 @@ function applyFontSize(px) {
 }
 function getFontSize() { return parseInt(localStorage.getItem('appFontSize') || '14', 10) || 14; }
 
-function applyWallpaper() {
+function getActiveWallpaper() {
   const customWp = activeChatId ? localStorage.getItem('appWallpaper_' + activeChatId) : null;
-  const globalWp = localStorage.getItem('appWallpaper');
-  const wp = customWp || globalWp;
-  // The image is painted on the full-window layer so it also shows underneath
-  // the floating composer; .messages keeps the class for bubble contrast rules.
-  const layer = document.getElementById('chat-wallpaper');
-  if (wp) {
-    if (layer) layer.style.backgroundImage = `url("${wp}")`;
-    messagesEl.style.backgroundImage = '';
-    messagesEl.classList.add('has-wallpaper');
-  } else {
-    if (layer) layer.style.backgroundImage = '';
-    messagesEl.style.backgroundImage = '';
-    messagesEl.classList.remove('has-wallpaper');
+  return customWp || localStorage.getItem('appWallpaper') || '';
+}
+
+function setBackgroundImage(layer, source) {
+  if (!layer) return;
+  const safeSource = safeImageSource(source);
+  // Data URLs can contain characters with CSS meaning; quote and escape the
+  // only delimiter that could close this url() value.
+  layer.style.backgroundImage = safeSource ? `url("${safeSource.replace(/"/g, '%22')}")` : '';
+}
+
+function applyGlassBackdrop(settings, wallpaper) {
+  const layer = document.getElementById('glass-backdrop');
+  if (!layer) return;
+  if (getTheme() !== 'glass') {
+    layer.style.backgroundImage = '';
+    return;
   }
+
+  const g = settings || getGlassSettings();
+  const chatWallpaper = wallpaper === undefined ? getActiveWallpaper() : wallpaper;
+  // A regular wallpaper becomes the shared photo behind the frosted home and
+  // chat panes in Glass mode. The Glass-specific background is retained as a
+  // fallback when no chat/global wallpaper has been selected.
+  const source = safeImageSource(chatWallpaper) || safeImageSource(g.background);
+  setBackgroundImage(layer, source);
+}
+
+function applyWallpaper() {
+  const wp = getActiveWallpaper();
+  const safeWallpaper = safeImageSource(wp);
+  // The chat layer always owns the actual chat wallpaper, so Dark, Light and
+  // Custom themes keep it strictly inside the chat page.
+  const layer = document.getElementById('chat-wallpaper');
+  setBackgroundImage(layer, safeWallpaper);
+  if (messagesEl) {
+    messagesEl.style.backgroundImage = '';
+    messagesEl.classList.toggle('has-wallpaper', !!safeWallpaper);
+  }
+
+  // Only Glass gets a page-wide mirror of the selected wallpaper. Other themes
+  // explicitly clear the Glass layer, leaving the sidebar/home on its theme bg.
+  applyGlassBackdrop(getGlassSettings(), safeWallpaper);
 }
 
 function resizeImageToDataURL(file, maxDim, cb) {
